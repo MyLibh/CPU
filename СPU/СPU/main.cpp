@@ -2,13 +2,14 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "CPU.hpp"
+#include "Parser.hpp"
 
 INT main()
 {
-    CPU<> proc1, 
+    /*CPU<> proc1, 
 		  proc2;
 
-    proc1.compileFromFile("Test.txt");
+    proc1.compileFromFile("Test");
 	
 	proc2.push(28);
     proc2.push(28);
@@ -27,6 +28,12 @@ INT main()
 	proc2.dumpStack();
 
 	proc3.sqrt();
+	*/
+
+	//Compiler<> comp;
+	//comp.toTextFile("Test");
+
+	delete &ParseCode("push15");
 
     system("pause");
     return 0;

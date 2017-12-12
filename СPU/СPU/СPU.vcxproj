@@ -115,13 +115,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Compiler.hpp" />
     <ClInclude Include="CPU.hpp" />
     <ClInclude Include="MyMath.hpp" />
     <ClInclude Include="MyTypedefs.hpp" />
+    <ClInclude Include="Parser.hpp" />
     <ClInclude Include="Stack.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Test.txt" />

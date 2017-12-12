@@ -2,10 +2,11 @@
 
 #ifndef _WINDOWS
 	
-	typedef bool   BOOL;
-	typedef int    INT;
-	typedef size_t SIZE_T;
-	typedef char   CHAR;
+	typedef bool		   BOOL;
+	typedef int			   INT;
+	typedef size_t         SIZE_T;
+	typedef char           CHAR;
+	typedef unsigned short USHORT;
 
 	#define CONST const
 

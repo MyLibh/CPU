@@ -1,7 +1,7 @@
 push 28
 push 98
 push -78
-dumpStack
+dump
 pop
 add
-dumpStack
+dump

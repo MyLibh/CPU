@@ -7,42 +7,44 @@
 
 #include "Stack.hpp"
 #include "MyMath.hpp"
-
+#include "Compiler.hpp"
+#include <vector>
 //cmd -D_SCL_SECURE_NO_WARNINGS
 
 template<typename T = INT>
 class CPU final
-{
+{	
+	T ax_,
+	  bx_,
+	  cx_,
+	  dx_;
 	Stack<T> stack_;
 
 public:
-	enum commands_
-	{
-		// Stack commands
-		_push,
-		_pop,
-		_add,
-		_sub,
-		_mul,
-		_div,
-		_sqrt,
-		_dup, 
-		_sin, 
-		_cos,
+	explicit CPU() : 
+		ax_(), 
+		bx_(), 
+		cx_(), 
+		dx_(), 
+		stack_() 
+	{ }
 
-		// CPU commands
-		jump,
-		je,
-		jne,
-		ja,
-		jae,
-		jb,
-		jbe
-	};
+	CPU(CONST CPU<T> &crCPU) : 
+		ax_(crCPU.ax_), 
+		bx_(crCPU.bx_), 
+		cx_(crCPU.cx_), 
+		dx_(crCPU.dx_),
+		stack_(crCPU.stack_) 
+	{ }
 
-	explicit CPU() : stack_() { }
-	CPU(CONST CPU<T> &crCPU) : stack_(crCPU.stack_) { }
-	CPU(CPU<T> &&rrProc) : stack_() { *this = std::move(rrProc); }
+	CPU(CPU<T> &&rrProc) : 
+		ax_(),
+		bx_(),
+		cx_(),
+		dx_(), 
+		stack_() 
+	{ *this = std::move(rrProc); }
+
 	~CPU() { }
 
 	CPU<T> &operator=(CONST CPU<T>&);
@@ -73,6 +75,11 @@ CPU<T> &CPU<T>::operator=(CONST CPU<T> &crCPU)
 {
 	if(this != &crCPU)
 	{
+		ax_ = std::move(crCPU.ax_);
+		bx_ = std::move(crCPU.bx_);
+		cx_ = std::move(crCPU.cx_);
+		dx_ = std::move(crCPU.dx_);
+
 		stack_ = crCPU.stack_;
 	}
 
@@ -84,7 +91,15 @@ CPU<T> &CPU<T>::operator=(CPU<T> &&rrCPU)
 {
 	assert(this != &rrCPU);
 	
+	ax_ = rrCPU.ax_;
+	bx_ = rrCPU.bx_;
+	cx_ = rrCPU.cx_;
+	dx_ = rrCPU.dx_;
+
 	stack_ = std::move(rrCPU.stack_);
+
+	if(std::is_pointer<T>::value) rrCPU.ax_ = rrCPU.bx_ = rrCPU.cx_ = rrCPU.dx_ = nullptr;
+	else                          rrCPU.ax_ = rrCPU.bx_ = rrCPU.cx_ = rrCPU.dx_ = NULL;
 	
 	return *this;
 }
@@ -240,7 +255,7 @@ BOOL CPU<T>::cos()
 template<typename T>
 BOOL CPU<T>::compileFromFile(CONST std::string &crFilename)
 {
-	std::ifstream file(crFilename);
+	std::ifstream file(crFilename + ".txt");
 	if(!file.is_open())
 	{
 		std::cerr << "Cannot open file: " << crFilename << std::endl;
@@ -261,6 +276,7 @@ BOOL CPU<T>::compileFromFile(CONST std::string &crFilename)
 			stack_.push(val);
 		}
 		else if(tmp == "pop") pop();
+
 		else if(tmp == "add") add();
 		else if(tmp == "sub") sub();
 		else if(tmp == "mul") mul();
@@ -269,9 +285,19 @@ BOOL CPU<T>::compileFromFile(CONST std::string &crFilename)
 		else if(tmp == "sin") sin();
 		else if(tmp == "cos") cos();
 		else if(tmp == "sqrt") sqrt();
-		else if(tmp == "dumpStack") dumpStack();
-		else { std::cerr << "Unknown command: " << tmp << std::endl; return FALSE; }
+
+		else if(tmp == "dump") dumpStack();
+
+		else 
+		{ 
+			std::cerr << "Unknown command: " << tmp << std::endl; 
+			
+			file.close();
+
+			return FALSE; 
+		}
 	}
+
 	file.close();
 
 	return TRUE;
