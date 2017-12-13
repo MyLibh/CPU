@@ -13,3 +13,4 @@ float       sin_(float       x) { return sinf(x); }
 double      cos_(double      x) { return  cos(x); }
 long double cos_(long double x) { return cosl(x); }
 float       cos_(float       x) { return cosf(x); } 
+

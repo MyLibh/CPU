@@ -118,7 +118,7 @@ void Stack<T>::push(const T &crVal)
 template<typename T>
 inline T Stack<T>::pop()
 {
-    return buffer_[counter_ ? --counter_ : counter_];
+    return buffer_[counter_ ? --counter_ : counter_]; // TODO: make it better
 }
 
 template<typename T>
@@ -133,8 +133,10 @@ VOID Stack<T>::swap(Stack<T> &rStack)
 template<typename T>
 VOID Stack<T>::dump() const
 {
+	std::cout << "[STACK]\n";
+
     if(counter_) for(SIZE_T i = NULL; i < counter_; ++i) std::cout << buffer_[i] << " ";
-	else std::cout << "empty";
+	else                                                 std::cout << "empty";
 
     std::cout << std::endl;
 }

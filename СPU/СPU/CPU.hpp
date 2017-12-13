@@ -4,44 +4,84 @@
 #include <string>
 #include <cassert>
 #include <type_traits>
+#include <array>
 
 #include "Stack.hpp"
 #include "MyMath.hpp"
-#include "Compiler.hpp"
-#include <vector>
+
 //cmd -D_SCL_SECURE_NO_WARNINGS
+
+template<typename T = INT>
+struct Register final
+{
+	enum REGISTERS : SIZE_T
+	{
+		AX,
+		BX,
+		CX,
+		DX,
+		EX,
+		//SP,
+
+		NUM
+	};
+
+	std::array<T, REGISTERS::NUM> regs;
+
+	explicit Register() : regs() { }
+	Register(CONST Register<T> &crReg) : regs(crReg.regs) { }
+	Register(Register<T> &&rrReg) : regs(std::move(rrReg.regs)) { }
+	~Register() { }
+
+	Register<T> &operator=(CONST Register<T> &crReg)
+	{
+		if (this != &crReg) regs = crReg.regs;
+		
+		return *this;
+	}
+
+	Register<T> &operator=(Register<T> &&rrReg)
+	{
+		assert(this != &rrReg);
+
+		regs = std::move(rrReg.regs);
+	
+		return *this;
+	}
+
+	VOID swap(Register<T> &rReg) { reg.swap(rReg.reg); }
+
+	VOID dump() const
+	{
+		std::cout << "[REGISTER]\n";
+
+		for (SIZE_T i = 0; i < REGISTERS::NUM; ++i) std::cout << static_cast<CHAR>('A' + i) << "X: " << regs[i] << std::endl;
+
+		std::cout << std::endl;
+	}
+};
+
+//==================================================================================================================
 
 template<typename T = INT>
 class CPU final
 {	
-	T ax_,
-	  bx_,
-	  cx_,
-	  dx_;
-	Stack<T> stack_;
+	Register<T>   reg_;
+	Stack<T>      stack_;
 
 public:
 	explicit CPU() : 
-		ax_(), 
-		bx_(), 
-		cx_(), 
-		dx_(), 
+		reg_(), 
 		stack_() 
 	{ }
 
 	CPU(CONST CPU<T> &crCPU) : 
-		ax_(crCPU.ax_), 
-		bx_(crCPU.bx_), 
-		cx_(crCPU.cx_), 
-		dx_(crCPU.dx_),
+		reg_(crCPU.reg_),
 		stack_(crCPU.stack_) 
 	{ }
 
 	CPU(CPU<T> &&rrProc) : 
-		ax_(),
-		bx_(),
-		cx_(),
-		dx_(), 
+		reg_(), 
 		stack_() 
 	{ *this = std::move(rrProc); }
 
@@ -49,12 +89,11 @@ public:
 
 	CPU<T> &operator=(CONST CPU<T>&);
 	CPU<T> &operator=(CPU<T>&&);
-
-	T      pop()                { return stack_.pop(); }
+	
+	T      pop()                { return stack_.pop(); } // TODO: make it better
 	SIZE_T getStackSize() const { return stack_.size(); }
 	VOID   push(CONST T &crVal) { stack_.push(crVal); }
-	VOID   dumpStack() const    { stack_.dump(); }
-
+	
 	BOOL add();
 	BOOL sub();
 	BOOL mul();
@@ -65,21 +104,42 @@ public:
 	BOOL sin();
 	BOOL cos();
 
-	VOID swap(CPU<T> &rCPU) { stack_.swap(rCPU.stack_); } 
+	VOID swap(CPU<T> &rCPU) { stack_.swap(rCPU.stack_); reg_.swap(rCPU.reg_); } // QUEST: std::move maybe?
 
-	BOOL compileFromFile(CONST std::string&);
+
+	VOID dump() const 
+	{ 
+		std::cout << "\n\t\t[CPU DUMP]\n";
+
+		reg_.dump(); 
+		stack_.dump(); 
+
+		std::cout << "\n\t\t[  END   ]\n";
+	}
 };
+
+#define CHECK_STACK_SIZEN(size)                                                                                         \
+		if(stack_.size() <= size)                                                                                       \
+		{                                                                                                               \
+			std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl; \
+																													    \
+			return FALSE;                                                                                               \
+		}
+
+#define CHECK_STACK_SIZE()                                                                                              \
+		if(!stack_.size())                                                                                              \
+		{                                                                                                               \
+			std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl; \
+																													    \
+			return FALSE;                                                                                               \
+		}
 
 template<typename T>
 CPU<T> &CPU<T>::operator=(CONST CPU<T> &crCPU)
 {
 	if(this != &crCPU)
 	{
-		ax_ = std::move(crCPU.ax_);
-		bx_ = std::move(crCPU.bx_);
-		cx_ = std::move(crCPU.cx_);
-		dx_ = std::move(crCPU.dx_);
-
+		reg_   = crCPU.reg_;
 		stack_ = crCPU.stack_;
 	}
 
@@ -91,15 +151,8 @@ CPU<T> &CPU<T>::operator=(CPU<T> &&rrCPU)
 {
 	assert(this != &rrCPU);
 	
-	ax_ = rrCPU.ax_;
-	bx_ = rrCPU.bx_;
-	cx_ = rrCPU.cx_;
-	dx_ = rrCPU.dx_;
-
+	reg_   = std::move(rrCPU.reg_);
 	stack_ = std::move(rrCPU.stack_);
-
-	if(std::is_pointer<T>::value) rrCPU.ax_ = rrCPU.bx_ = rrCPU.cx_ = rrCPU.dx_ = nullptr;
-	else                          rrCPU.ax_ = rrCPU.bx_ = rrCPU.cx_ = rrCPU.dx_ = NULL;
 	
 	return *this;
 }
@@ -107,12 +160,7 @@ CPU<T> &CPU<T>::operator=(CPU<T> &&rrCPU)
 template<typename T>
 BOOL CPU<T>::add()
 {
-	if(stack_.size() <= 1)
-	{
-		std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl;
-
-		return FALSE;
-	}
+	CHECK_STACK_SIZEN(1)
 
 	auto a = stack_.pop();
 	auto b = stack_.pop();
@@ -125,12 +173,7 @@ BOOL CPU<T>::add()
 template<typename T>
 BOOL CPU<T>::sub()
 {
-	if(stack_.size() <= 1)
-	{
-		std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl;
-
-		return FALSE;
-	}
+	CHECK_STACK_SIZEN(1)
 
 	auto a = stack_.pop();
 	auto b = stack_.pop();
@@ -143,12 +186,7 @@ BOOL CPU<T>::sub()
 template<typename T>
 BOOL CPU<T>::mul()
 {
-	if(stack_.size() <= 1)
-	{
-		std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl;
-
-		return FALSE;
-	}
+	CHECK_STACK_SIZEN(1)
 
 	auto a = stack_.pop();
 	auto b = stack_.pop();
@@ -161,18 +199,13 @@ BOOL CPU<T>::mul()
 template<typename T>
 BOOL CPU<T>::div()
 {
-	if(stack_.size() <= 1)
-	{
-		std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl;
-
-		return FALSE;
-	}
+	CHECK_STACK_SIZEN(1)
 
 	auto a = stack_.pop();
 	auto b = stack_.pop();
 
- 	assert(a);
-	stack_.push(b / a);
+ 	assert(b);
+	stack_.push(a / b);
 
 	return TRUE;
 }
@@ -180,12 +213,7 @@ BOOL CPU<T>::div()
 template<typename T>
 BOOL CPU<T>::dup()
 {
-	if(!stack_.size())
-	{
-		std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl;
-
-		return FALSE;
-	}
+	CHECK_STACK_SIZE()
 
 	auto a = stack_.pop();
 
@@ -198,12 +226,7 @@ BOOL CPU<T>::dup()
 template<typename T>
 BOOL CPU<T>::sqrt()
 {
-	if(!stack_.size())
-	{
-		std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl;
-
-		return FALSE;
-	}
+	CHECK_STACK_SIZE()
 
 	static_assert(std::is_arithmetic<T>::value, "Type T must be arithmetic\n");
 
@@ -217,12 +240,7 @@ BOOL CPU<T>::sqrt()
 template<typename T>
 BOOL CPU<T>::sin()
 {
-	if(!stack_.size())
-	{
-		std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl;
-
-		return FALSE;
-	}
+	CHECK_STACK_SIZE()
 
 	static_assert(std::is_arithmetic<T>::value, "Type T must be arithmetic\n");
 
@@ -236,12 +254,7 @@ BOOL CPU<T>::sin()
 template<typename T>
 BOOL CPU<T>::cos()
 {
-	if(!stack_.size())
-	{
-		std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl;
-
-		return FALSE;
-	}
+	CHECK_STACK_SIZE()
 
 	static_assert(std::is_arithmetic<T>::value, "Type T must be arithmetic\n");
 
@@ -252,53 +265,6 @@ BOOL CPU<T>::cos()
 	return TRUE;
 }
 
-template<typename T>
-BOOL CPU<T>::compileFromFile(CONST std::string &crFilename)
-{
-	std::ifstream file(crFilename + ".txt");
-	if(!file.is_open())
-	{
-		std::cerr << "Cannot open file: " << crFilename << std::endl;
+#undef CHECK_STACK_SIZE
+#undef CHECK_STACK_SIZEN
 
-		return FALSE;
-	}
-
-	while(!file.eof())
-	{
-		std::string tmp;
-		file >> tmp;
-
-		if(tmp == "push")
-		{
-			T val = NULL;
-			file >> val;
-
-			stack_.push(val);
-		}
-		else if(tmp == "pop") pop();
-
-		else if(tmp == "add") add();
-		else if(tmp == "sub") sub();
-		else if(tmp == "mul") mul();
-		else if(tmp == "div") div();
-		else if(tmp == "dup") dup();		
-		else if(tmp == "sin") sin();
-		else if(tmp == "cos") cos();
-		else if(tmp == "sqrt") sqrt();
-
-		else if(tmp == "dump") dumpStack();
-
-		else 
-		{ 
-			std::cerr << "Unknown command: " << tmp << std::endl; 
-			
-			file.close();
-
-			return FALSE; 
-		}
-	}
-
-	file.close();
-
-	return TRUE;
-} 

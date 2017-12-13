@@ -1,7 +1,10 @@
-2 28
-2 98
-2 -78
-11
-2
-3
-11
+dump
+push 28
+push 98
+push -78
+dump
+pop
+add
+dump
+move 4, ax
+test 17, cx, 4

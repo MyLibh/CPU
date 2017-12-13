@@ -1,7 +1,0 @@
-push 28
-push 98
-push -78
-dump
-pop
-add
-dump

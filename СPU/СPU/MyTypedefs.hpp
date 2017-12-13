@@ -18,9 +18,10 @@
 	#undef VOID
 #endif // VOID
 
-typedef void   VOID;
-typedef float  FLOAT;
-typedef double DOUBLE;
+typedef void     VOID;
+typedef float    FLOAT;
+typedef double   DOUBLE;
+typedef unsigned UNSIGNED;
 
 #ifdef _CRT_SECURE_CPP_OVERLOAD_STANDART_NAMES
 	#undef _CRT_SECURE_CPP_OVERLOAD_STANDART_NAMES
@@ -38,3 +39,4 @@ typedef double DOUBLE;
 #define _CRT_SECURE_NO_WARNINGS                 0
 #define _CRT_NONSTDC_NO_WARNINGS                0
 
+#define DEBUG

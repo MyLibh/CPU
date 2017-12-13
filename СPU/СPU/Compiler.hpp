@@ -1,17 +1,18 @@
 #pragma once
 
-#include <string>
-#include <fstream>
-#include <iostream>
-
-#include "MyTypedefs.hpp"
+#include "Parser.hpp"
+#include "CPU.hpp"
 
 template<typename T = INT>
-struct Compiler final
+class Compiler final
 {
-	enum commands_ : INT
+	CPU<T> cpu_;
+
+public:
+	static CONST SIZE_T MAX_LINE_LENGTH = 1 << 8;
+
+	enum commands_ : UNSIGNED
 	{
-		// Stack commands
 		push = 1,
 		pop,
 
@@ -26,7 +27,6 @@ struct Compiler final
 
 		dump,
 
-		// CPU commands
 		jump,
 		je,
 		jne,
@@ -35,37 +35,53 @@ struct Compiler final
 		jb,
 		jbe,
 
+		mov,
+
+		in, // What is this???
+		out, // What is this???
+		swi,
+
 		end
 	};
 
+	// TODO: Release dat shit
 	explicit Compiler() = default;
 	Compiler(CONST Compiler<T>&) = default;
 	Compiler(Compiler<T>&&) = default;
-	~Compiler() = default;
+	~Compiler() { };
 
 	Compiler<T> &operator=(CONST Compiler<T>&) = default;
 	Compiler<T> &operator=(Compiler<T>&&) = default;
 	
-	BOOL toTextFile(CONST std::string&) const;
+	BOOL toComTextFile(CONST std::string&) const;
 	//BOOL toBinFile(CONST std::string&) const;
+
+	BOOL FromTextFile(CONST std::string&) const;
+	BOOL FromComTextFile(CONST std::string&) const;
+	//BOOL FromBinFile(CONST std::string&) const;
 };
 
 template<typename T>
-BOOL Compiler<T>::toTextFile(CONST std::string &crFilename) const
+BOOL Compiler<T>::toComTextFile(CONST std::string &crFilename) const
 {
 	std::ifstream input(crFilename + ".txt");
 	if (!input.is_open())
 	{
 		std::cerr << "Cannot open file: " << crFilename << std::endl;
 
+		input.close();
+
 		return FALSE;
 	}
 
-	std::string outputFile = crFilename + "Text" + ".txt";
+	std::string outputFile = crFilename + "ComText" + ".txt";
 	std::ofstream output(outputFile);
 	if (!output.is_open())
 	{
 		std::cerr << "Cannot open file: " << outputFile << std::endl;
+
+		input.close();
+		output.close();
 
 		return FALSE;
 	}
@@ -95,13 +111,19 @@ BOOL Compiler<T>::toTextFile(CONST std::string &crFilename) const
 
 		else if (tmp == "dump")  output << commands_::dump;
 
-		else if (tmp == "jump")  output << commands_::jump;
-		else if (tmp == "je")	 output << commands_::je;
-		else if (tmp == "jne")   output << commands_::jne;
-		else if (tmp == "ja")	 output << commands_::ja;
-		else if (tmp == "jae")	 output << commands_::jae;
-		else if (tmp == "jb")	 output << commands_::jb;
-		else if (tmp == "jbe")   output << commands_::jbe;
+		//else if (tmp == "jump")  output << commands_::jump;
+		//else if (tmp == "je")	 output << commands_::je;
+		//else if (tmp == "jne")   output << commands_::jne;
+		//else if (tmp == "ja")	 output << commands_::ja;
+		//else if (tmp == "jae")	 output << commands_::jae;
+		//else if (tmp == "jb")	 output << commands_::jb;
+		//else if (tmp == "jbe")   output << commands_::jbe;
+
+		//else if (tmp == "move")	 output << commands_::move;
+
+		//else if (tmp == "in")	 output << commands_::in;
+		//else if (tmp == "out")   output << commands_::out;
+		//else if (tmp == "swi")   output << commands_::swi;
 
 		else if (tmp == "end")   output << commands_::end;
 
@@ -169,3 +191,140 @@ BOOL Compiler<T>::toBinFile(CONST std::string &crFilename) const
 
 	return TRUE;
 } */
+
+template<typename T>
+BOOL Compiler<T>::FromTextFile(CONST std::string&) const
+{
+	std::ifstream file(crFilename + ".txt");
+	if (!file.is_open())
+	{
+		std::cerr << "Cannot open file: " << crFilename << std::endl;
+
+		file.close();
+
+		return FALSE;
+	}
+
+	while (!file.eof())
+	{
+		CHAR tmp[MAX_LINE_LENGTH] = { };
+		file.getline(tmp, MAX_LINE_LENGTH, '\n');
+
+		Operation *pOp = ParseCode(tmp);
+		if (pOp)
+		{
+			if      (pOp->cmd == "push") cpu_.push(atoi(pOp->args[0].c_str()));
+			else if (pOp->cmd == "pop")  cpu_.pop();
+
+			else if (pOp->cmd == "add") cpu_.add();
+			else if (pOp->cmd == "sub") cpu_.sub();
+			else if (pOp->cmd == "mul") cpu_.mul();
+			else if (pOp->cmd == "div") cpu_.div();
+			else if (pOp->cmd == "dup") cpu_.dup();
+			else if (pOp->cmd == "sin") cpu_.sin();
+			else if (pOp->cmd == "cos") cpu_.cos();
+			else if (pOp->cmd == "sqrt") cpu_.sqrt();
+
+			else if (pOp->cmd == "dump") cpu_.dump();
+
+			// TODO: Other commands
+
+			else
+			{
+				std::cerr << "Unknown command: " << pOp->cmd << std::endl;
+
+				delete pOp;
+				file.close();
+
+				return FALSE;
+			}
+		}
+		else break;
+
+		delete pOp;
+	}
+
+	file.close();
+
+#ifdef DEBUG
+	cpu_.dump();
+#endif // DEBUG
+
+	return TRUE;
+}
+
+template<typename T>
+BOOL Compiler<T>::FromComTextFile(CONST std::string &crFilename) const
+{
+	std::ifstream file(crFilename + ".txt");
+	if (!file.is_open())
+	{
+		std::cerr << "Cannot open file: " << crFilename << std::endl;
+
+		file.close();
+
+		return FALSE;
+	}
+
+	while (!file.eof())
+	{
+		CHAR tmp[MAX_LINE_LENGTH] = { };
+		file.getline(tmp, MAX_LINE_LENGTH, '\n');
+
+		Operation *pOp = ParseCode(tmp);
+		if (pOp)
+		{
+			switch (atoi(pOp->cmd.c_str()))
+			{
+			case commands_::push:
+			{
+				//CONST auto &val_str = pOp->args[0];
+				//std::stringstream sstr(val_str);
+				//T val = (std::is_pointer<T>::value ? nullptr : NULL);
+
+				//sstr >> val;
+
+				//cpu_.push(val); 
+
+				break; // TODO: delete dat bad code
+			}
+
+			case commands_::pop:
+				//cpu_.pop(); 
+				break;
+
+			case commands_::add: 								
+				//cpu_.add();
+				break;
+
+			// TODO: Other functions
+
+			case commands_::dump:
+				cpu_.dump(); // QUEST: Why only dump works?
+				break;
+
+			default: 
+			{
+				std::cerr << "Unknown command: " << pOp->cmd << std::endl;
+
+				delete pOp;
+				file.close();
+
+				return FALSE;
+			}
+			}
+		}
+		else break;
+
+		delete pOp;
+	}
+
+	file.close();
+
+#ifdef DEBUG
+	cpu_.dump();
+#endif // DEBUG
+
+	return TRUE;
+
+}
