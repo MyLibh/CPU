@@ -90,7 +90,7 @@ public:
 	CPU<T> &operator=(CONST CPU<T>&);
 	CPU<T> &operator=(CPU<T>&&);
 	
-	T      pop()                { return stack_.pop(); } // TODO: make it better
+	VOID   pop()                { stack_.pop(); } 
 	SIZE_T getStackSize() const { return stack_.size(); }
 	VOID   push(CONST T &crVal) { stack_.push(crVal); }
 	
@@ -104,7 +104,7 @@ public:
 	BOOL sin();
 	BOOL cos();
 
-	VOID swap(CPU<T> &rCPU) { stack_.swap(rCPU.stack_); reg_.swap(rCPU.reg_); } // QUEST: std::move maybe?
+	VOID swap(CPU<T> &rCPU) { stack_.swap(rCPU.stack_); reg_.swap(rCPU.reg_); }
 
 
 	VOID dump() const 
