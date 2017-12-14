@@ -63,7 +63,7 @@ public:
 template<typename T>
 Compiler &Compiler<T>::operator=(CONST Compiler<T> &crComp)
 {
-    if (this != crComp) cpu_ = crComp.cpu_;
+    if (this != &crComp) cpu_ = crComp.cpu_;
 
     return *this;
 }
@@ -71,7 +71,7 @@ Compiler &Compiler<T>::operator=(CONST Compiler<T> &crComp)
 template<typename T>
 Compiler &Compiler<T>::operator=(Compiler<T> &&rrComp)
 {
-    assert(this != *rrComp);
+    assert(this != &rrComp);
 
     cpu_ = std::move(rrComp.cpu_);
 
