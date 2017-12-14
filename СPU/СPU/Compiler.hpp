@@ -44,22 +44,39 @@ public:
 		end
 	};
 
-	// TODO: Release dat shit
-	explicit Compiler() = default;
-	Compiler(CONST Compiler<T>&) = default;
-	Compiler(Compiler<T>&&) = default;
-	~Compiler() { };
+	explicit Compiler() : cpu_() { }
+	Compiler(CONST Compiler<T> &crComp) : cpu_(crComp.cpu_j { }
+	Compiler(Compiler<T> &&rrComp) : cpu_(std:move(rrComp.cpu_)) { }
+	~Compiler() { }
 
-	Compiler<T> &operator=(CONST Compiler<T>&) = default;
-	Compiler<T> &operator=(Compiler<T>&&) = default;
+	Compiler<T> &operator=(CONST Compiler<T>&);
+	Compiler<T> &operator=(Compiler<T>&&);
 	
 	BOOL toComTextFile(CONST std::string&) const;
 	//BOOL toBinFile(CONST std::string&) const;
 
-	BOOL FromTextFile(CONST std::string&) const;
-	BOOL FromComTextFile(CONST std::string&) const;
-	//BOOL FromBinFile(CONST std::string&) const;
+	BOOL FromTextFile(CONST std::string&);
+	BOOL FromComTextFile(CONST std::string&);
+	//BOOL FromBinFile(CONST std::string&);
 };
+
+template<typename T>
+Compiler &Compiler<T>::operator=(CONST Compiler<T> &crComp)
+{
+    if (this != crComp) cpu_ = crComp.cpu_;
+
+    return *this;
+}
+
+template<typename T>
+Compiler &Compiler<T>::operator=(Compiler<T> &&rrComp)
+{
+    assert(this != *rrComp);
+
+    cpu_ = std::move(rrComp.cpu_);
+
+    return *this;
+}
 
 template<typename T>
 BOOL Compiler<T>::toComTextFile(CONST std::string &crFilename) const
