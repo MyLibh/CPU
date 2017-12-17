@@ -1,17 +1,18 @@
 #pragma once
 
-#ifndef _WINDOWS
+#ifndef _WINDOWS_
 	
 	typedef bool		   BOOL;
 	typedef int			   INT;
 	typedef size_t         SIZE_T;
 	typedef char           CHAR;
-	typedef unsigned short USHORT;
+	typedef unsigned short WORD;
 
 	#define CONST const
 
 	#define TRUE  true
 	#define FALSE false
+
 #endif // _WINDOWS
 
 #ifdef VOID
@@ -38,5 +39,8 @@ typedef unsigned UNSIGNED;
 #define _CRT_SECURE_CPP_OVERLOAD_STANDART_NAMES 0
 #define _CRT_SECURE_NO_WARNINGS                 0
 #define _CRT_NONSTDC_NO_WARNINGS                0
+
+#include <string>
+typedef CONST std::string &CRSTRING;
 
 #define DEBUG

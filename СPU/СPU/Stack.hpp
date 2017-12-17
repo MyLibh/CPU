@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "MyTypedefs.hpp"
+#include "Debugger.hpp"
 
 //cmd -D_SCL_SECURE_NO_WARNINGS
 
@@ -24,14 +25,24 @@ public:
 	Stack<T> &operator=(CONST Stack<T>&);
 	Stack<T> &operator=(Stack<T>&&);
 
-	inline SIZE_T size() const { return counter_; } 
-	inline BOOL empty() const { return counter? FALSE : TRUE; }
+	SIZE_T size() const { return counter_; } 
+	BOOL empty() const { return counter? FALSE : TRUE; }
     
 	VOID push(const T&);
-    T pop();
+	VOID push(T&&);
+	VOID pop();
+	
+	CONST T &top() const;
+    
 	VOID swap(Stack<T>&);
-
+	// TODO: add opertors ==, !=
     VOID dump() const;
+
+	class OutOfRangeExc : std::exception 
+	{
+	public:
+		OutOfRangeExc(CRSTRING error = "Stack is empty\n") : exception(error.c_str()) { }
+	};
 };
 
 template<typename T>
@@ -100,7 +111,7 @@ Stack<T> &Stack<T>::operator=(Stack<T> &&rrStack)
 }
 
 template<typename T>
-void Stack<T>::push(const T &crVal)
+VOID Stack<T>::push(CONST T &crVal)
 {
     if(++counter_ == size_) 
 	{
@@ -112,13 +123,39 @@ void Stack<T>::push(const T &crVal)
  
 		std::copy(pBuf, pBuf + tmp, buffer_.get());
 	}
-	else buffer_[counter_ - 1] = crVal;
+	
+	buffer_[counter_ - 1] = crVal;
 }
 
 template<typename T>
-inline T Stack<T>::pop()
+VOID Stack<T>::push(T &&rrVal)
 {
-    return buffer_[counter_ ? --counter_ : counter_]; // TODO: make it better
+    if(++counter_ == size_) 
+	{
+		T      *pBuf = buffer_.release();
+		SIZE_T  tmp  = size_;
+
+		size_ <<= 1;
+		buffer_.reset(new T[size_]);
+ 
+		std::copy(pBuf, pBuf + tmp, buffer_.get());
+	}
+	
+	buffer_[counter_ - 1] = rrVal;
+}
+
+template<typename T>
+VOID Stack<T>::pop()
+{
+	if(counter_) counter_--;
+	else throw OutOfRangeExc();
+}
+
+template<typename T>
+CONST T &Stack<T>::top() const
+{
+	if(counter_) return buffer_[counter_ - 1];
+	else throw OutOfRangeExc();
 }
 
 template<typename T>
@@ -133,7 +170,7 @@ VOID Stack<T>::swap(Stack<T> &rStack)
 template<typename T>
 VOID Stack<T>::dump() const
 {
-	std::cout << "[STACK]\n";
+	Debugger::Info("[STACK DUMP]", Debugger::TextColors::Yellow);
 
     if(counter_) for(SIZE_T i = NULL; i < counter_; ++i) std::cout << buffer_[i] << " ";
 	else                                                 std::cout << "empty";

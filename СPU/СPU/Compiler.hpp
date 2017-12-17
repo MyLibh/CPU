@@ -7,10 +7,32 @@ template<typename T = INT>
 class Compiler final
 {
 	CPU<T> cpu_;
+	
+	T getValue(CONST std::string &crVal) const // TODO: change return value type
+	{ 
+		std::stringstream sstr(crVal);
+		
+		T val = NULL; 
+		sstr >> val; 
+		
+		return val; 
+	}
+
+	REG makeReg(CONST std::string &crStrReg) const
+	{
+		if      (crStrReg == "ax") return REG::AX;
+		else if (crStrReg == "bx") return REG::BX;
+		else if (crStrReg == "cx") return REG::CX;
+		else if (crStrReg == "dx") return REG::DX;
+		else if (crStrReg == "ex") return REG::EX;
+		else if (crStrReg == "sp") return REG::SP;
+
+		else                       return REG::NUM;
+	}
+
+	BOOL isReg(CONST std::string &val) const { return makeReg(val) != REG::NUM; }
 
 public:
-	static CONST SIZE_T MAX_LINE_LENGTH = 1 << 8;
-
 	enum commands_ : UNSIGNED
 	{
 		push = 1,
@@ -27,7 +49,9 @@ public:
 
 		dump,
 
+		cmp,
 		jump,
+
 		je,
 		jne,
 		ja,
@@ -35,7 +59,7 @@ public:
 		jb,
 		jbe,
 
-		mov,
+		move,
 
 		in, // What is this???
 		out, // What is this???
@@ -45,23 +69,23 @@ public:
 	};
 
 	explicit Compiler() : cpu_() { }
-	Compiler(CONST Compiler<T> &crComp) : cpu_(crComp.cpu_j { }
+	Compiler(CONST Compiler<T> &crComp) : cpu_(crComp.cpu_) { }
 	Compiler(Compiler<T> &&rrComp) : cpu_(std:move(rrComp.cpu_)) { }
 	~Compiler() { }
 
 	Compiler<T> &operator=(CONST Compiler<T>&);
 	Compiler<T> &operator=(Compiler<T>&&);
 	
-	BOOL toComTextFile(CONST std::string&) const;
-	//BOOL toBinFile(CONST std::string&) const;
+	BOOL toComTextFile(CRSTRING) const;
+	//BOOL toBinFile(CRSTRING) const;
 
-	BOOL FromTextFile(CONST std::string&);
-	BOOL FromComTextFile(CONST std::string&);
-	//BOOL FromBinFile(CONST std::string&);
+	BOOL FromTextFile(CRSTRING);
+	BOOL FromComTextFile(CRSTRING);
+	//BOOL FromBinFile(CRSTRING);
 };
 
 template<typename T>
-Compiler &Compiler<T>::operator=(CONST Compiler<T> &crComp)
+Compiler<T> &Compiler<T>::operator=(CONST Compiler<T> &crComp)
 {
     if (this != &crComp) cpu_ = crComp.cpu_;
 
@@ -69,7 +93,7 @@ Compiler &Compiler<T>::operator=(CONST Compiler<T> &crComp)
 }
 
 template<typename T>
-Compiler &Compiler<T>::operator=(Compiler<T> &&rrComp)
+Compiler<T> &Compiler<T>::operator=(Compiler<T> &&rrComp)
 {
     assert(this != &rrComp);
 
@@ -79,145 +103,103 @@ Compiler &Compiler<T>::operator=(Compiler<T> &&rrComp)
 }
 
 template<typename T>
-BOOL Compiler<T>::toComTextFile(CONST std::string &crFilename) const
+BOOL Compiler<T>::toComTextFile(CRSTRING filename) const 
 {
-	std::ifstream input(crFilename + ".txt");
+	std::ifstream input(filename + ".txt");
 	if (!input.is_open())
 	{
-		std::cerr << "Cannot open file: " << crFilename << std::endl;
-
-		input.close();
+		Debugger::Error("Cannot open file: " + filename);
 
 		return FALSE;
 	}
 
-	std::string outputFile = crFilename + "ComText" + ".txt";
+	std::string outputFile = filename + "ComText" + ".txt";
 	std::ofstream output(outputFile);
 	if (!output.is_open())
 	{
-		std::cerr << "Cannot open file: " << outputFile << std::endl;
+		Debugger::Error("Cannot open file: " + outputFile);
 
 		input.close();
-		output.close();
 
 		return FALSE;
 	}
 
 	while (!input.eof())
 	{
-		std::string tmp;
-		input >> tmp;
+		CHAR tmp[MAX_LINE_LENGTH] = {};
+		input.getline(tmp, MAX_LINE_LENGTH, '\n');
 
-		if (tmp == "push")
+		Operation *pOp = ParseCode(tmp);
+		if (pOp)
 		{
-			T val = NULL;
-			input >> val;
+			if      (pOp->cmd == "push") output << commands_::push << " " << pOp->args[0];
+			else if (pOp->cmd == "pop")  output << commands_::pop;
 
-			output << commands_::pop << " " << val;
+			else if (pOp->cmd == "add")	 output << commands_::add;
+			else if (pOp->cmd == "sub")  output << commands_::sub;
+			else if (pOp->cmd == "mul")	 output << commands_::mul;
+			else if (pOp->cmd == "div")	 output << commands_::div;
+			else if (pOp->cmd == "dup")	 output << commands_::dup;
+			else if (pOp->cmd == "sin")  output << commands_::sin;
+			else if (pOp->cmd == "cos")  output << commands_::cos;
+			else if (pOp->cmd == "sqrt") output << commands_::sqrt;
+
+			else if (pOp->cmd == "dump") output << commands_::dump;
+
+			else if (pOp->cmd == "cmp")  output << commands_::cmp  << " " << pOp->args[0] << " " << pOp->args[1];
+			else if (pOp->cmd == "jump") output << commands_::jump << " " << pOp->args[0]; 
+
+			else if (pOp->cmd == "je")	 output << commands_::je   << " " << pOp->args[0];
+			else if (pOp->cmd == "jne")  output << commands_::jne  << " " << pOp->args[0];
+			else if (pOp->cmd == "ja")	 output << commands_::ja   << " " << pOp->args[0];
+			else if (pOp->cmd == "jae")	 output << commands_::jae  << " " << pOp->args[0];
+			else if (pOp->cmd == "jb")	 output << commands_::jb   << " " << pOp->args[0];
+			else if (pOp->cmd == "jbe")  output << commands_::jbe  << " " << pOp->args[0];
+
+			else if (pOp->cmd == "move") output << commands_::move << " " << pOp->args[0] << " " << pOp->args[1];
+
+			else if (pOp->cmd == "in")	 output << commands_::in;
+			else if (pOp->cmd == "out")  output << commands_::out;
+			else if (pOp->cmd == "swi")  output << commands_::swi;
+
+			else if (pOp->cmd == "end")  output << commands_::end;
+
+			else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) output << pOp->cmd;
+
+			else
+			{
+				Debugger::Error("Unknown command: " + std::string(tmp));
+
+				delete pOp;
+
+				output.close();
+				input.close();
+
+				return FALSE;
+			}
+
+			output << std::endl;
 		}
-		else if (tmp == "pop")   output << commands_::pop;
+		else break;
 
-		else if (tmp == "add")	 output << commands_::add;
-		else if (tmp == "sub")   output << commands_::sub;
-		else if (tmp == "mul")	 output << commands_::mul;
-		else if (tmp == "div")	 output << commands_::div;
-		else if (tmp == "dup")	 output << commands_::dup;
-		else if (tmp == "sin")   output << commands_::sin;
-		else if (tmp == "cos")   output << commands_::cos;
-		else if (tmp == "sqrt")  output << commands_::sqrt;
-
-		else if (tmp == "dump")  output << commands_::dump;
-
-		//else if (tmp == "jump")  output << commands_::jump;
-		//else if (tmp == "je")	 output << commands_::je;
-		//else if (tmp == "jne")   output << commands_::jne;
-		//else if (tmp == "ja")	 output << commands_::ja;
-		//else if (tmp == "jae")	 output << commands_::jae;
-		//else if (tmp == "jb")	 output << commands_::jb;
-		//else if (tmp == "jbe")   output << commands_::jbe;
-
-		//else if (tmp == "move")	 output << commands_::move;
-
-		//else if (tmp == "in")	 output << commands_::in;
-		//else if (tmp == "out")   output << commands_::out;
-		//else if (tmp == "swi")   output << commands_::swi;
-
-		else if (tmp == "end")   output << commands_::end;
-
-		else 
-		{ 
-			std::cerr << "Unknown command: " << tmp << std::endl; 
-			
-			output.close();
-			input.close();
-
-			return FALSE; 
-		}
-
-		output << std::endl;
+		delete pOp;
 	}
 
 	output.close();
 	input.close();
 
 	return TRUE;
-
 }
 
-/*
-template<typename T>
-BOOL Compiler<T>::toBinFile(CONST std::string &crFilename) const
-{
-	std::ifstream input(crFilename + ".txt");
-	if (!input.is_open())
-	{
-		std::cerr << "Cannot open file: " << crFilename << std::endl;
-
-		return FALSE;
-	}
-
-	std::string outputFile = crFilename + "Bin" + ".txt";
-	std::ofstream output(outputFile, std::ios::binary);
-	if (!output.is_open())
-	{
-		std::cerr << "Cannot open file: " << outputFile << std::endl;
-
-		return FALSE;
-	}
-
-	while (!input.eof())
-	{
-		std::string tmp;
-		input >> tmp;
-		
-
-		else
-		{
-			std::cerr << "Unknown command: " << tmp << std::endl;
-
-			output.close();
-			input.close();
-
-			return FALSE;
-		}
-
-		output << std::endl;
-	}
-	output.close();
-	input.close();
-
-	return TRUE;
-} */
+//===================================================================================================================
 
 template<typename T>
-BOOL Compiler<T>::FromTextFile(CONST std::string&) const
+BOOL Compiler<T>::FromTextFile(CRSTRING filename)
 {
-	std::ifstream file(crFilename + ".txt");
+	std::ifstream file(filename + ".txt");
 	if (!file.is_open())
 	{
-		std::cerr << "Cannot open file: " << crFilename << std::endl;
-
-		file.close();
+		Debugger::Error("Cannot open file: " + filename);
 
 		return FALSE;
 	}
@@ -230,7 +212,7 @@ BOOL Compiler<T>::FromTextFile(CONST std::string&) const
 		Operation *pOp = ParseCode(tmp);
 		if (pOp)
 		{
-			if      (pOp->cmd == "push") cpu_.push(atoi(pOp->args[0].c_str()));
+			if      (pOp->cmd == "push") cpu_.push(getValue(pOp->args[0]));
 			else if (pOp->cmd == "pop")  cpu_.pop();
 
 			else if (pOp->cmd == "add") cpu_.add();
@@ -243,12 +225,39 @@ BOOL Compiler<T>::FromTextFile(CONST std::string&) const
 			else if (pOp->cmd == "sqrt") cpu_.sqrt();
 
 			else if (pOp->cmd == "dump") cpu_.dump();
+			
+			else if (pOp->cmd == "cmp")  cpu_.push(getValue(pOp->args[0])), cpu_.push(getValue(pOp->args[1]));
+			else if (pOp->cmd == "jump") { file = FindLabel(file, pOp->args[0]); }
 
-			// TODO: Other commands
+			else if (pOp->cmd == "je")  { auto pair = cpu_.getPair(); if (pair.first == pair.second) file = FindLabel(file, pOp->args[0]); }
+			else if (pOp->cmd == "jne") { auto pair = cpu_.getPair(); if (pair.first != pair.second) file = FindLabel(file, pOp->args[0]); }
+			else if (pOp->cmd == "ja")  { auto pair = cpu_.getPair(); if (pair.first >  pair.second) file = FindLabel(file, pOp->args[0]); }
+			else if (pOp->cmd == "jae") { auto pair = cpu_.getPair(); if (pair.first >= pair.second) file = FindLabel(file, pOp->args[0]); }
+			else if (pOp->cmd == "jb")  { auto pair = cpu_.getPair(); if (pair.first <  pair.second) file = FindLabel(file, pOp->args[0]); }
+			else if (pOp->cmd == "jbe") { auto pair = cpu_.getPair(); if (pair.first <= pair.second) file = FindLabel(file, pOp->args[0]); }
+
+			else if(pOp->cmd == "move")
+			{
+				BOOL isArg0Reg = isReg(pOp->args[0]),
+					 isArg1Reg = isReg(pOp->args[1]);
+				
+				if      ( isArg0Reg &&  isArg1Reg) cpu_.move( makeReg(pOp->args[0]),  makeReg(pOp->args[1]));
+				else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(pOp->args[0]),  makeReg(pOp->args[1]));
+				//else if ( isArg0Reg && !isArg1Reg) cpu_.move( makeReg(pOp->args[0]), getValue(pOp->args[1]));
+				//else                               cpu_.move(getValue(pOp->args[0]), getValue(pOp->args[1]));
+			}
+
+			//else if (pOp->cmd == "in");
+			//else if (pOp->cmd == "out");
+			//else if (pOp->cmd == "swi");
+
+			else if(pOp->cmd == "end") { delete pOp; break; }
+
+			else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) { }
 
 			else
 			{
-				std::cerr << "Unknown command: " << pOp->cmd << std::endl;
+				Debugger::Error("Unknown command: " + pOp->cmd);
 
 				delete pOp;
 				file.close();
@@ -263,22 +272,16 @@ BOOL Compiler<T>::FromTextFile(CONST std::string&) const
 
 	file.close();
 
-#ifdef DEBUG
-	cpu_.dump();
-#endif // DEBUG
-
 	return TRUE;
 }
 
 template<typename T>
-BOOL Compiler<T>::FromComTextFile(CONST std::string &crFilename) const
+BOOL Compiler<T>::FromComTextFile(CRSTRING filename)
 {
-	std::ifstream file(crFilename + ".txt");
+	std::ifstream file(filename + ".txt");
 	if (!file.is_open())
 	{
-		std::cerr << "Cannot open file: " << crFilename << std::endl;
-
-		file.close();
+		Debugger::Error("Cannot open file: " + filename);
 
 		return FALSE;
 	}
@@ -307,11 +310,11 @@ BOOL Compiler<T>::FromComTextFile(CONST std::string &crFilename) const
 			}
 
 			case commands_::pop:
-				//cpu_.pop(); 
+				cpu_.pop(); 
 				break;
 
 			case commands_::add: 								
-				//cpu_.add();
+				cpu_.add();
 				break;
 
 			// TODO: Other functions
@@ -322,7 +325,7 @@ BOOL Compiler<T>::FromComTextFile(CONST std::string &crFilename) const
 
 			default: 
 			{
-				std::cerr << "Unknown command: " << pOp->cmd << std::endl;
+				Debugger::Error("Unknown command: " + pOp->cmd);
 
 				delete pOp;
 				file.close();

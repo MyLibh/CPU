@@ -5,14 +5,19 @@
 #include <cassert>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <fstream>
 
 #include "MyTypedefs.hpp"
+#include "Debugger.hpp"
+
+CONST SIZE_T MAX_LINE_LENGTH = 1 << 8;
 
 struct Operation final
 {
-	static CONST USHORT MAX_ARGS = 1 << 2;
+	static CONST WORD MAX_ARGS = 1 << 2;
 
-	std::string cmd; // + Condition
+	std::string cmd; // + cond?
 
 	std::array<std::string, MAX_ARGS> args;
 
@@ -44,14 +49,23 @@ struct Operation final
 
 	VOID dump() const 
 	{ 
-		std::streamsize width = 1 << 2;
+		std::streamsize width = 1 << 3;
 
-		std::cout << "OP: " << std::setw(width) << cmd;
+		Debugger::Info("OP: ", Debugger::TextColors::Brown, FALSE);
+		std::cout << std::setw(width) << (cmd.length() ? cmd : "null");
 
-		for (SIZE_T i = 0; i < MAX_ARGS; ++i) std::cout << ", ARG" << i << ": " << std::setw(width) << (args[i].length() ? args[i] : "NULL");
+		for (SIZE_T i = 0; i < MAX_ARGS; ++i)
+		{
+			std::cout << ", ";
+			Debugger::Info("ARG" + std::to_string(i + 1) + ": ", Debugger::TextColors::Cyan, FALSE);
+
+			std::cout << std::setw(width) << (args[i].length() ? args[i] : "null");
+		}
 
 		std::cout << std::endl;
 	}
 }; 
 
 Operation *ParseCode(CONST CHAR*);
+
+std::ifstream FindLabel(std::ifstream&, CRSTRING);

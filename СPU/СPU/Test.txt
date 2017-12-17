@@ -1,0 +1,18 @@
+:pochka
+dump
+push 28
+push 98
+push -78
+dump
+pop
+add
+move 4, ax
+move ax, cx
+dump
+cmp ax, cx
+jne pochka
+end
+mul
+
+test 17, cx, 4
+

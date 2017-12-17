@@ -1,12 +1,9 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <iostream>
-#include <sstream>
-
 #include "Parser.hpp"
 
-static inline BOOL IsCommaExist(CONST std::string &crLine) { return (crLine.empty()? FALSE : (crLine[crLine.length() - 1] == ',')); }
+static inline BOOL IsCommaExist(CRSTRING line) { return (line.empty()? FALSE : (line[line.length() - 1] == ',')); }
 
 Operation *ParseCode(CONST CHAR *cpLine)
 {
@@ -17,13 +14,13 @@ Operation *ParseCode(CONST CHAR *cpLine)
 	}
 	catch (CONST std::bad_alloc &crBadAlloc)
 	{
-		std::cerr << crBadAlloc.what();
+		Debugger::Error(crBadAlloc.what());
 
 		return (pOperation = nullptr);
 	}
 	catch (...)
 	{
-		std::cerr << "Unhandled exception";
+		Debugger::Error("Unhandled exception");
 
 		return (pOperation = nullptr);
 	}
@@ -34,7 +31,7 @@ Operation *ParseCode(CONST CHAR *cpLine)
 	for (auto &a : pOperation->args)
 	{
 		sstr >> a;
-		if (IsCommaExist(const_cast<CONST std::string&>(a))) a.pop_back();
+		if (IsCommaExist(const_cast<CRSTRING>(a))) a.pop_back();
 	}
 
 #ifdef DEBUG
@@ -42,4 +39,22 @@ Operation *ParseCode(CONST CHAR *cpLine)
 #endif // DEBUG
 
 	return pOperation;
+}
+
+std::ifstream FindLabel(std::ifstream &rCode, CRSTRING label)
+{
+	std::ifstream code(std::move(rCode));
+	if (!code.is_open()) Debugger::Error(__FUNCTION__);
+
+	code.seekg(0);
+	while(!code.eof())
+	{
+		std::string tmp;
+		code >> tmp;
+
+		if (":" + label == tmp) break;
+	}
+	code.seekg(code.tellg());
+
+	return code;
 }

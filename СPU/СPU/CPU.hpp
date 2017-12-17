@@ -11,22 +11,24 @@
 
 //cmd -D_SCL_SECURE_NO_WARNINGS
 
+enum Registers_ : SIZE_T
+{
+	AX,
+	BX,
+	CX,
+	DX,
+	EX,
+
+	SP,
+
+	NUM
+};
+typedef Registers_ REG;
+
 template<typename T = INT>
 struct Register final
 {
-	enum REGISTERS : SIZE_T
-	{
-		AX,
-		BX,
-		CX,
-		DX,
-		EX,
-		//SP,
-
-		NUM
-	};
-
-	std::array<T, REGISTERS::NUM> regs;
+	std::array<T, REG::NUM> regs;
 
 	explicit Register() : regs() { }
 	Register(CONST Register<T> &crReg) : regs(crReg.regs) { }
@@ -49,15 +51,17 @@ struct Register final
 		return *this;
 	}
 
+	T &operator[](REG reg) { assert(reg != REG::NUM); return regs[reg]; }
+
 	VOID swap(Register<T> &rReg) { reg.swap(rReg.reg); }
 
 	VOID dump() const
 	{
-		std::cout << "[REGISTER]\n";
+		Debugger::Info("[REGISTER DUMP]", Debugger::TextColors::Green);
 
-		for (SIZE_T i = 0; i < REGISTERS::NUM; ++i) std::cout << static_cast<CHAR>('A' + i) << "X: " << regs[i] << std::endl;
+		for (SIZE_T i = 0; i < REG::NUM - 1; ++i) std::cout << static_cast<CHAR>('A' + i) << "X: " << regs[i] << std::endl;
 
-		std::cout << std::endl;
+		std::cout << "SP: " << regs[REG::SP] << std::endl << std::endl;
 	}
 };
 
@@ -66,10 +70,16 @@ struct Register final
 template<typename T = INT>
 class CPU final
 {	
-	Register<T>   reg_;
-	Stack<T>      stack_;
+	Register<T> reg_;
+	Stack<T>    stack_;
+
+	BOOL CheckStackSize(SIZE_T = 0) const;
 
 public:
+	typedef       T  &rVal_;
+	typedef       T &&rrVal_;
+	typedef typename CONST T  &crVal_;
+
 	explicit CPU() : 
 		reg_(), 
 		stack_() 
@@ -83,16 +93,20 @@ public:
 	CPU(CPU<T> &&rrProc) : 
 		reg_(), 
 		stack_() 
-	{ *this = std::move(rrProc); }
+	{ *this = std::move(rrProc); } // TODO: do not be lazyboy
 
 	~CPU() { }
 
 	CPU<T> &operator=(CONST CPU<T>&);
 	CPU<T> &operator=(CPU<T>&&);
 	
-	VOID   pop()                { stack_.pop(); } 
 	SIZE_T getStackSize() const { return stack_.size(); }
-	VOID   push(CONST T &crVal) { stack_.push(crVal); }
+
+	VOID   push(crVal_ val) { stack_.push(val); }
+	VOID   push(rrVal_ val) { stack_.push(val); }
+	VOID   pop()            { stack_.pop(); } 
+	
+	crVal_ top() const { return stack_.top(); }
 	
 	BOOL add();
 	BOOL sub();
@@ -104,35 +118,43 @@ public:
 	BOOL sin();
 	BOOL cos();
 
+	std::pair<T, T> getPair();
+
 	VOID swap(CPU<T> &rCPU) { stack_.swap(rCPU.stack_); reg_.swap(rCPU.reg_); }
 
+	VOID move(REG src, REG dest)            { reg_[dest] = reg_[src]; }
+	VOID move(CONST T &src, REG dest)       { reg_[dest] = src; }
+
+	//VOID move(REG src, T &dest)      const { dest = reg_[src]; }
+	//VOID move(CONST T &src, T &dest) const { dest = src; }
 
 	VOID dump() const 
 	{ 
-		std::cout << "\n\t\t[CPU DUMP]\n";
+		Debugger::Info("\n\t\t[CPU DUMP]", Debugger::TextColors::LightMagenta);
 
 		reg_.dump(); 
 		stack_.dump(); 
 
-		std::cout << "\n\t\t[  END   ]\n";
+		Debugger::Info("\t\t[  END   ]\n", Debugger::TextColors::LightMagenta);
 	}
 };
 
-#define CHECK_STACK_SIZEN(size)                                                                                         \
-		if(stack_.size() <= size)                                                                                       \
-		{                                                                                                               \
-			std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl; \
-																													    \
-			return FALSE;                                                                                               \
-		}
+template<typename T>
+BOOL CPU<T>::CheckStackSize(SIZE_T size /* = 0 */) const
+{
+	if (stack_.size() <= size)
+	{
+#ifdef _CPU_ENABLE_EXEPTIONS
+		throw Stack<T>::OutOfRangeExc("There are not enough elements in stack");
+#endif // _CPU_ENABLE_EXEPTIONS
 
-#define CHECK_STACK_SIZE()                                                                                              \
-		if(!stack_.size())                                                                                              \
-		{                                                                                                               \
-			std::cerr << "There are not enough elements in stack, number of elements = " << stack_.size() << std::endl; \
-																													    \
-			return FALSE;                                                                                               \
-		}
+		Debugger::Error("There are not enough elements in stack, number of elements = " + stack_.size());
+
+		return FALSE;
+	}
+
+	return TRUE;
+}
 
 template<typename T>
 CPU<T> &CPU<T>::operator=(CONST CPU<T> &crCPU)
@@ -160,10 +182,13 @@ CPU<T> &CPU<T>::operator=(CPU<T> &&rrCPU)
 template<typename T>
 BOOL CPU<T>::add()
 {
-	CHECK_STACK_SIZEN(1)
+	if(!CheckStackSize(1)) return FALSE;
 
-	auto a = stack_.pop();
-	auto b = stack_.pop();
+	auto a = stack_.top();
+	stack_.pop();
+
+	auto b = stack_.top();
+	stack_.pop();
 	
 	stack_.push(a + b);
 
@@ -173,10 +198,13 @@ BOOL CPU<T>::add()
 template<typename T>
 BOOL CPU<T>::sub()
 {
-	CHECK_STACK_SIZEN(1)
+	if (!CheckStackSize(1)) return FALSE;
 
-	auto a = stack_.pop();
-	auto b = stack_.pop();
+	auto a = stack_.top();
+	stack_.pop();
+
+	auto b = stack_.top();
+	stack_.pop();
 
 	stack_.push(a - b);
 
@@ -186,10 +214,13 @@ BOOL CPU<T>::sub()
 template<typename T>
 BOOL CPU<T>::mul()
 {
-	CHECK_STACK_SIZEN(1)
+	if (!CheckStackSize(1)) return FALSE;
 
-	auto a = stack_.pop();
-	auto b = stack_.pop();
+	auto a = stack_.top();
+	stack_.pop();
+	
+	auto b = stack_.top();
+	stack_.pop();
 
 	stack_.push(a * b);
 
@@ -199,10 +230,13 @@ BOOL CPU<T>::mul()
 template<typename T>
 BOOL CPU<T>::div()
 {
-	CHECK_STACK_SIZEN(1)
+	if (!CheckStackSize(1)) return FALSE;
 
-	auto a = stack_.pop();
-	auto b = stack_.pop();
+	auto a = stack_.top();
+	stack_.pop();
+
+	auto b = stack_.top();
+	stack_.pop();
 
  	assert(b);
 	stack_.push(a / b);
@@ -213,12 +247,9 @@ BOOL CPU<T>::div()
 template<typename T>
 BOOL CPU<T>::dup()
 {
-	CHECK_STACK_SIZE()
+	if (!CheckStackSize()) return FALSE;
 
-	auto a = stack_.pop();
-
-	stack_.push(a);
-	stack_.push(a);
+	stack_.push(stack_.top());
 
 	return TRUE;
 }
@@ -226,11 +257,12 @@ BOOL CPU<T>::dup()
 template<typename T>
 BOOL CPU<T>::sqrt()
 {
-	CHECK_STACK_SIZE()
+	if (!CheckStackSize()) return FALSE;
 
-	static_assert(std::is_arithmetic<T>::value, "Type T must be arithmetic\n");
+	if(std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
 
-	auto a = stack_.pop();
+	auto a = stack_.top();
+	stack_.pop();
 
 	stack_.push(static_cast<T>(sqrt_(std::is_integral<T>::value? static_cast<DOUBLE>(a) : a)));
 
@@ -240,11 +272,12 @@ BOOL CPU<T>::sqrt()
 template<typename T>
 BOOL CPU<T>::sin()
 {
-	CHECK_STACK_SIZE()
+	if (!CheckStackSize()) return FALSE;
 
-	static_assert(std::is_arithmetic<T>::value, "Type T must be arithmetic\n");
+	if(std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
 
-	auto a = stack_.pop();
+	auto a = stack_.top();
+	stack_.pop();
 
 	stack_.push(static_cast<T>(sin_(std::is_integral<T>::value? static_cast<DOUBLE>(a) : a)));
 
@@ -254,17 +287,31 @@ BOOL CPU<T>::sin()
 template<typename T>
 BOOL CPU<T>::cos()
 {
-	CHECK_STACK_SIZE()
+	if (!CheckStackSize()) return FALSE;
 
-	static_assert(std::is_arithmetic<T>::value, "Type T must be arithmetic\n");
+	if(std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
 
-	auto a = stack_.pop();
+	auto a = stack_.top();
+	stack_.pop();
 
 	stack_.push(static_cast<T>(cos_(std::is_integral<T>::value? static_cast<DOUBLE>(a) : a)));
 
 	return TRUE;
 }
 
-#undef CHECK_STACK_SIZE
-#undef CHECK_STACK_SIZEN
+template<typename T>
+std::pair<T, T> CPU<T>::getPair()
+{
+	std::pair<T, T> pair;
+	if (!CheckStackSize(1)) return pair;
+
+	pair.first = stack_.top();
+	stack_.pop();
+
+	pair.second = stack_.top();
+	stack_.pop();
+
+	return pair;
+}
+
 
