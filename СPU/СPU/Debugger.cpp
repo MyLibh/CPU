@@ -15,14 +15,14 @@ namespace NDebugger
 		std::swap(oldText, color);
 		std::swap(oldBckg, background);
 
-		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), oldText);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), ((oldBckg << 4) | oldText));
 
 		return ((background << 4) | color);
 	}
 
 	inline WORD SetColorConsole(WORD color)
 	{
-		return SetColorConsole(static_cast<TextColors>(color ^ ((color >> 4) << 4)), static_cast<TextColors>(color >> 4)); // QUEST: 0x03 does not work
+		return SetColorConsole(static_cast<TextColors>(color & 0x0F), static_cast<TextColors>(color & 0xF0));
 	}
 
 	VOID Error(CRSTRING error) 

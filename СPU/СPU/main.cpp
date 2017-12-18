@@ -14,8 +14,8 @@ INT main(INT argc, CHAR *argv[])
 	NDebugger::SetColorConsole(NDebugger::TextColors::White);
 
 	Compiler<> comp;
-	comp.FromTextFile(file);
-	
+	comp.fromTextFile(file);
+
 	system("pause");
     return 0;
 }

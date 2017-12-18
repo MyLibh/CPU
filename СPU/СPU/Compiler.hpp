@@ -10,29 +10,10 @@ class Compiler final
 {
 	CPU<T> cpu_;
 	
-	T getValue(CONST std::string &crVal) const // TODO: change return value type
-	{ 
-		std::stringstream sstr(crVal);
-		
-		T val = NULL; 
-		sstr >> val; 
-		
-		return (val ? val : undefined);
-	}
+	T getValue(CRSTRING str) const;
 
-	REG makeReg(CONST std::string &crStrReg) const
-	{
-		if      (crStrReg == "ax") return REG::AX;
-		else if (crStrReg == "bx") return REG::BX;
-		else if (crStrReg == "cx") return REG::CX;
-		else if (crStrReg == "dx") return REG::DX;
-		else if (crStrReg == "ex") return REG::EX;
-		else if (crStrReg == "sp") return REG::SP;
-
-		else                       return REG::NUM;
-	}
-
-	BOOL isReg(CONST std::string &val) const { return makeReg(val) != REG::NUM; }
+	REG  makeReg(CRSTRING str) const;
+	BOOL isReg(CRSTRING) const;
 
 public:
 	enum commands_ : UNSIGNED
@@ -72,21 +53,67 @@ public:
 		end
 	};
 
-	explicit Compiler() : cpu_() { }
-	Compiler(CONST Compiler<T> &crComp) : cpu_(crComp.cpu_) { }
-	Compiler(Compiler<T> &&rrComp) : cpu_(std:move(rrComp.cpu_)) { }
-	~Compiler() { }
+	explicit Compiler();
+	Compiler(CONST Compiler<T>&);
+	Compiler(Compiler<T>&&);
+	~Compiler();
 
 	Compiler<T> &operator=(CONST Compiler<T>&);
 	Compiler<T> &operator=(Compiler<T>&&);
 	
 	BOOL toComTextFile(CRSTRING) const;
-	//BOOL toBinFile(CRSTRING) const;
+	BOOL toBinFile(CRSTRING) const;
 
-	BOOL FromTextFile(CRSTRING);
-	BOOL FromComFile(CRSTRING);
-	//BOOL FromBinFile(CRSTRING);
+	BOOL fromTextFile(CRSTRING);
+	BOOL fromComFile(CRSTRING);
+	//BOOL fromBinFile(CRSTRING);
 };
+
+template<typename T>
+Compiler<T>::Compiler() : cpu_() 
+{ }
+
+template<typename T>
+Compiler<T>::Compiler(CONST Compiler<T> &crComp) : 
+	cpu_(crComp.cpu_) 
+{ }
+
+template<typename T>
+Compiler<T>::Compiler(Compiler<T> &&rrComp) : cpu_(std : move(rrComp.cpu_)) { }
+
+template<typename T>
+Compiler<T>::~Compiler()
+{ }
+
+template<typename T>
+T Compiler<T>::getValue(CRSTRING str) const // TODO: change return value type
+{
+	std::stringstream sstr(str);
+
+	T val = NULL;
+	sstr >> val;
+
+	return (val ? val : undefined);
+}
+
+template<typename T>
+REG Compiler<T>::makeReg(CRSTRING str) const
+{
+	if (str == "ax") return REG::AX;
+	else if (str == "bx") return REG::BX;
+	else if (str == "cx") return REG::CX;
+	else if (str == "dx") return REG::DX;
+	else if (str == "ex") return REG::EX;
+	else if (str == "sp") return REG::SP;
+
+	else                  return REG::NUM;
+}
+
+template<typename T>
+BOOL Compiler<T>::isReg(CRSTRING val) const 
+{ 
+	return makeReg(val) != REG::NUM; 
+}
 
 template<typename T>
 Compiler<T> &Compiler<T>::operator=(CONST Compiler<T> &crComp)
@@ -196,7 +223,96 @@ BOOL Compiler<T>::toComTextFile(CRSTRING filename) const
 }
 
 template<typename T>
-BOOL Compiler<T>::FromTextFile(CRSTRING filename)
+BOOL Compiler<T>::toBinFile(CRSTRING filename) const
+{
+	std::ifstream input(filename + ".txt");
+	if (!input.is_open())
+	{
+		NDebugger::Error("Cannot open file: " + filename);
+
+		return FALSE;
+	}
+
+	std::string outputFile = filename + "Bin" + ".txt";
+	std::ofstream output(outputFile, std::ios::binary);
+	if (!output.is_open())
+	{
+		NDebugger::Error("Cannot open file: " + outputFile);
+
+		input.close();
+
+		return FALSE;
+	}
+
+	while (!input.eof())
+	{
+		CHAR tmp[MAX_LINE_LENGTH] = {};
+		input.getline(tmp, MAX_LINE_LENGTH, '\n');
+
+		Operation *pOp = ParseCode(tmp);
+		if (pOp)
+		{
+			if      (pOp->cmd == "push") output << static_cast<CHAR>(commands_::push) << " " << pOp->args[0];
+			else if (pOp->cmd == "pop")  output << static_cast<CHAR>(commands_::pop);
+
+			else if (pOp->cmd == "add")	 output << static_cast<CHAR>(commands_::add);
+			else if (pOp->cmd == "sub")  output << static_cast<CHAR>(commands_::sub);
+			else if (pOp->cmd == "mul")	 output << static_cast<CHAR>(commands_::mul);
+			else if (pOp->cmd == "div")	 output << static_cast<CHAR>(commands_::div);
+			else if (pOp->cmd == "dup")	 output << static_cast<CHAR>(commands_::dup);
+			else if (pOp->cmd == "sin")  output << static_cast<CHAR>(commands_::sin);
+			else if (pOp->cmd == "cos")  output << static_cast<CHAR>(commands_::cos);
+			else if (pOp->cmd == "sqrt") output << static_cast<CHAR>(commands_::sqrt);
+
+			else if (pOp->cmd == "dump") output << static_cast<CHAR>(commands_::dump);
+
+			else if (pOp->cmd == "cmp")  output << static_cast<CHAR>(commands_::cmp)  << " " << pOp->args[0] << " " << pOp->args[1];
+			else if (pOp->cmd == "jump") output << static_cast<CHAR>(commands_::jump) << " " << pOp->args[0];
+
+			else if (pOp->cmd == "je")	 output << static_cast<CHAR>(commands_::je)  << " " << pOp->args[0];
+			else if (pOp->cmd == "jne")  output << static_cast<CHAR>(commands_::jne) << " " << pOp->args[0];
+			else if (pOp->cmd == "ja")	 output << static_cast<CHAR>(commands_::ja)  << " " << pOp->args[0];
+			else if (pOp->cmd == "jae")	 output << static_cast<CHAR>(commands_::jae) << " " << pOp->args[0];
+			else if (pOp->cmd == "jb")	 output << static_cast<CHAR>(commands_::jb)  << " " << pOp->args[0];
+			else if (pOp->cmd == "jbe")  output << static_cast<CHAR>(commands_::jbe) << " " << pOp->args[0];
+
+			else if (pOp->cmd == "move") output << static_cast<CHAR>(commands_::move) << " " << pOp->args[0] << " " << pOp->args[1];
+
+			else if (pOp->cmd == "in")	 output << static_cast<CHAR>(commands_::in);
+			else if (pOp->cmd == "out")  output << static_cast<CHAR>(commands_::out);
+			else if (pOp->cmd == "swi")  output << static_cast<CHAR>(commands_::swi);
+
+			else if (pOp->cmd == "end")  output << static_cast<CHAR>(commands_::end);
+
+			else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) output << pOp->cmd;
+
+			else
+			{
+				NDebugger::Error("Unknown command: " + std::string(tmp));
+
+				delete pOp;
+
+				output.close();
+				input.close();
+
+				return FALSE;
+			}
+
+			output << std::endl;
+		}
+		else break;
+
+		delete pOp;
+	}
+
+	output.close();
+	input.close();
+
+	return TRUE;
+}
+
+template<typename T>
+BOOL Compiler<T>::fromTextFile(CRSTRING filename)
 {
 	std::ifstream file(filename + ".txt");
 	if (!file.is_open())
@@ -214,7 +330,7 @@ BOOL Compiler<T>::FromTextFile(CRSTRING filename)
 		Operation *pOp = ParseCode(tmp);
 		if (pOp)
 		{
-			if      (pOp->cmd == "push") cpu_.push(getValue(pOp->args[0])); // TODO: psuh reg, push RAM
+			if      (pOp->cmd == "push") cpu_.push(getValue(pOp->args[0])); // TODO: push reg, push RAM
 			else if (pOp->cmd == "pop")  cpu_.pop();
 
 			else if (pOp->cmd == "add") cpu_.add();
@@ -278,7 +394,7 @@ BOOL Compiler<T>::FromTextFile(CRSTRING filename)
 }
 
 template<typename T>
-BOOL Compiler<T>::FromComFile(CRSTRING filename)
+BOOL Compiler<T>::fromComFile(CRSTRING filename)
 {
 	std::ifstream file(filename + ".txt");
 	if (!file.is_open())

@@ -29,6 +29,6 @@ namespace NDebugger
 	WORD SetColorConsole(TextColors, TextColors = TextColors::Black);
 	inline WORD SetColorConsole(WORD);
 
-	VOID Error(CRSTRING); // TODO: switching threads
+	VOID Error(CRSTRING); 
 	VOID Info(CRSTRING, TextColors = TextColors::White, bool = TRUE);
 };
