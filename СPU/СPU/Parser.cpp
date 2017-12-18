@@ -14,13 +14,13 @@ Operation *ParseCode(CONST CHAR *cpLine)
 	}
 	catch (CONST std::bad_alloc &crBadAlloc)
 	{
-		Debugger::Error(crBadAlloc.what());
+		NDebugger::Error(crBadAlloc.what());
 
 		return (pOperation = nullptr);
 	}
 	catch (...)
 	{
-		Debugger::Error("Unhandled exception");
+		NDebugger::Error("Unhandled exception");
 
 		return (pOperation = nullptr);
 	}
@@ -44,7 +44,7 @@ Operation *ParseCode(CONST CHAR *cpLine)
 std::ifstream FindLabel(std::ifstream &rCode, CRSTRING label)
 {
 	std::ifstream code(std::move(rCode));
-	if (!code.is_open()) Debugger::Error(__FUNCTION__);
+	if (!code.is_open()) NDebugger::Error(__FUNCTION__);
 
 	code.seekg(0);
 	while(!code.eof())

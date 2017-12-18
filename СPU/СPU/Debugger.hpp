@@ -4,7 +4,7 @@
 
 #include "MyTypedefs.hpp"
 
-namespace Debugger
+namespace NDebugger
 {
 	enum TextColors : WORD
 	{

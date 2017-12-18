@@ -3,6 +3,8 @@
 #include "Parser.hpp"
 #include "CPU.hpp"
 
+using namespace NCPU;
+
 template<typename T = INT>
 class Compiler final
 {
@@ -15,7 +17,7 @@ class Compiler final
 		T val = NULL; 
 		sstr >> val; 
 		
-		return val; 
+		return (val ? val : undefined);
 	}
 
 	REG makeReg(CONST std::string &crStrReg) const
@@ -35,6 +37,8 @@ class Compiler final
 public:
 	enum commands_ : UNSIGNED
 	{
+		undefined = 0,
+
 		push = 1,
 		pop,
 
@@ -80,7 +84,7 @@ public:
 	//BOOL toBinFile(CRSTRING) const;
 
 	BOOL FromTextFile(CRSTRING);
-	BOOL FromComTextFile(CRSTRING);
+	BOOL FromComFile(CRSTRING);
 	//BOOL FromBinFile(CRSTRING);
 };
 
@@ -108,16 +112,16 @@ BOOL Compiler<T>::toComTextFile(CRSTRING filename) const
 	std::ifstream input(filename + ".txt");
 	if (!input.is_open())
 	{
-		Debugger::Error("Cannot open file: " + filename);
+		NDebugger::Error("Cannot open file: " + filename);
 
 		return FALSE;
 	}
 
-	std::string outputFile = filename + "ComText" + ".txt";
+	std::string outputFile = filename + "Com" + ".txt";
 	std::ofstream output(outputFile);
 	if (!output.is_open())
 	{
-		Debugger::Error("Cannot open file: " + outputFile);
+		NDebugger::Error("Cannot open file: " + outputFile);
 
 		input.close();
 
@@ -168,7 +172,7 @@ BOOL Compiler<T>::toComTextFile(CRSTRING filename) const
 
 			else
 			{
-				Debugger::Error("Unknown command: " + std::string(tmp));
+				NDebugger::Error("Unknown command: " + std::string(tmp));
 
 				delete pOp;
 
@@ -191,15 +195,13 @@ BOOL Compiler<T>::toComTextFile(CRSTRING filename) const
 	return TRUE;
 }
 
-//===================================================================================================================
-
 template<typename T>
 BOOL Compiler<T>::FromTextFile(CRSTRING filename)
 {
 	std::ifstream file(filename + ".txt");
 	if (!file.is_open())
 	{
-		Debugger::Error("Cannot open file: " + filename);
+		NDebugger::Error("Cannot open file: " + filename);
 
 		return FALSE;
 	}
@@ -212,7 +214,7 @@ BOOL Compiler<T>::FromTextFile(CRSTRING filename)
 		Operation *pOp = ParseCode(tmp);
 		if (pOp)
 		{
-			if      (pOp->cmd == "push") cpu_.push(getValue(pOp->args[0]));
+			if      (pOp->cmd == "push") cpu_.push(getValue(pOp->args[0])); // TODO: psuh reg, push RAM
 			else if (pOp->cmd == "pop")  cpu_.pop();
 
 			else if (pOp->cmd == "add") cpu_.add();
@@ -257,7 +259,7 @@ BOOL Compiler<T>::FromTextFile(CRSTRING filename)
 
 			else
 			{
-				Debugger::Error("Unknown command: " + pOp->cmd);
+				NDebugger::Error("Unknown command: " + pOp->cmd);
 
 				delete pOp;
 				file.close();
@@ -276,12 +278,12 @@ BOOL Compiler<T>::FromTextFile(CRSTRING filename)
 }
 
 template<typename T>
-BOOL Compiler<T>::FromComTextFile(CRSTRING filename)
+BOOL Compiler<T>::FromComFile(CRSTRING filename)
 {
 	std::ifstream file(filename + ".txt");
 	if (!file.is_open())
 	{
-		Debugger::Error("Cannot open file: " + filename);
+		NDebugger::Error("Cannot open file: " + filename);
 
 		return FALSE;
 	}
@@ -294,38 +296,56 @@ BOOL Compiler<T>::FromComTextFile(CRSTRING filename)
 		Operation *pOp = ParseCode(tmp);
 		if (pOp)
 		{
-			switch (atoi(pOp->cmd.c_str()))
+			switch (getValue(pOp->cmd))
 			{
-			case commands_::push:
+			case commands_::push: cpu_.push(getValue(pOp->args[0])); break;
+			case commands_::pop:  cpu_.pop();  break;
+
+			case commands_::add:  cpu_.add();  break;
+			case commands_::sub:  cpu_.sub();  break;
+			case commands_::mul:  cpu_.mul();  break;
+			case commands_::div:  cpu_.div();  break;
+			case commands_::sqrt: cpu_.sqrt(); break;
+			case commands_::dup:  cpu_.dup();  break;
+			case commands_::sin:  cpu_.sin();  break;
+			case commands_::cos:  cpu_.cos();  break;
+			
+			case commands_::dump: cpu_.dump(); break;
+
+			case commands_::cmp: cpu_.push(getValue(pOp->args[0])), cpu_.push(getValue(pOp->args[1])); break;
+			case commands_::jump: file = FindLabel(file, pOp->args[0]);  break;
+
+			case commands_::je:  { auto pair = cpu_.getPair(); if (pair.first == pair.second) file = FindLabel(file, pOp->args[0]); break; }
+			case commands_::jne: { auto pair = cpu_.getPair(); if (pair.first != pair.second) file = FindLabel(file, pOp->args[0]); break; }
+			case commands_::ja:  { auto pair = cpu_.getPair(); if (pair.first >  pair.second) file = FindLabel(file, pOp->args[0]); break; }
+			case commands_::jae: { auto pair = cpu_.getPair(); if (pair.first >= pair.second) file = FindLabel(file, pOp->args[0]); break; }
+			case commands_::jb:  { auto pair = cpu_.getPair(); if (pair.first <  pair.second) file = FindLabel(file, pOp->args[0]); break; }
+			case commands_::jbe: { auto pair = cpu_.getPair(); if (pair.first <= pair.second) file = FindLabel(file, pOp->args[0]); break; }
+
+			case commands_::move:
 			{
-				//CONST auto &val_str = pOp->args[0];
-				//std::stringstream sstr(val_str);
-				//T val = (std::is_pointer<T>::value ? nullptr : NULL);
+				BOOL isArg0Reg = isReg(pOp->args[0]),
+					 isArg1Reg = isReg(pOp->args[1]);
 
-				//sstr >> val;
+				if      ( isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(pOp->args[0]), makeReg(pOp->args[1]));
+				else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(pOp->args[0]), makeReg(pOp->args[1]));
+				//else if ( isArg0Reg && !isArg1Reg) cpu_.move( makeReg(pOp->args[0]), getValue(pOp->args[1]));
+				//else                               cpu_.move(getValue(pOp->args[0]), getValue(pOp->args[1]));
 
-				//cpu_.push(val); 
-
-				break; // TODO: delete dat bad code
+				break;
 			}
 
-			case commands_::pop:
-				cpu_.pop(); 
-				break;
+			//case commands_::in: break;
+			//case commands_::out: break;
+			//case commands_::swi: break;
 
-			case commands_::add: 								
-				cpu_.add();
-				break;
+			case commands_::end: { delete pOp; file.close(); return TRUE; }
 
-			// TODO: Other functions
-
-			case commands_::dump:
-				cpu_.dump(); // QUEST: Why only dump works?
-				break;
+			case commands_::undefined: break;
 
 			default: 
 			{
-				Debugger::Error("Unknown command: " + pOp->cmd);
+				NDebugger::Error("Unknown command: " + pOp->cmd);
 
 				delete pOp;
 				file.close();
@@ -341,10 +361,5 @@ BOOL Compiler<T>::FromComTextFile(CRSTRING filename)
 
 	file.close();
 
-#ifdef DEBUG
-	cpu_.dump();
-#endif // DEBUG
-
 	return TRUE;
-
 }

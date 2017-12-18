@@ -51,13 +51,13 @@ struct Operation final
 	{ 
 		std::streamsize width = 1 << 3;
 
-		Debugger::Info("OP: ", Debugger::TextColors::Brown, FALSE);
+		NDebugger::Info("OP: ", NDebugger::TextColors::Brown, FALSE);
 		std::cout << std::setw(width) << (cmd.length() ? cmd : "null");
 
 		for (SIZE_T i = 0; i < MAX_ARGS; ++i)
 		{
 			std::cout << ", ";
-			Debugger::Info("ARG" + std::to_string(i + 1) + ": ", Debugger::TextColors::Cyan, FALSE);
+			NDebugger::Info("ARG" + std::to_string(i + 1) + ": ", NDebugger::TextColors::Cyan, FALSE);
 
 			std::cout << std::setw(width) << (args[i].length() ? args[i] : "null");
 		}

@@ -7,12 +7,14 @@
 
 #include "Compiler.hpp"
 
-INT main()
+INT main(INT argc, CHAR *argv[])
 {
-	Debugger::SetColorConsole(Debugger::TextColors::White);
+	std::string file = (argc >= 2 ? argv[1] : "Test");
+
+	NDebugger::SetColorConsole(NDebugger::TextColors::White);
 
 	Compiler<> comp;
-	comp.toComTextFile("Test");
+	comp.FromTextFile(file);
 	
 	system("pause");
     return 0;

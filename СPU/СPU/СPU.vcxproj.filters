@@ -36,6 +36,9 @@
     <ClInclude Include="Debugger.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Register.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -49,13 +52,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="TestComText.txt">
-      <Filter>Файлы ресурсов</Filter>
-    </Text>
     <Text Include="TestBin.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
     <Text Include="Test.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
+    <Text Include="TestCom.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
   </ItemGroup>

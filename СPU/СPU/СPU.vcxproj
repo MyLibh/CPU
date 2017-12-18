@@ -121,6 +121,7 @@
     <ClInclude Include="MyMath.hpp" />
     <ClInclude Include="MyTypedefs.hpp" />
     <ClInclude Include="Parser.hpp" />
+    <ClInclude Include="Register.hpp" />
     <ClInclude Include="Stack.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -130,7 +131,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="TestBin.txt" />
-    <Text Include="TestComText.txt" />
+    <Text Include="TestCom.txt" />
     <Text Include="Test.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
