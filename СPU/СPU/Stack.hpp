@@ -214,7 +214,7 @@ namespace NStack
 			<< "{\n\tbuffer [" << counter_ << "] = 0x" << buffer_.get() << "\n\t{\n";
 
 		if (counter_) for (SIZE_T i = NULL; i < counter_; ++i) std::cout << "\t\t[" << i << "] = " << std::setw(8) << buffer_[i] << std::endl;
-		else                                                   std::cout << "empty";
+		else                                                   std::cout << "\t\tempty\n";
 
 		std::cout << "\t}\n}\n";
 
