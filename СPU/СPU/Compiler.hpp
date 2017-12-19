@@ -70,8 +70,7 @@ public:
 };
 
 template<typename T>
-Compiler<T>::Compiler() : 
-	cpu_() 
+Compiler<T>::Compiler() : cpu_() 
 { }
 
 template<typename T>
@@ -80,9 +79,7 @@ Compiler<T>::Compiler(CONST Compiler<T> &crComp) :
 { }
 
 template<typename T>
-Compiler<T>::Compiler(Compiler<T> &&rrComp) : 
-	cpu_(std : move(rrComp.cpu_)) 
-{ }
+Compiler<T>::Compiler(Compiler<T> &&rrComp) : cpu_(std : move(rrComp.cpu_)) { }
 
 template<typename T>
 Compiler<T>::~Compiler()
@@ -91,14 +88,7 @@ Compiler<T>::~Compiler()
 template<typename T>
 T Compiler<T>::getValue(CRSTRING str) const // TODO: change return value type
 {
-	std::stringstream sstr(str);	
-	if (str[0] == '[')
-	{
-		CHAR c = 'A';
-		sstr >> c;
-
-		assert(c == '[');
-	}
+	std::stringstream sstr(str);
 
 	T val = NULL;
 	sstr >> val;
@@ -109,14 +99,14 @@ T Compiler<T>::getValue(CRSTRING str) const // TODO: change return value type
 template<typename T>
 REG Compiler<T>::makeReg(CRSTRING str) const
 {
-	if      (str == "ax" || str == "[ax]") return REG::AX;
-	else if (str == "bx" || str == "[bx]") return REG::BX;
-	else if (str == "cx" || str == "[cx]") return REG::CX;
-	else if (str == "dx" || str == "[dx]") return REG::DX;
-	else if (str == "ex" || str == "[ex]") return REG::EX;
-	else if (str == "sp" || str == "[sp]") return REG::SP;
+	if (str == "ax") return REG::AX;
+	else if (str == "bx") return REG::BX;
+	else if (str == "cx") return REG::CX;
+	else if (str == "dx") return REG::DX;
+	else if (str == "ex") return REG::EX;
+	else if (str == "sp") return REG::SP;
 
-	else                                   return REG::NUM;
+	else                  return REG::NUM;
 }
 
 template<typename T>
@@ -340,22 +330,7 @@ BOOL Compiler<T>::fromTextFile(CRSTRING filename)
 		Operation *pOp = ParseCode(tmp);
 		if (pOp)
 		{
-			if (pOp->cmd == "push")
-			{
-				auto val = getValue(pOp->args[0]);
-				auto reg = makeReg(pOp->args[0]);
-
-				if(pOp->args[0][0] == '[')
-				{ 
-					//if (reg != REG::NUM) cpu_.pushram(reg);
-					//else                 cpu_.pushram(val);
-
-					NDebugger::Error("Not released yet");
-					throw;
-				}
-				else if (reg != REG::NUM) cpu_.push(reg);
-				else		              cpu_.push(val); 
-			}
+			if      (pOp->cmd == "push") cpu_.push(getValue(pOp->args[0])); // TODO: push reg, push RAM
 			else if (pOp->cmd == "pop")  cpu_.pop();
 
 			else if (pOp->cmd == "add") cpu_.add();
@@ -439,24 +414,7 @@ BOOL Compiler<T>::fromComFile(CRSTRING filename)
 		{
 			switch (getValue(pOp->cmd))
 			{
-			case commands_::push: 
-			{
-				auto val = getValue(pOp->args[0]);
-				auto reg = makeReg(pOp->args[0]);
-
-				if (pOp->args[0][0] == '[')
-				{
-					//if (reg != REG::NUM) cpu_.pushram(reg);
-					//else                 cpu_.pushram(val);
-
-					NDebugger::Error("Not released yet");
-					throw;
-				}
-				else if (reg != REG::NUM) cpu_.push(reg);
-				else		              cpu_.push(val);
-
-				break;
-			}
+			case commands_::push: cpu_.push(getValue(pOp->args[0])); break;
 			case commands_::pop:  cpu_.pop();  break;
 
 			case commands_::add:  cpu_.add();  break;

@@ -1,6 +1,6 @@
 :pochka
 dump
-push ax
+push 28
 push 98
 push -78
 dump

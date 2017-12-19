@@ -5,31 +5,23 @@
 #include <cassert>
 #include <type_traits>
 
-#include "Register.hpp"
-#include "RAM.hpp"
 #include "Stack.hpp"
+#include "Register.hpp"
 #include "MyMath.hpp"
 
 //cmd -D_SCL_SECURE_NO_WARNINGS
 
 namespace NCPU
 {
-#pragma region Usings
-
 	using NReg::REG;
 	using NReg::Register;
 
-	using NRAM::RAM;
-
 	using NStack::Stack;
-
-#pragma endregion
 
 	template<typename T = INT>
 	class CPU final
 	{
 		Register<T> reg_;
-		RAM<T>      ram_;
 		Stack<T>    stack_;
 
 		BOOL CheckStackSize(SIZE_T = 0) const;
@@ -47,15 +39,9 @@ namespace NCPU
 		CPU<T> &operator=(CONST CPU<T>&);
 		CPU<T> &operator=(CPU<T>&&);
 
-		VOID push(crVal_);
-		VOID push(rrVal_);
-		VOID push(REG);
-		VOID pop();
-
-		//VOID pushram(crVal_);
-		//VOID pushram(rrVal_);
-		//VOID pushram(REG);
-		//VOID popram();
+		VOID   push(crVal_);
+		VOID   push(rrVal_);
+		VOID   pop();
 
 		BOOL add();
 		BOOL sub();
@@ -81,31 +67,6 @@ namespace NCPU
 	};
 
 	template<typename T>
-	CPU<T>::CPU() :
-		reg_(),
-		ram_(),
-		stack_()
-	{ }
-
-	template<typename T>
-	CPU<T>::CPU(CONST CPU<T> &crCPU) :
-		reg_(crCPU.reg_),
-		ram_(crCPU.ram_),
-		stack_(crCPU.stack_)
-	{ }
-
-	template<typename T>
-	CPU<T>::CPU(CPU<T> &&rrCPU) :
-		reg_(std::move(rrCPU.reg_)),
-		ram_(std::move(rrCPU.ram_)),
-		stack_(std::move(rrCPU.stack_))
-	{ }
-
-	template<typename T>
-	CPU<T>::~CPU()
-	{ }
-
-	template<typename T>
 	BOOL CPU<T>::CheckStackSize(SIZE_T size /* = 0 */) const
 	{
 		if (stack_.size() <= size)
@@ -123,12 +84,33 @@ namespace NCPU
 	}
 
 	template<typename T>
+	CPU<T>::CPU() :
+		reg_(),
+		stack_()
+	{ }
+
+	template<typename T>
+	CPU<T>::CPU(CONST CPU<T> &crCPU) :
+		reg_(crCPU.reg_),
+		stack_(crCPU.stack_)
+	{ }
+
+	template<typename T>
+	CPU<T>::CPU(CPU<T> &&rrProc) :
+		reg_(std::move(rrProc.reg_)),
+		stack_(std::move(rrProc.stack_))
+	{ }
+
+	template<typename T>
+	CPU<T>::~CPU()
+	{ }
+
+	template<typename T>
 	CPU<T> &CPU<T>::operator=(CONST CPU<T> &crCPU)
 	{
 		if (this != &crCPU)
 		{
-			reg_   = crCPU.reg_;
-			ram_   = crCPU.ram_;
+			reg_ = crCPU.reg_;
 			stack_ = crCPU.stack_;
 		}
 
@@ -140,8 +122,7 @@ namespace NCPU
 	{
 		assert(this != &rrCPU);
 
-		reg_   = std::move(rrCPU.reg_);
-		ram_   = std::move(rrCPU.ram_);
+		reg_ = std::move(rrCPU.reg_);
 		stack_ = std::move(rrCPU.stack_);
 
 		return *this;
@@ -157,12 +138,6 @@ namespace NCPU
 	VOID CPU<T>::push(rrVal_ val) 
 	{ 
 		stack_.push(val); 
-	}
-
-	template<typename T>
-	VOID CPU<T>::push(REG reg)
-	{
-		stack_.push(reg_[reg]);
 	}
 
 	template<typename T>
@@ -333,7 +308,6 @@ namespace NCPU
 		std::cout << "CPU <" << typeid(T).name() << "> [0x" << this << "]\n\n";
 
 		reg_.dump();
-		ram_.dump();
 		stack_.dump();
 
 		NDebugger::Info("\t\t[  END   ]\n", NDebugger::TextColors::LightMagenta);
