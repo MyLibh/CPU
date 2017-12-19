@@ -121,6 +121,7 @@
     <ClInclude Include="MyMath.hpp" />
     <ClInclude Include="MyTypedefs.hpp" />
     <ClInclude Include="Parser.hpp" />
+    <ClInclude Include="RAM.hpp" />
     <ClInclude Include="Register.hpp" />
     <ClInclude Include="Stack.hpp" />
   </ItemGroup>
