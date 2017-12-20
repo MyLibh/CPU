@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <type_traits>
 
 #include "MyTypedefs.hpp"
 #include "Debugger.hpp"
@@ -26,33 +27,34 @@ namespace NReg
 	{
 		std::array<T, REG::NUM> regs;
 
-		explicit Register();
-		Register(CONST Register<T>&);
-		Register(Register<T>&&);
+		explicit Register() noexcept;
+		Register(CONST Register<T>&) noexcept;
+		Register(Register<T>&&) noexcept;
 		~Register();
 
 		Register<T> &operator=(CONST Register<T>&);
 		Register<T> &operator=(Register<T>&&);
 
 		T &operator[](REG);
+		CONST T &operator[](REG) const;
 
-		VOID swap(Register<T>&);
+		inline VOID swap(Register<T>&) noexcept(std::_Is_nothrow_swappable<T>::value);
 
 		VOID dump() const;
 	};
 
 	template<typename T>
-	Register<T>::Register() :
+	Register<T>::Register() noexcept :
 		regs()
 	{ }
 
 	template<typename T>
-	Register<T>::Register(CONST Register<T> &crReg) :
+	Register<T>::Register(CONST Register<T> &crReg) noexcept :
 		regs(crReg.regs)
 	{ }
 
 	template<typename T>
-	Register<T>::Register(Register<T> &&rrReg) :
+	Register<T>::Register(Register<T> &&rrReg) noexcept :
 		regs(std::move(rrReg.regs))
 	{ }
 
@@ -80,6 +82,14 @@ namespace NReg
 
 	template<typename T>
 	T &Register<T>::operator[](REG reg) 
+	{
+		assert(reg != REG::NUM);
+
+		return regs[reg];
+	}
+
+	template<typename T>
+	CONST T &Register<T>::operator[](REG reg) const 
 	{ 
 		assert(reg != REG::NUM); 
 		
@@ -87,7 +97,7 @@ namespace NReg
 	}
 
 	template<typename T>
-	VOID Register<T>::swap(Register<T> &rReg) 
+	inline VOID Register<T>::swap(Register<T> &rReg) noexcept(std::_Is_nothrow_swappable<T>::value)
 	{ 
 		reg.swap(rReg.reg); 
 	}
@@ -105,4 +115,4 @@ namespace NReg
 
 		NDebugger::Info("\t[     END     ]\n", NDebugger::TextColors::Green);
 	}
-};
+}  // namespace NReg

@@ -7,6 +7,8 @@
 
 #include "Compiler.hpp"
 
+using namespace NCompiler;
+
 INT main(INT argc, CHAR *argv[])
 {
 	std::string file = (argc >= 2 ? argv[1] : "Test");

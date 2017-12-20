@@ -3,7 +3,6 @@
 #include <fstream>
 #include <string>
 #include <cassert>
-#include <type_traits>
 
 #include "Register.hpp"
 #include "RAM.hpp"
@@ -12,14 +11,14 @@
 
 //cmd -D_SCL_SECURE_NO_WARNINGS
 
-namespace NCPU
+namespace NCpu
 {
 #pragma region Usings
 
 	using NReg::REG;
 	using NReg::Register;
 
-	using NRAM::RAM;
+	using NRam::RAM;
 
 	using NStack::Stack;
 
@@ -35,13 +34,13 @@ namespace NCPU
 		BOOL CheckStackSize(SIZE_T = 0) const;
 
 	public:
-		typedef       T  &rVal_;
-		typedef       T &&rrVal_;
-		typedef CONST T  &crVal_;
+		using rVal_  = T&;
+		using rrVal_ = T&&;
+		using crVal_ = CONST T&;
 
-		explicit CPU();
-		CPU(CONST CPU<T>&);
-		CPU(CPU<T>&&);
+		explicit CPU() noexcept;
+		CPU(CONST CPU<T>&) noexcept;
+		CPU(CPU<T>&&) noexcept;
 		~CPU();
 
 		CPU<T> &operator=(CONST CPU<T>&);
@@ -51,11 +50,6 @@ namespace NCPU
 		VOID push(rrVal_);
 		VOID push(REG);
 		VOID pop();
-
-		//VOID pushram(crVal_);
-		//VOID pushram(rrVal_);
-		//VOID pushram(REG);
-		//VOID popram();
 
 		BOOL add();
 		BOOL sub();
@@ -69,33 +63,30 @@ namespace NCPU
 
 		std::pair<T, T> getPair();
 
-		VOID swap(CPU<T>&);
+		VOID swap(CPU<T>&) noexcept(std::_Is_nothrow_swappable<T>::value);
 
-		VOID move(REG, REG);
-		VOID move(crVal_, REG);
-
-		//VOID move(REG src, rVal_ dest)   const { dest = reg_[src]; }
-		//VOID move(crVal_src, rVal_ dest) const { dest = src; }
+		inline VOID move(REG, REG);
+		inline VOID move(crVal_, REG);
 
 		VOID dump() const;
 	};
 
 	template<typename T>
-	CPU<T>::CPU() :
+	CPU<T>::CPU() noexcept :
 		reg_(),
 		ram_(),
 		stack_()
 	{ }
 
 	template<typename T>
-	CPU<T>::CPU(CONST CPU<T> &crCPU) :
+	CPU<T>::CPU(CONST CPU<T> &crCPU) noexcept :
 		reg_(crCPU.reg_),
 		ram_(crCPU.ram_),
 		stack_(crCPU.stack_)
 	{ }
 
 	template<typename T>
-	CPU<T>::CPU(CPU<T> &&rrCPU) :
+	CPU<T>::CPU(CPU<T> &&rrCPU) noexcept :
 		reg_(std::move(rrCPU.reg_)),
 		ram_(std::move(rrCPU.ram_)),
 		stack_(std::move(rrCPU.stack_))
@@ -307,20 +298,21 @@ namespace NCPU
 	}
 
 	template<typename T>
-	VOID CPU<T>::swap(CPU<T> &rCPU) 
+	VOID CPU<T>::swap(CPU<T> &rCPU) noexcept(std::_Is_nothrow_swappable<T>::value)
 	{ 
+		reg_.swap(rCPU.reg_);
 		stack_.swap(rCPU.stack_); 
-		reg_.swap(rCPU.reg_); 
+		ram_.swap(rCPU.ram_);
 	}
 
 	template<typename T>
-	VOID CPU<T>::move(REG src, REG dest) 
+	inline VOID CPU<T>::move(REG src, REG dest) 
 	{ 
 		reg_[dest] = reg_[src]; 
 	}
 
 	template<typename T>
-	VOID CPU<T>::move(crVal_ src, REG dest) 
+	inline VOID CPU<T>::move(crVal_ src, REG dest) 
 	{ 
 		reg_[dest] = src; 
 	}
@@ -338,5 +330,5 @@ namespace NCPU
 
 		NDebugger::Info("\t\t[  END   ]\n", NDebugger::TextColors::LightMagenta);
 	}
-};
+} // namespace NCpu
 

@@ -5,7 +5,7 @@
 #include "MyTypedefs.hpp"
 #include "Debugger.hpp"
 
-namespace NRAM
+namespace NRam
 {
 	template<typename T = INT>
 	struct RAM final
@@ -18,29 +18,31 @@ namespace NRAM
 
 		std::array<T, RAM_SIZE> buf;
 
-		explicit RAM();
-		RAM(CONST RAM<T>&);
-		RAM(RAM<T>&&);
+		explicit RAM() noexcept;
+		RAM(CONST RAM<T>&) noexcept;
+		RAM(RAM<T>&&) noexcept;
 		~RAM();
 
 		RAM<T> &operator=(CONST RAM<T>&);
 		RAM<T> &operator=(RAM<T>&&);
 
+		inline VOID swap(RAM<T>&) noexcept(std::_Is_nothrow_swappable<T>::value);
+
 		VOID dump() const;
 	};
 
 	template<typename T>
-	RAM<T>::RAM() :
+	RAM<T>::RAM() noexcept :
 		buf()
 	{ }
 
 	template<typename T>
-	RAM<T>::RAM(CONST RAM<T> &crRAM) :
+	RAM<T>::RAM(CONST RAM<T> &crRAM) noexcept :
 		buf(crRAM.buf)
 	{ }
 		
 	template<typename T>
-	RAM<T>::RAM(RAM<T> &&rrRAM) :
+	RAM<T>::RAM(RAM<T> &&rrRAM) noexcept :
 		buf(std::move(rrRAM.buf))
 	{ }
 
@@ -67,6 +69,12 @@ namespace NRAM
 	}
 
 	template<typename T>
+	inline VOID swap(RAM<T> &rRAM) noexcept(std::_Is_nothrow_swappable<T>::value)
+	{
+		buf.swap(rRAM.buf);
+	}
+
+	template<typename T>
 	VOID RAM<T>::dump() const
 	{
 		NDebugger::Info("\t[RAM DUMP]", NDebugger::TextColors::LightCyan);
@@ -85,4 +93,4 @@ namespace NRAM
 
 		NDebugger::Info("\t[  END   ]\n", NDebugger::TextColors::LightCyan);
 	}
-}
+} // namespace NRam

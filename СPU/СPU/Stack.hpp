@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <iomanip>
+#include <type_traits>
 
 #include "MyTypedefs.hpp"
 #include "Debugger.hpp"
@@ -25,9 +26,9 @@ namespace NStack
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;
 
-		explicit Stack(SIZE_T = 10);
-		Stack(CONST Stack<T>&);
-		Stack(Stack<T>&&);
+		explicit Stack(SIZE_T = 10) noexcept;
+		Stack(CONST Stack<T>&) noexcept;
+		Stack(Stack<T>&&) noexcept;
 		~Stack();
 
 		Stack<T> &operator=(CONST Stack<T>&);
@@ -36,8 +37,8 @@ namespace NStack
 		BOOL operator==(CONST Stack<T>&) const;
 		BOOL operator!=(CONST Stack<T>&) const;
 
-		SIZE_T size() const;
-		BOOL empty() const;
+		inline SIZE_T size() const noexcept;
+		inline BOOL empty() const noexcept;
 
 		VOID push(crVal_);
 		VOID push(rrVal_);
@@ -45,7 +46,7 @@ namespace NStack
 
 		crVal_ top() const;
 
-		VOID swap(Stack<T>&);
+		VOID swap(Stack<T>&) noexcept(std::_Is_nothrow_swappable<T>::value);
 		
 		VOID dump() const;
 
@@ -57,14 +58,14 @@ namespace NStack
 	};
 
 	template<typename T>
-	Stack<T>::Stack(SIZE_T size /* = 10 */) :
+	Stack<T>::Stack(SIZE_T size /* = 10 */) noexcept :
 		counter_(NULL),
 		size_(size),
 		buffer_(new T[size])
 	{ }
 
 	template<typename T>
-	Stack<T>::Stack(CONST Stack<T> &crStack) :
+	Stack<T>::Stack(CONST Stack<T> &crStack) noexcept :
 		counter_(crStack.counter_),
 		size_(crStack.size_),
 		buffer_(new T[crStack.size_])
@@ -73,7 +74,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	Stack<T>::Stack(Stack<T> &&rrStack) :
+	Stack<T>::Stack(Stack<T> &&rrStack) noexcept :
 		counter_(rrStack.counter_),
 		size_(rrStack.size_),
 		buffer_(std::move(rrStack.buffer_))
@@ -155,13 +156,13 @@ namespace NStack
 	}
 
 	template<typename T>
-	SIZE_T Stack<T>::size() const 
+	inline SIZE_T Stack<T>::size() const noexcept
 	{ 
 		return counter_;
 	}
 
 	template<typename T>
-	BOOL Stack<T>::empty() const 
+	inline BOOL Stack<T>::empty() const noexcept
 	{ 
 		return (counter ? FALSE : TRUE); 
 	}
@@ -197,7 +198,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	VOID Stack<T>::swap(Stack<T> &rStack)
+	VOID Stack<T>::swap(Stack<T> &rStack) noexcept(std::_Is_nothrow_swappable<T>::value)
 	{
 		std::swap(counter_, rStack.counter_);
 		std::swap(size_, rStack.size_);
@@ -220,4 +221,4 @@ namespace NStack
 
 		NDebugger::Info("\t[   END    ]\n", NDebugger::TextColors::Yellow);
 	}
-};
+} // namespace NStack
