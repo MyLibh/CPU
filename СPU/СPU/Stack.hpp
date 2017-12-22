@@ -27,7 +27,7 @@ namespace NStack
 
 		explicit Stack(SIZE_T = DEFAULT_SIZE) noexcept;
 		Stack(CONST Stack&); // QUEST: maybe i can make it noexcept
-		Stack(Stack&&) noexcept;
+		Stack(Stack&&)                        noexcept;
 		~Stack();
 
 		Stack<T> &operator=(CONST Stack&); // QUEST: maybe i can make it noexcept
@@ -36,14 +36,14 @@ namespace NStack
 		BOOL operator==(CONST Stack&) const;
 		BOOL operator!=(CONST Stack&) const;
 
-		SIZE_T size() const noexcept;
-		BOOL empty() const noexcept;
+		SIZE_T size()  const noexcept;
+		BOOL   empty() const noexcept;
 
 		VOID push(crVal_);
 		VOID push(rrVal_);
 		VOID pop();
 
-		inline crVal_ top() const;
+		crVal_ top() const;
 
 		VOID swap(Stack&) noexcept(std::_Is_nothrow_swappable<T>::value);
 		

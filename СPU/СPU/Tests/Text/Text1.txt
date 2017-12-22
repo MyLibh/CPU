@@ -1,11 +1,14 @@
 :pochka
 dump
-push ax
+move 999, ax
+push [ax]
 push 98
 push -78
+push ax
 dump
 pop
 add
+pop []
 move 4, ax
 move ax, cx
 dump

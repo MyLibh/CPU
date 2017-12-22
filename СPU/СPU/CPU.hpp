@@ -25,16 +25,14 @@ namespace NCpu
 		RAM<T>      ram_;
 		Stack<T>    stack_;
 
-		BOOL CheckStackSize(SIZE_T = NULL) const;
-
 	public:
 		typedef       T  &rVal_;
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;
 
-		explicit CPU() noexcept;
+		explicit CPU()  noexcept;
 		CPU(CONST CPU&) noexcept;
-		CPU(CPU&&) noexcept;
+		CPU(CPU&&)      noexcept;
 		~CPU();
 
 		CPU<T> &operator=(CONST CPU&);
@@ -44,6 +42,10 @@ namespace NCpu
 		VOID push(rrVal_);
 		VOID push(REG);
 		VOID pop();
+
+		VOID put(crVal_);
+		VOID put(rrVal_);
+		VOID popm();
 
 		VOID add();
 		VOID sub();
@@ -91,14 +93,6 @@ namespace NCpu
 	{ }
 
 	template<typename T>
-	inline BOOL CPU<T>::CheckStackSize(SIZE_T size /* = NULL */) const
-	{
-		if (stack_.size() <= size) throw std::out_of_range("[CPU::CheckStackSize] \"Stack out of range\"\n");
-
-		return TRUE;
-	}
-
-	template<typename T>
 	inline CPU<T> &CPU<T>::operator=(CONST CPU &crCPU)
 	{
 		if (this != &crCPU)
@@ -144,16 +138,30 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::pop()
 	{ 
-		CheckStackSize();
-
 		stack_.pop(); 
+	}
+
+	template<typename T>
+	inline VOID CPU<T>::put(crVal_ val)
+	{
+		ram_.put(val);
+	}
+
+	template<typename T>
+	inline VOID CPU<T>::put(rrVal_ val)
+	{
+		ram_.put(val);
+	}
+
+	template<typename T>
+	inline VOID CPU<T>::popm()
+	{
+		ram_.pop();
 	}
 
 	template<typename T>
 	VOID CPU<T>::add()
 	{
-		CheckStackSize(1);
-
 		auto a = stack_.top();
 		stack_.pop();
 
@@ -166,8 +174,6 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::sub()
 	{
-		CheckStackSize(1);
-
 		auto a = stack_.top();
 		stack_.pop();
 
@@ -180,8 +186,6 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::mul()
 	{
-		CheckStackSize(1);
-
 		auto a = stack_.top();
 		stack_.pop();
 
@@ -194,8 +198,6 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::div()
 	{
-		CheckStackSize(1);
-
 		auto a = stack_.top();
 		stack_.pop();
 
@@ -209,16 +211,12 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::dup()
 	{
-		CheckStackSize();
-
 		stack_.push(stack_.top());
 	}
 
 	template<typename T>
 	VOID CPU<T>::sqrt()
 	{
-		CheckStackSize();
-
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
 
 		auto a = stack_.top();
@@ -230,8 +228,6 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::sin()
 	{
-		CheckStackSize();
-
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
 
 		auto a = stack_.top();
@@ -243,8 +239,6 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::cos()
 	{
-		CheckStackSize();
-
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
 
 		auto a = stack_.top();
@@ -257,7 +251,6 @@ namespace NCpu
 	std::pair<T, T> CPU<T>::getPair()
 	{
 		std::pair<T, T> pair;
-		if (!CheckStackSize(1)) return pair;
 
 		pair.first = stack_.top();
 		stack_.pop();

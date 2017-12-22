@@ -11,20 +11,31 @@ namespace NRam
 	struct RAM final
 	{
 	private:
-		SIZE_T counter_;
-
-	public:
 		static CONST SIZE_T RAM_SIZE = 1 << 4;
 
-		std::array<T, RAM_SIZE> buf;
+		SIZE_T                  counter_;
+		std::array<T, RAM_SIZE> buf_;
+	public:
+		
 
-		explicit RAM() noexcept;
+		typedef       T  &rVal_;
+		typedef       T &&rrVal_;
+		typedef CONST T  &crVal_;
+
+		explicit RAM()     noexcept;
 		RAM(CONST RAM<T>&) noexcept;
-		RAM(RAM<T>&&) noexcept;
+		RAM(RAM<T>&&)      noexcept;
 		~RAM();
 
 		RAM<T> &operator=(CONST RAM&);
 		RAM<T> &operator=(RAM&&);
+
+		rVal_  operator[](SIZE_T);
+		crVal_ operator[](SIZE_T) const;
+
+		SIZE_T put(crVal_);
+		SIZE_T put(rrVal_);
+		VOID pop();
 
 		VOID swap(RAM&) noexcept(std::_Is_nothrow_swappable<T>::value);
 
@@ -33,18 +44,22 @@ namespace NRam
 
 	template<typename T>
 	inline RAM<T>::RAM() noexcept :
-		buf()
+		counter_(NULL),
+		buf_()
 	{ }
 
 	template<typename T>
-	inline RAM<T>::RAM(CONST RAM<T> &crRAM) noexcept :
-		buf(crRAM.buf)
+	inline RAM<T>::RAM(CONST RAM &crRAM) noexcept :
+		counter_(crRAM.counter_),
+		buf_(crRAM.buf_)
 	{ }
 		
 	template<typename T>
-	inline RAM<T>::RAM(RAM<T> &&rrRAM) noexcept :
-		buf(std::move(rrRAM.buf))
+	inline RAM<T>::RAM(RAM &&rrRAM) noexcept :
+		counter_(rrRAM.counter_),
+		buf_(std::move(rrRAM.buf_))
 	{
+		rrRAM.counter_ = NULL;
 		// rrRAM.buf.fill(NULL); // QUEST: should be or not(then no noexcept)
 	}
 
@@ -55,7 +70,11 @@ namespace NRam
 	template<typename T>
 	inline RAM<T> &RAM<T>::operator=(CONST RAM &crRAM)
 	{
-		if(this != &crRAM) buf = crRAM.buf;
+		if (this != &crRAM)
+		{
+			counter_ = crRAM.counter_;
+			buf_     = crRAM.buf_;
+		}
 
 		return (*this);
 	}
@@ -65,17 +84,65 @@ namespace NRam
 	{
 		assert(this != &rrRAM);
 
-		buf = std::move(rrRAM.buf);
+		counter_ = rrRAM.counter_;
+		buf_     = std::move(rrRAM.buf_);
 
+		rrRAM.counter_ = NULL;
 		// rrRAM.buf.fill(NULL); // QUEST: should be or not(then no noexcept)
 
 		return (*this);
 	}
 
 	template<typename T>
+	inline typename RAM<T>::rVal_ RAM<T>::operator[](SIZE_T index) 
+	{
+		if (index >= counter_) throw std::out_of_range("[RAM::operator[]] \"RAM out of range\"\n");
+
+		return buf_[index];
+	}
+
+	template<typename T>
+	inline typename RAM<T>::crVal_ RAM<T>::operator[](SIZE_T index) const
+	{
+		if (index >= counter_) throw std::out_of_range("[RAM::operator[]] \"RAM out of range\"\n");
+
+		return buf_[index];
+	}
+
+	template<typename T>
+	inline SIZE_T RAM<T>::put(crVal_ val)
+	{
+		if (counter_ == RAM_SIZE) throw std::out_of_range("[RAM::put] \"RAM out of range\"\n");
+
+		buf_[counter_] = val;
+		counter_++;
+
+		return counter_ - 1;
+	}
+
+	template<typename T>
+	inline SIZE_T RAM<T>::put(rrVal_ val)
+	{
+		if (counter_ == RAM_SIZE) throw std::out_of_range("[RAM::put] \"RAM out of range\"\n");
+
+		buf_[counter_] = std::move(val);
+		counter_++;
+
+		return counter_ - 1;
+	}
+
+	template<typename T>
+	inline VOID RAM<T>::pop()
+	{
+		if (!counter_) throw std::out_of_range("[RAM::put] \"RAM out of range\"\n");
+
+		counter_--;
+	}
+
+	template<typename T>
 	inline VOID swap(RAM<T> &rRAM) noexcept(std::_Is_nothrow_swappable<T>::value)
 	{
-		buf.swap(rRAM.buf);
+		buf_.swap(rRAM.buf);
 	}
 
 	template<typename T>
@@ -84,11 +151,11 @@ namespace NRam
 		NDebugger::Info("\t[RAM DUMP]", NDebugger::TextColors::LightCyan);
 		
 		std::cout << "RAM <" << typeid(T).name() << "> [0x" << this << "]\n{\n"
-			      << "\tram [" << RAM_SIZE << "] = 0x" << &buf << "\n\t{\n\t\t";
+			      << "\tram [" << counter_ << " of " << RAM_SIZE << "] = 0x" << &buf_ << "\n\t{\n\t\t";
 
-		for (SIZE_T i = 0; i < RAM_SIZE; i += 8)
+		for (SIZE_T i = 0; i < counter_; ++i)
 		{
-			for (WORD j = 0; j < 8; ++j) std::cout << "[" << std::setw(3) << i + j << "] = " << buf[i] << (j + i + 1 == RAM_SIZE ? " " : ", ") << "  ";
+			std::cout << "[" << std::setw(3) << i << "] = " << buf_[i] << (i + 1 == counter_ ? " " : ", ") << "  ";
 
 			std::cout << "\n\t\t";
 		}

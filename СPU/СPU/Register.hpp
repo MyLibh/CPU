@@ -30,9 +30,9 @@ namespace NReg
 
 		std::array<T, REG::NUM> regs;
 
-		explicit Register() noexcept;
+		explicit Register()       noexcept;
 		Register(CONST Register&) noexcept;
-		Register(Register&&) noexcept;
+		Register(Register&&)      noexcept;
 		~Register();
 
 		Register &operator=(CONST Register&);
@@ -122,4 +122,4 @@ namespace NReg
 
 		NDebugger::Info("\t[     END     ]\n", NDebugger::TextColors::Green);
 	}
-} // namespace NReg
+} // namespace NReg 

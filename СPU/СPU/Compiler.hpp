@@ -57,9 +57,9 @@ namespace NCompiler
 			end
 		};
 
-		explicit Compiler() noexcept;
+		explicit Compiler()       noexcept;
 		Compiler(CONST Compiler&) noexcept;
-		Compiler(Compiler&&) noexcept;
+		Compiler(Compiler&&)      noexcept;
 		~Compiler();
 
 		Compiler<T> &operator=(CONST Compiler&);
@@ -177,7 +177,7 @@ namespace NCompiler
 			Operation *pOp = ParseCode(tmp);
 			if (pOp)
 			{
-				if (pOp->cmd == "push") output << commands_::push << " " << pOp->args[0];
+				if      (pOp->cmd == "push") output << commands_::push << " " << pOp->args[0];
 				else if (pOp->cmd == "pop")  output << commands_::pop;
 
 				else if (pOp->cmd == "add")	 output << commands_::add;
@@ -191,14 +191,14 @@ namespace NCompiler
 
 				else if (pOp->cmd == "dump") output << commands_::dump;
 
-				else if (pOp->cmd == "cmp")  output << commands_::cmp << " " << pOp->args[0] << " " << pOp->args[1];
+				else if (pOp->cmd == "cmp")  output << commands_::cmp  << " " << pOp->args[0] << " " << pOp->args[1];
 				else if (pOp->cmd == "jump") output << commands_::jump << " " << pOp->args[0];
 
-				else if (pOp->cmd == "je")	 output << commands_::je << " " << pOp->args[0];
+				else if (pOp->cmd == "je")	 output << commands_::je  << " " << pOp->args[0];
 				else if (pOp->cmd == "jne")  output << commands_::jne << " " << pOp->args[0];
-				else if (pOp->cmd == "ja")	 output << commands_::ja << " " << pOp->args[0];
+				else if (pOp->cmd == "ja")	 output << commands_::ja  << " " << pOp->args[0];
 				else if (pOp->cmd == "jae")	 output << commands_::jae << " " << pOp->args[0];
-				else if (pOp->cmd == "jb")	 output << commands_::jb << " " << pOp->args[0];
+				else if (pOp->cmd == "jb")	 output << commands_::jb  << " " << pOp->args[0];
 				else if (pOp->cmd == "jbe")  output << commands_::jbe << " " << pOp->args[0];
 
 				else if (pOp->cmd == "move") output << commands_::move << " " << pOp->args[0] << " " << pOp->args[1];
@@ -345,17 +345,16 @@ namespace NCompiler
 					auto val = getValue(pOp->args[0]);
 					auto reg = makeReg(pOp->args[0]);
 
-					if (pOp->args[0][0] == '[')
-					{
-						NDebugger::Error("Not released yet");
-
-						throw;
-					}
-					else if (reg != REG::NUM) cpu_.push(reg);
-					else		              cpu_.push(val);
+					if      (pOp->args[0][0] == '[' && reg != REG::NUM) cpu_.put(reg);
+					else if (pOp->args[0][0] == '[' && reg == REG::NUM) cpu_.put(val);
+					else if (                          reg != REG::NUM) cpu_.push(reg);
+					else		                                        cpu_.push(val);
 				}
-				else if (pOp->cmd == "pop")  cpu_.pop();
-
+				else if (pOp->cmd == "pop")
+				{
+					if (pOp->args[0][0] == '[') cpu_.popm();
+					else                        cpu_.pop();
+				}
 				else if (pOp->cmd == "add") cpu_.add();
 				else if (pOp->cmd == "sub") cpu_.sub();
 				else if (pOp->cmd == "mul") cpu_.mul();
