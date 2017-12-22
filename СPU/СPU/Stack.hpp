@@ -1,12 +1,9 @@
 #pragma once
 
-#include <vector>
-#include <iostream>
-#include <memory>
-#include <iomanip>
-#include <type_traits>
+#include <memory>  // std::unique_ptr
+#include <cassert> // assert
+#include <iomanip> // std::setw
 
-#include "MyTypedefs.hpp"
 #include "Debugger.hpp"
 
 //cmd -D_SCL_SECURE_NO_WARNINGS
@@ -16,92 +13,87 @@ namespace NStack
 	template<typename T = INT>
 	class Stack final
 	{
+		static CONST SIZE_T DEFAULT_SIZE = 10;
+
 		SIZE_T               counter_,
 			                 size_;
 		std::unique_ptr<T[]> buffer_;
 
-		VOID ReallocMemory();
+		VOID reallocMemory();
 
 	public:
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;
 
-		explicit Stack(SIZE_T = 10) noexcept;
-		Stack(CONST Stack<T>&) noexcept;
-		Stack(Stack<T>&&) noexcept;
+		explicit Stack(SIZE_T = DEFAULT_SIZE) noexcept;
+		Stack(CONST Stack&); // QUEST: maybe i can make it noexcept
+		Stack(Stack&&) noexcept;
 		~Stack();
 
-		Stack<T> &operator=(CONST Stack<T>&);
-		Stack<T> &operator=(Stack<T>&&);
+		Stack<T> &operator=(CONST Stack&); // QUEST: maybe i can make it noexcept
+		Stack<T> &operator=(Stack&&) noexcept;
 
-		BOOL operator==(CONST Stack<T>&) const;
-		BOOL operator!=(CONST Stack<T>&) const;
+		BOOL operator==(CONST Stack&) const;
+		BOOL operator!=(CONST Stack&) const;
 
-		inline SIZE_T size() const noexcept;
-		inline BOOL empty() const noexcept;
+		SIZE_T size() const noexcept;
+		BOOL empty() const noexcept;
 
 		VOID push(crVal_);
 		VOID push(rrVal_);
 		VOID pop();
 
-		crVal_ top() const;
+		inline crVal_ top() const;
 
-		VOID swap(Stack<T>&) noexcept(std::_Is_nothrow_swappable<T>::value);
+		VOID swap(Stack&) noexcept(std::_Is_nothrow_swappable<T>::value);
 		
 		VOID dump() const;
-
-		class OutOfRangeExc : std::exception
-		{
-		public:
-			OutOfRangeExc(CRSTRING error = "Stack is empty\n") : exception(error.c_str()) { }
-		};
 	};
 
 	template<typename T>
-	Stack<T>::Stack(SIZE_T size /* = 10 */) noexcept :
+	inline Stack<T>::Stack(SIZE_T size /* = 10 */) noexcept :
 		counter_(NULL),
 		size_(size),
 		buffer_(new T[size])
 	{ }
 
 	template<typename T>
-	Stack<T>::Stack(CONST Stack<T> &crStack) noexcept :
+	inline Stack<T>::Stack(CONST Stack &crStack) :
 		counter_(crStack.counter_),
 		size_(crStack.size_),
 		buffer_(new T[crStack.size_])
 	{
-		std::copy(crStack.buffer_.get(), crStack.buffer_.get() + crStack.size_, buffer_.get());
+		std::copy(crStack.buffer_.get(), crStack.buffer_.get() + crStack.counter_, buffer_.get());
 	}
 
 	template<typename T>
-	Stack<T>::Stack(Stack<T> &&rrStack) noexcept :
+	inline Stack<T>::Stack(Stack &&rrStack) noexcept :
 		counter_(rrStack.counter_),
 		size_(rrStack.size_),
-		buffer_(std::move(rrStack.buffer_))
+		buffer_(rrStack.buffer_)
 	{
 		rrStack.counter_ = NULL;
-		rrStack.size_ = NULL;
-		rrStack.buffer_ = nullptr;
+		rrStack.size_    = NULL;
+		rrStack.buffer_  = nullptr;
 	}
 
 	template<typename T>
-	Stack<T>::~Stack()
+	inline Stack<T>::~Stack()
 	{ }
 
 	template<typename T>
-	VOID Stack<T>::ReallocMemory()
+	VOID Stack<T>::reallocMemory()
 	{
-		T      *pBuf = buffer_.release();
-		SIZE_T  tmp = size_;
+		T *pBuf = buffer_.release();
 
 		size_ <<= 1;
 		buffer_.reset(new T[size_]);
 
-		std::copy(pBuf, pBuf + tmp, buffer_.get());
+		std::copy(pBuf, pBuf + counter_, buffer_.get());
 	}
 
 	template<typename T>
-	Stack<T> &Stack<T>::operator=(CONST Stack<T> &crStack)
+	Stack<T> &Stack<T>::operator=(CONST Stack &crStack)
 	{
 		if (this != &crStack)
 		{
@@ -121,38 +113,37 @@ namespace NStack
 	}
 
 	template<typename T>
-	Stack<T> &Stack<T>::operator=(Stack<T> &&rrStack)
+	Stack<T> &Stack<T>::operator=(Stack &&rrStack) noexcept
 	{
 		assert(this != &rrStack);
 
 		buffer_ = nullptr;
 
 		counter_ = rrStack.counter_;
-		size_ = rrStack.size_;
-		buffer_ = std::move(rrStack.buffer_);
+		size_    = rrStack.size_;
+		buffer_  = std::move(rrStack.buffer_);
 
 		rrStack.counter_ = NULL;
-		rrStack.size_ = NULL;
-		rrStack.buffer_ = nullptr;
+		rrStack.size_    = NULL;
+		rrStack.buffer_  = nullptr;
 
 		return (*this);
 	}
-	
+
 	template<typename T>
-	BOOL Stack<T>::operator==(CONST Stack<T> &crStack) const
+	inline BOOL Stack<T>::operator==(CONST Stack &crStack) const
 	{
 		if (counter_ != crStack.counter_) return FALSE;
 
-		for (SIZE_T i = 0; i < counter_; ++i)
-			if (buffer_[i] != crStack.buffer_[i]) return FALSE;
+		if (!counter_) return TRUE; // Zero-size verification
 
-		return TRUE;
+		return std::equal(&buffer_[0], &buffer_[counter_ - 1], &crStack.buffer_[0]);
 	}
 
 	template<typename T>
-	BOOL Stack<T>::operator!=(CONST Stack<T> &crStack) const
+	inline BOOL Stack<T>::operator!=(CONST Stack &crStack) const 
 	{
-		return !(*this == crStack);
+		return (!(*this == crStack));
 	}
 
 	template<typename T>
@@ -164,37 +155,41 @@ namespace NStack
 	template<typename T>
 	inline BOOL Stack<T>::empty() const noexcept
 	{ 
-		return (counter ? FALSE : TRUE); 
+		return (counter_ ? FALSE : TRUE); 
 	}
 
 	template<typename T>
-	VOID Stack<T>::push(crVal_ val)
+	inline VOID Stack<T>::push(crVal_ val)
 	{
-		if (++counter_ == size_) ReallocMemory();
+		if (counter_ + 1 == size_) reallocMemory();
 
-		buffer_[counter_ - 1] = val;
+		buffer_[counter_] = val;
+		++counter_;
 	}
 
 	template<typename T>
-	VOID Stack<T>::push(rrVal_ val)
+	inline VOID Stack<T>::push(rrVal_ val)
 	{
-		if (++counter_ == size_) ReallocMemory();
+		if (counter_ + 1 == size_) reallocMemory();
 
-		buffer_[counter_ - 1] = val;
+		buffer_[counter_] = val;
+		++counter_;
 	}
 
 	template<typename T>
-	VOID Stack<T>::pop()
+	inline VOID Stack<T>::pop()
 	{
-		if (counter_) counter_--;
-		else throw OutOfRangeExc();
+		if (!counter_) throw std::out_of_range("[Stack::pop] \"Stack out of range\"\n");
+
+		--counter_;
 	}
 
 	template<typename T>
-	CONST T &Stack<T>::top() const
+	inline typename Stack<T>::crVal_ Stack<T>::top() const
 	{
-		if (counter_) return buffer_[counter_ - 1];
-		else throw OutOfRangeExc();
+		if (!counter_) std::out_of_range("[Stack::pop] \"Stack out of range\"\n");
+
+		return buffer_[counter_ - 1];
 	}
 
 	template<typename T>
@@ -214,8 +209,8 @@ namespace NStack
 		std::cout << "Stack <" << typeid(T).name() << "> [0x" << this << "]\n"
 			<< "{\n\tbuffer [" << counter_ << "] = 0x" << buffer_.get() << "\n\t{\n";
 
-		if (counter_) for (SIZE_T i = NULL; i < counter_; ++i) std::cout << "\t\t[" << i << "] = " << std::setw(8) << buffer_[i] << std::endl;
-		else                                                   std::cout << "\t\tempty\n";
+		if (counter_) for (SIZE_T i = 0; i < counter_; ++i) std::cout << "\t\t[" << i << "] = " << std::setw(8) << buffer_[i] << std::endl;
+		else                                                std::cout << "\t\tempty\n";
 
 		std::cout << "\t}\n}\n";
 

@@ -1,15 +1,9 @@
 #pragma once
 
-#include <fstream>
-#include <string>
-#include <cassert>
-
 #include "Register.hpp"
 #include "RAM.hpp"
 #include "Stack.hpp"
 #include "MyMath.hpp"
-
-//cmd -D_SCL_SECURE_NO_WARNINGS
 
 namespace NCpu
 {
@@ -31,90 +25,81 @@ namespace NCpu
 		RAM<T>      ram_;
 		Stack<T>    stack_;
 
-		BOOL CheckStackSize(SIZE_T = 0) const;
+		BOOL CheckStackSize(SIZE_T = NULL) const;
 
 	public:
-		using rVal_  = T&;
-		using rrVal_ = T&&;
-		using crVal_ = CONST T&;
+		typedef       T  &rVal_;
+		typedef       T &&rrVal_;
+		typedef CONST T  &crVal_;
 
 		explicit CPU() noexcept;
-		CPU(CONST CPU<T>&) noexcept;
-		CPU(CPU<T>&&) noexcept;
+		CPU(CONST CPU&) noexcept;
+		CPU(CPU&&) noexcept;
 		~CPU();
 
-		CPU<T> &operator=(CONST CPU<T>&);
-		CPU<T> &operator=(CPU<T>&&);
+		CPU<T> &operator=(CONST CPU&);
+		CPU<T> &operator=(CPU&&);
 
 		VOID push(crVal_);
 		VOID push(rrVal_);
 		VOID push(REG);
 		VOID pop();
 
-		BOOL add();
-		BOOL sub();
-		BOOL mul();
-		BOOL div();
-		BOOL dup();
+		VOID add();
+		VOID sub();
+		VOID mul();
+		VOID div();
+		VOID dup();
 
-		BOOL sqrt();
-		BOOL sin();
-		BOOL cos();
+		VOID sqrt();
+		VOID sin();
+		VOID cos();
 
 		std::pair<T, T> getPair();
 
-		VOID swap(CPU<T>&) noexcept(std::_Is_nothrow_swappable<T>::value);
+		VOID swap(CPU&) noexcept(std::_Is_nothrow_swappable<T>::value);
 
-		inline VOID move(REG, REG);
-		inline VOID move(crVal_, REG);
+		VOID move(REG, REG);
+		VOID move(crVal_, REG);
 
 		VOID dump() const;
 	};
 
 	template<typename T>
-	CPU<T>::CPU() noexcept :
+	inline CPU<T>::CPU() noexcept :
 		reg_(),
 		ram_(),
 		stack_()
 	{ }
 
 	template<typename T>
-	CPU<T>::CPU(CONST CPU<T> &crCPU) noexcept :
+	inline CPU<T>::CPU(CONST CPU &crCPU) noexcept :
 		reg_(crCPU.reg_),
 		ram_(crCPU.ram_),
 		stack_(crCPU.stack_)
 	{ }
 
 	template<typename T>
-	CPU<T>::CPU(CPU<T> &&rrCPU) noexcept :
+	inline CPU<T>::CPU(CPU<T> &&rrCPU) noexcept :
 		reg_(std::move(rrCPU.reg_)),
 		ram_(std::move(rrCPU.ram_)),
 		stack_(std::move(rrCPU.stack_))
 	{ }
 
 	template<typename T>
-	CPU<T>::~CPU()
+	inline CPU<T>::~CPU()
 	{ }
 
 	template<typename T>
-	BOOL CPU<T>::CheckStackSize(SIZE_T size /* = 0 */) const
+	inline BOOL CPU<T>::CheckStackSize(SIZE_T size /* = NULL */) const
 	{
-		if (stack_.size() <= size)
-		{
-#ifdef _CPU_ENABLE_EXEPTIONS
-			throw Stack<T>::OutOfRangeExc("There are not enough elements in stack");
-#endif // _CPU_ENABLE_EXEPTIONS
-
-			NDebugger::Error("There are not enough elements in stack, number of elements = " + stack_.size());
-
-			return FALSE;
-		}
+		if (stack_.size() <= size) throw std::out_of_range("[CPU::CheckStackSize] \"Stack out of range\"\n");
 
 		return TRUE;
 	}
 
 	template<typename T>
-	CPU<T> &CPU<T>::operator=(CONST CPU<T> &crCPU)
+	inline CPU<T> &CPU<T>::operator=(CONST CPU &crCPU)
 	{
 		if (this != &crCPU)
 		{
@@ -123,11 +108,11 @@ namespace NCpu
 			stack_ = crCPU.stack_;
 		}
 
-		return *this;
+		return (*this);
 	}
 
 	template<typename T>
-	CPU<T> &CPU<T>::operator=(CPU<T> &&rrCPU)
+	inline CPU<T> &CPU<T>::operator=(CPU<T> &&rrCPU)
 	{
 		assert(this != &rrCPU);
 
@@ -135,37 +120,39 @@ namespace NCpu
 		ram_   = std::move(rrCPU.ram_);
 		stack_ = std::move(rrCPU.stack_);
 
-		return *this;
+		return (*this);
 	}
 
 	template<typename T>
-	VOID CPU<T>::push(crVal_ val) 
+	inline VOID CPU<T>::push(crVal_ val)
 	{ 
 		stack_.push(val); 
 	}
 
 	template<typename T>
-	VOID CPU<T>::push(rrVal_ val) 
+	inline VOID CPU<T>::push(rrVal_ val) 
 	{ 
 		stack_.push(val); 
 	}
 
 	template<typename T>
-	VOID CPU<T>::push(REG reg)
+	inline VOID CPU<T>::push(REG reg)
 	{
 		stack_.push(reg_[reg]);
 	}
 
 	template<typename T>
-	VOID CPU<T>::pop() 
+	inline VOID CPU<T>::pop()
 	{ 
+		CheckStackSize();
+
 		stack_.pop(); 
 	}
 
 	template<typename T>
-	BOOL CPU<T>::add()
+	VOID CPU<T>::add()
 	{
-		if (!CheckStackSize(1)) return FALSE;
+		CheckStackSize(1);
 
 		auto a = stack_.top();
 		stack_.pop();
@@ -174,14 +161,12 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(a + b);
-
-		return TRUE;
 	}
 
 	template<typename T>
-	BOOL CPU<T>::sub()
+	VOID CPU<T>::sub()
 	{
-		if (!CheckStackSize(1)) return FALSE;
+		CheckStackSize(1);
 
 		auto a = stack_.top();
 		stack_.pop();
@@ -190,14 +175,12 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(a - b);
-
-		return TRUE;
 	}
 
 	template<typename T>
-	BOOL CPU<T>::mul()
+	VOID CPU<T>::mul()
 	{
-		if (!CheckStackSize(1)) return FALSE;
+		CheckStackSize(1);
 
 		auto a = stack_.top();
 		stack_.pop();
@@ -206,14 +189,12 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(a * b);
-
-		return TRUE;
 	}
 
 	template<typename T>
-	BOOL CPU<T>::div()
+	VOID CPU<T>::div()
 	{
-		if (!CheckStackSize(1)) return FALSE;
+		CheckStackSize(1);
 
 		auto a = stack_.top();
 		stack_.pop();
@@ -221,26 +202,22 @@ namespace NCpu
 		auto b = stack_.top();
 		stack_.pop();
 
-		assert(b);
+		if (!b) throw std::logic_error("[CPU::div] \"Division by zero\"\n");
 		stack_.push(a / b);
-
-		return TRUE;
 	}
 
 	template<typename T>
-	BOOL CPU<T>::dup()
+	inline VOID CPU<T>::dup()
 	{
-		if (!CheckStackSize()) return FALSE;
+		CheckStackSize();
 
 		stack_.push(stack_.top());
-
-		return TRUE;
 	}
 
 	template<typename T>
-	BOOL CPU<T>::sqrt()
+	VOID CPU<T>::sqrt()
 	{
-		if (!CheckStackSize()) return FALSE;
+		CheckStackSize();
 
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
 
@@ -248,14 +225,12 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(static_cast<T>(sqrt_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
-
-		return TRUE;
 	}
 
 	template<typename T>
-	BOOL CPU<T>::sin()
+	VOID CPU<T>::sin()
 	{
-		if (!CheckStackSize()) return FALSE;
+		CheckStackSize();
 
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
 
@@ -263,14 +238,12 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(static_cast<T>(sin_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
-
-		return TRUE;
 	}
 
 	template<typename T>
-	BOOL CPU<T>::cos()
+	VOID CPU<T>::cos()
 	{
-		if (!CheckStackSize()) return FALSE;
+		CheckStackSize();
 
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
 
@@ -278,8 +251,6 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(static_cast<T>(cos_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
-
-		return TRUE;
 	}
 
 	template<typename T>
@@ -298,7 +269,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	VOID CPU<T>::swap(CPU<T> &rCPU) noexcept(std::_Is_nothrow_swappable<T>::value)
+	inline VOID CPU<T>::swap(CPU &rCPU) noexcept(std::_Is_nothrow_swappable<T>::value)
 	{ 
 		reg_.swap(rCPU.reg_);
 		stack_.swap(rCPU.stack_); 

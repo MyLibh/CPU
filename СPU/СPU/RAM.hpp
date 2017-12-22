@@ -1,6 +1,6 @@
 #pragma once
 
-#include <array>
+#include <array> // std::array
 
 #include "MyTypedefs.hpp"
 #include "Debugger.hpp"
@@ -14,7 +14,7 @@ namespace NRam
 		SIZE_T counter_;
 
 	public:
-		static CONST SIZE_T RAM_SIZE = 1 << 8;
+		static CONST SIZE_T RAM_SIZE = 1 << 4;
 
 		std::array<T, RAM_SIZE> buf;
 
@@ -23,49 +23,53 @@ namespace NRam
 		RAM(RAM<T>&&) noexcept;
 		~RAM();
 
-		RAM<T> &operator=(CONST RAM<T>&);
-		RAM<T> &operator=(RAM<T>&&);
+		RAM<T> &operator=(CONST RAM&);
+		RAM<T> &operator=(RAM&&);
 
-		inline VOID swap(RAM<T>&) noexcept(std::_Is_nothrow_swappable<T>::value);
+		VOID swap(RAM&) noexcept(std::_Is_nothrow_swappable<T>::value);
 
 		VOID dump() const;
 	};
 
 	template<typename T>
-	RAM<T>::RAM() noexcept :
+	inline RAM<T>::RAM() noexcept :
 		buf()
 	{ }
 
 	template<typename T>
-	RAM<T>::RAM(CONST RAM<T> &crRAM) noexcept :
+	inline RAM<T>::RAM(CONST RAM<T> &crRAM) noexcept :
 		buf(crRAM.buf)
 	{ }
 		
 	template<typename T>
-	RAM<T>::RAM(RAM<T> &&rrRAM) noexcept :
+	inline RAM<T>::RAM(RAM<T> &&rrRAM) noexcept :
 		buf(std::move(rrRAM.buf))
-	{ }
-
-	template<typename T>
-	RAM<T>::~RAM()
-	{ }
-
-	template<typename T>
-	RAM<T> &RAM<T>::operator=(CONST RAM<T> &crRAM)
 	{
-		if(this != &crRAM) buf = crRAM.buf;
-
-		return *this;
+		// rrRAM.buf.fill(NULL); // QUEST: should be or not(then no noexcept)
 	}
 
 	template<typename T>
-	RAM<T> &RAM<T>::operator=(RAM<T> &&rrRAM)
+	inline RAM<T>::~RAM()
+	{ }
+
+	template<typename T>
+	inline RAM<T> &RAM<T>::operator=(CONST RAM &crRAM)
+	{
+		if(this != &crRAM) buf = crRAM.buf;
+
+		return (*this);
+	}
+
+	template<typename T>
+	inline RAM<T> &RAM<T>::operator=(RAM &&rrRAM)
 	{
 		assert(this != &rrRAM);
 
 		buf = std::move(rrRAM.buf);
 
-		return *this;
+		// rrRAM.buf.fill(NULL); // QUEST: should be or not(then no noexcept)
+
+		return (*this);
 	}
 
 	template<typename T>

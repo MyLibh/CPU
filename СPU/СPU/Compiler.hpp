@@ -1,11 +1,17 @@
 #pragma once
 
+#include <fstream>
+#include <sstream>
+
 #include "Parser.hpp"
 #include "CPU.hpp"
 
 namespace NCompiler
 {
-	using namespace NCpu;
+	using namespace NParser;
+
+	using NCpu::REG;
+	using NCpu::CPU;
 
 	template<typename T = INT>
 	class Compiler final
@@ -56,12 +62,12 @@ namespace NCompiler
 		};
 
 		explicit Compiler() noexcept;
-		Compiler(CONST Compiler<T>&) noexcept;
-		Compiler(Compiler<T>&&) noexcept;
+		Compiler(CONST Compiler&) noexcept;
+		Compiler(Compiler&&) noexcept;
 		~Compiler();
 
-		Compiler<T> &operator=(CONST Compiler<T>&);
-		Compiler<T> &operator=(Compiler<T>&&);
+		Compiler<T> &operator=(CONST Compiler&);
+		Compiler<T> &operator=(Compiler&&);
 
 		BOOL toComTextFile(CRSTRING) const;
 		BOOL toBinFile(CRSTRING) const;
@@ -72,22 +78,22 @@ namespace NCompiler
 	};
 
 	template<typename T>
-	Compiler<T>::Compiler() noexcept :
+	inline Compiler<T>::Compiler() noexcept :
 		cpu_()
 	{ }
 
 	template<typename T>
-	Compiler<T>::Compiler(CONST Compiler<T> &crComp) noexcept :
+	inline Compiler<T>::Compiler(CONST Compiler &crComp) noexcept :
 		cpu_(crComp.cpu_)
 	{ }
 
 	template<typename T>
-	Compiler<T>::Compiler(Compiler<T> &&rrComp) noexcept :
-		cpu_(std : move(rrComp.cpu_))
+	inline Compiler<T>::Compiler(Compiler &&rrComp) noexcept :
+		cpu_(rrComp.cpu_)
 	{ }
 
 	template<typename T>
-	Compiler<T>::~Compiler()
+	inline Compiler<T>::~Compiler()
 	{ }
 
 	template<typename T>
@@ -111,7 +117,7 @@ namespace NCompiler
 	template<typename T>
 	REG Compiler<T>::makeReg(CRSTRING str) const
 	{
-		if (str == "ax" || str == "[ax]") return REG::AX;
+		if      (str == "ax" || str == "[ax]") return REG::AX;
 		else if (str == "bx" || str == "[bx]") return REG::BX;
 		else if (str == "cx" || str == "[cx]") return REG::CX;
 		else if (str == "dx" || str == "[dx]") return REG::DX;
@@ -122,13 +128,13 @@ namespace NCompiler
 	}
 
 	template<typename T>
-	BOOL Compiler<T>::isReg(CRSTRING val) const
+	inline BOOL Compiler<T>::isReg(CRSTRING val) const
 	{
 		return (makeReg(val) != REG::NUM);
 	}
 
 	template<typename T>
-	Compiler<T> &Compiler<T>::operator=(CONST Compiler<T> &crComp)
+	inline Compiler<T> &Compiler<T>::operator=(CONST Compiler &crComp)
 	{
 		if (this != &crComp) cpu_ = crComp.cpu_;
 
@@ -136,7 +142,7 @@ namespace NCompiler
 	}
 
 	template<typename T>
-	Compiler<T> &Compiler<T>::operator=(Compiler<T> &&rrComp)
+	inline Compiler<T> &Compiler<T>::operator=(Compiler &&rrComp)
 	{
 		assert(this != &rrComp);
 

@@ -43,4 +43,6 @@ typedef unsigned UNSIGNED;
 #include <string>
 typedef CONST std::string &CRSTRING;
 
+//===============================================================================================================================================
+
 #define DEBUG

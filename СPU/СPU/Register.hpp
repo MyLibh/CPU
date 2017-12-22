@@ -1,7 +1,7 @@
 #pragma once
 
-#include <array>
-#include <type_traits>
+#include <array>   // std::array
+#include <cassert> // assert
 
 #include "MyTypedefs.hpp"
 #include "Debugger.hpp"
@@ -25,79 +25,86 @@ namespace NReg
 	template<typename T = INT>
 	struct Register final
 	{
+		typedef       T &rVal_;
+		typedef CONST T &crVal_;
+
 		std::array<T, REG::NUM> regs;
 
 		explicit Register() noexcept;
-		Register(CONST Register<T>&) noexcept;
-		Register(Register<T>&&) noexcept;
+		Register(CONST Register&) noexcept;
+		Register(Register&&) noexcept;
 		~Register();
 
-		Register<T> &operator=(CONST Register<T>&);
-		Register<T> &operator=(Register<T>&&);
+		Register &operator=(CONST Register&);
+		Register<T> &operator=(Register&&);
 
-		T &operator[](REG);
-		CONST T &operator[](REG) const;
+		rVal_  operator[](REG);
+		crVal_ operator[](REG) const;
 
-		inline VOID swap(Register<T>&) noexcept(std::_Is_nothrow_swappable<T>::value);
+		VOID swap(Register&) noexcept(std::_Is_nothrow_swappable<T>::value);
 
 		VOID dump() const;
 	};
 
 	template<typename T>
-	Register<T>::Register() noexcept :
+	inline Register<T>::Register() noexcept :
 		regs()
 	{ }
 
 	template<typename T>
-	Register<T>::Register(CONST Register<T> &crReg) noexcept :
+	inline Register<T>::Register(CONST Register &crReg) noexcept :
 		regs(crReg.regs)
 	{ }
 
 	template<typename T>
-	Register<T>::Register(Register<T> &&rrReg) noexcept :
+	inline Register<T>::Register(Register &&rrReg) noexcept :
 		regs(std::move(rrReg.regs))
-	{ }
-
-	template<typename T>
-	Register<T>::~Register()
-	{ }
-
-	template<typename T>
-	Register<T> &Register<T>::operator=(CONST Register<T> &crReg)
 	{
-		if (this != &crReg) regs = crReg.regs;
-
-		return *this;
+		// rrReg.regs.fill(NULL); // QUEST: should be or not(then no noexcept)
 	}
 
 	template<typename T>
-	Register<T> &Register<T>::operator=(Register<T> &&rrReg)
+	inline Register<T>::~Register()
+	{ }
+
+	template<typename T>
+	inline Register<T> &Register<T>::operator=(CONST Register &crReg)
+	{
+		if (this != &crReg) regs = crReg.regs;
+
+		return (*this);
+	}
+
+	template<typename T>
+	inline Register<T> &Register<T>::operator=(Register &&rrReg)
 	{
 		assert(this != &rrReg);
 
 		regs = std::move(rrReg.regs);
 
-		return *this;
+		// rrReg.regs.fill(NULL); // QUEST: should be or not(then no noexcept)
+
+		return (*this);
 	}
 
 	template<typename T>
-	T &Register<T>::operator[](REG reg) 
+	inline typename Register<T>::rVal_ Register<T>::operator[](REG reg) 
 	{
-		assert(reg != REG::NUM);
+		if (reg == REG::NUM) throw std::out_of_range("[Register::operator[]] \"Register out of range\"\n");
 
 		return regs[reg];
 	}
 
 	template<typename T>
-	CONST T &Register<T>::operator[](REG reg) const 
+	inline typename Register<T>::crVal_ Register<T>::operator[](REG reg) const 
 	{ 
-		assert(reg != REG::NUM); 
+		if (reg == REG::NUM) throw std::out_of_range("[Register::operator[]] \"Register out of range\"\n");
 		
 		return regs[reg]; 
 	}
 
 	template<typename T>
-	inline VOID Register<T>::swap(Register<T> &rReg) noexcept(std::_Is_nothrow_swappable<T>::value)
+	inline VOID Register<T>::swap(Register &rReg) noexcept(std::_Is_nothrow_swappable<T>::value)
 	{ 
 		reg.swap(rReg.reg); 
 	}
@@ -115,4 +122,4 @@ namespace NReg
 
 		NDebugger::Info("\t[     END     ]\n", NDebugger::TextColors::Green);
 	}
-}  // namespace NReg
+} // namespace NReg
