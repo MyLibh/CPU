@@ -54,10 +54,6 @@ namespace NCompiler
 
 			move,
 
-			in, 
-			out, 
-			swi,
-
 			end
 		};
 
@@ -69,8 +65,8 @@ namespace NCompiler
 		Compiler<T> &operator=(CONST Compiler&);
 		Compiler<T> &operator=(Compiler&&);
 
-		BOOL toComTextFile(CRSTRING) const;
-		BOOL toBinFile(CRSTRING) const;
+		BOOL toComFile(CRSTRING) const;
+		//BOOL toBinFile(CRSTRING) const;
 
 		BOOL fromTextFile(CRSTRING);
 		BOOL fromComFile(CRSTRING);
@@ -152,7 +148,7 @@ namespace NCompiler
 	}
 
 	template<typename T>
-	BOOL Compiler<T>::toComTextFile(CRSTRING filename) const
+	BOOL Compiler<T>::toComFile(CRSTRING filename) const
 	{
 		std::ifstream input(filename + ".txt");
 		if (!input.is_open())
@@ -207,10 +203,6 @@ namespace NCompiler
 
 				else if (pOp->cmd == "move") output << commands_::move << " " << pOp->args[0] << " " << pOp->args[1];
 
-				else if (pOp->cmd == "in")	 output << commands_::in;
-				else if (pOp->cmd == "out")  output << commands_::out;
-				else if (pOp->cmd == "swi")  output << commands_::swi;
-
 				else if (pOp->cmd == "end")  output << commands_::end;
 
 				else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) output << pOp->cmd;
@@ -240,7 +232,7 @@ namespace NCompiler
 		return TRUE;
 	}
 
-	template<typename T>
+	/*template<typename T>
 	BOOL Compiler<T>::toBinFile(CRSTRING filename) const
 	{
 		std::ifstream input(filename + ".txt");
@@ -327,7 +319,7 @@ namespace NCompiler
 		input.close();
 
 		return TRUE;
-	}
+	}*/
 
 	template<typename T>
 	BOOL Compiler<T>::fromTextFile(CRSTRING filename)
@@ -393,10 +385,6 @@ namespace NCompiler
 					if      ( isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(pOp->args[0]), makeReg(pOp->args[1]));
 					else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(pOp->args[0]), makeReg(pOp->args[1]));
 				}
-
-				//else if (pOp->cmd == "in");
-				//else if (pOp->cmd == "out");
-				//else if (pOp->cmd == "swi");
 
 				else if (pOp->cmd == "end") { delete pOp; break; }
 
@@ -492,10 +480,6 @@ namespace NCompiler
 
 					break;
 				}
-
-				//case commands_::in: break;
-				//case commands_::out: break;
-				//case commands_::swi: break;
 
 				case commands_::end: { delete pOp; file.close(); return TRUE; }
 

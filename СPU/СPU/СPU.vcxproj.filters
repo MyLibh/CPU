@@ -13,6 +13,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Файлы ресурсов\Com">
+      <UniqueIdentifier>{bfc8e861-f202-41e2-9482-ab244dba9284}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Bin">
+      <UniqueIdentifier>{886d37b9-ff53-4dab-bf75-4f1daea4ad6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Text">
+      <UniqueIdentifier>{42b63088-7fb0-4d69-8727-111be5a5876e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPU.hpp">
@@ -55,14 +64,14 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="TestBin.txt">
-      <Filter>Файлы ресурсов</Filter>
+    <Text Include="Tests\Text\Text1.txt">
+      <Filter>Файлы ресурсов\Text</Filter>
     </Text>
-    <Text Include="Test.txt">
-      <Filter>Файлы ресурсов</Filter>
+    <Text Include="Tests\Bin\Text1Bin.txt">
+      <Filter>Файлы ресурсов\Bin</Filter>
     </Text>
-    <Text Include="TestCom.txt">
-      <Filter>Файлы ресурсов</Filter>
+    <Text Include="Tests\Com\Text1Com.txt">
+      <Filter>Файлы ресурсов\Com</Filter>
     </Text>
   </ItemGroup>
 </Project>

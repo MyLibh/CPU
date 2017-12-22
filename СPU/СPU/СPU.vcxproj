@@ -131,9 +131,9 @@
     <ClCompile Include="Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="TestBin.txt" />
-    <Text Include="TestCom.txt" />
-    <Text Include="Test.txt" />
+    <Text Include="Tests\Bin\Text1Bin.txt" />
+    <Text Include="Tests\Com\Text1Com.txt" />
+    <Text Include="Tests\Text\Text1.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

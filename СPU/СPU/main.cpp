@@ -16,7 +16,7 @@ INT main(INT argc, CHAR *argv[])
 		NDebugger::SetColorConsole(NDebugger::TextColors::White);
 
 		Compiler<> comp;
-		comp.fromTextFile("Tests\\Text\\" + file);
+		comp.fromComFile("Tests\\Text\\" + file);
 	}
 	catch (CONST std::exception &exc)
 	{
@@ -24,7 +24,7 @@ INT main(INT argc, CHAR *argv[])
 	}
 	catch (...)
 	{
-		std::cout << "Unhandled exeptiob";
+		std::cout << "Unhandled exeption\n";
 	}
 	
 	system("pause");
