@@ -1,5 +1,22 @@
 #pragma once
 
+#if _MSVC_LANG < 201402
+	namespace std
+	{
+		// Bad, but all is checked and i promise you, it will work properly XD
+		template<typename T>
+		class _Is_nothrow_swappable 
+		{
+			/* constexpr */ operator bool() { return false; }
+		};
+
+	
+	}
+	#define _NOEXCEPTARG(arg)	
+#else
+	#define _NOEXCEPTARG(...) _NOEXCEPT(__VA_ARGS__) 
+#endif // _MSVC_LANG < 201402
+
 #ifndef _WINDOWS_
 	
 	typedef bool		   BOOL;

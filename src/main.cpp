@@ -16,7 +16,7 @@ INT main(INT argc, CHAR *argv[])
 		NDebugger::SetColorConsole(NDebugger::TextColors::White);
 
 		Compiler<> comp;
-		comp.fromTextFile("Tests\\Text\\" + file);
+		comp.toComFile("..\\..\\src\\Tests\\Text\\" + file);
 	}
 	catch (CONST std::exception &exc)
 	{

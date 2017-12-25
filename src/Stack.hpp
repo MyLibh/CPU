@@ -25,19 +25,19 @@ namespace NStack
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;
 
-		explicit Stack(SIZE_T = DEFAULT_SIZE) noexcept;
+		explicit Stack(SIZE_T = DEFAULT_SIZE) _NOEXCEPT;
 		Stack(CONST Stack&); // QUEST: maybe i can make it noexcept
-		Stack(Stack&&)                        noexcept;
+		Stack(Stack&&)                        _NOEXCEPT;
 		~Stack();
 
 		Stack<T> &operator=(CONST Stack&); // QUEST: maybe i can make it noexcept
-		Stack<T> &operator=(Stack&&) noexcept;
+		Stack<T> &operator=(Stack&&) _NOEXCEPT;
 
 		BOOL operator==(CONST Stack&) const;
 		BOOL operator!=(CONST Stack&) const;
 
-		SIZE_T size()  const noexcept;
-		BOOL   empty() const noexcept;
+		SIZE_T size()  const _NOEXCEPT;
+		BOOL   empty() const _NOEXCEPT;
 
 		VOID push(crVal_);
 		VOID push(rrVal_);
@@ -45,13 +45,13 @@ namespace NStack
 
 		crVal_ top() const;
 
-		VOID swap(Stack&) noexcept(std::_Is_nothrow_swappable<T>::value);
+		VOID swap(Stack&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>);
 		
 		VOID dump() const;
 	};
 
 	template<typename T>
-	inline Stack<T>::Stack(SIZE_T size /* = 10 */) noexcept :
+	inline Stack<T>::Stack(SIZE_T size /* = 10 */) _NOEXCEPT :
 		counter_(NULL),
 		size_(size),
 		buffer_(new T[size])
@@ -67,7 +67,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	inline Stack<T>::Stack(Stack &&rrStack) noexcept :
+	inline Stack<T>::Stack(Stack &&rrStack) _NOEXCEPT :
 		counter_(rrStack.counter_),
 		size_(rrStack.size_),
 		buffer_(rrStack.buffer_)
@@ -113,7 +113,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	Stack<T> &Stack<T>::operator=(Stack &&rrStack) noexcept
+	Stack<T> &Stack<T>::operator=(Stack &&rrStack) _NOEXCEPT
 	{
 		assert(this != &rrStack);
 
@@ -147,13 +147,13 @@ namespace NStack
 	}
 
 	template<typename T>
-	inline SIZE_T Stack<T>::size() const noexcept
+	inline SIZE_T Stack<T>::size() const _NOEXCEPT
 	{ 
 		return counter_;
 	}
 
 	template<typename T>
-	inline BOOL Stack<T>::empty() const noexcept
+	inline BOOL Stack<T>::empty() const _NOEXCEPT
 	{ 
 		return (counter_ ? FALSE : TRUE); 
 	}
@@ -193,7 +193,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	VOID Stack<T>::swap(Stack<T> &rStack) noexcept(std::_Is_nothrow_swappable<T>::value)
+	VOID Stack<T>::swap(Stack<T> &rStack) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>)
 	{
 		std::swap(counter_, rStack.counter_);
 		std::swap(size_, rStack.size_);

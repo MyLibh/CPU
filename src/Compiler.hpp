@@ -57,16 +57,16 @@ namespace NCompiler
 			end
 		};
 
-		explicit Compiler()       noexcept;
-		Compiler(CONST Compiler&) noexcept;
-		Compiler(Compiler&&)      noexcept;
+		explicit Compiler()       _NOEXCEPT;
+		Compiler(CONST Compiler&);
+		Compiler(Compiler&&)      _NOEXCEPT;
 		~Compiler();
 
 		Compiler<T> &operator=(CONST Compiler&);
 		Compiler<T> &operator=(Compiler&&);
 
 		BOOL toComFile(CRSTRING) const;
-		//BOOL toBinFile(CRSTRING) const;
+		BOOL toBinFile(CRSTRING) const;
 
 		BOOL fromTextFile(CRSTRING);
 		BOOL fromComFile(CRSTRING);
@@ -74,17 +74,17 @@ namespace NCompiler
 	};
 
 	template<typename T>
-	inline Compiler<T>::Compiler() noexcept :
+	inline Compiler<T>::Compiler() _NOEXCEPT :
 		cpu_()
 	{ }
 
 	template<typename T>
-	inline Compiler<T>::Compiler(CONST Compiler &crComp) noexcept :
+	inline Compiler<T>::Compiler(CONST Compiler &crComp) :
 		cpu_(crComp.cpu_)
 	{ }
 
 	template<typename T>
-	inline Compiler<T>::Compiler(Compiler &&rrComp) noexcept :
+	inline Compiler<T>::Compiler(Compiler &&rrComp) _NOEXCEPT :
 		cpu_(rrComp.cpu_)
 	{ }
 
@@ -178,7 +178,7 @@ namespace NCompiler
 			if (pOp)
 			{
 				if      (pOp->cmd == "push") output << commands_::push << " " << pOp->args[0];
-				else if (pOp->cmd == "pop")  output << commands_::pop;
+				else if (pOp->cmd == "pop")  output << commands_::pop  << " " << pOp->args[0];
 
 				else if (pOp->cmd == "add")	 output << commands_::add;
 				else if (pOp->cmd == "sub")  output << commands_::sub;
@@ -262,39 +262,41 @@ namespace NCompiler
 			Operation *pOp = ParseCode(tmp);
 			if (pOp)
 			{
-				if (pOp->cmd == "push") output << static_cast<CHAR>(commands_::push) << " " << pOp->args[0];
-				else if (pOp->cmd == "pop")  output << static_cast<CHAR>(commands_::pop);
 
-				else if (pOp->cmd == "add")	 output << static_cast<CHAR>(commands_::add);
-				else if (pOp->cmd == "sub")  output << static_cast<CHAR>(commands_::sub);
-				else if (pOp->cmd == "mul")	 output << static_cast<CHAR>(commands_::mul);
-				else if (pOp->cmd == "div")	 output << static_cast<CHAR>(commands_::div);
-				else if (pOp->cmd == "dup")	 output << static_cast<CHAR>(commands_::dup);
-				else if (pOp->cmd == "sin")  output << static_cast<CHAR>(commands_::sin);
-				else if (pOp->cmd == "cos")  output << static_cast<CHAR>(commands_::cos);
-				else if (pOp->cmd == "sqrt") output << static_cast<CHAR>(commands_::sqrt);
+#define WRITE(what) output.write(reinterpret_cast<CHAR*>(what), sizeof(what))
+#define WRITES(what) output.write(what.c_str(), what.length())
+#define SPACE WRITE(' ')
+#define ENDL WRITE('\n')
 
-				else if (pOp->cmd == "dump") output << static_cast<CHAR>(commands_::dump);
+				if      (pOp->cmd == "push") WRITE(commands_::push), SPACE, WRITES(pOp->args[0]); 
+				else if (pOp->cmd == "pop")  WRITE(commands_::pop),  SPACE, WRITES(pOp->args[0]);
 
-				else if (pOp->cmd == "cmp")  output << static_cast<CHAR>(commands_::cmp) << " " << pOp->args[0] << " " << pOp->args[1];
-				else if (pOp->cmd == "jump") output << static_cast<CHAR>(commands_::jump) << " " << pOp->args[0];
+				else if (pOp->cmd == "add")	 WRITE(commands_::add);
+				else if (pOp->cmd == "sub")  WRITE(commands_::sub);
+				else if (pOp->cmd == "mul")	 WRITE(commands_::mul);
+				else if (pOp->cmd == "div")	 WRITE(commands_::div);
+				else if (pOp->cmd == "dup")	 WRITE(commands_::dup);
+				else if (pOp->cmd == "sin")  WRITE(commands_::sin);
+				else if (pOp->cmd == "cos")  WRITE(commands_::cos);
+				else if (pOp->cmd == "sqrt") WRITE(commands_::sqrt);
 
-				else if (pOp->cmd == "je")	 output << static_cast<CHAR>(commands_::je) << " " << pOp->args[0];
-				else if (pOp->cmd == "jne")  output << static_cast<CHAR>(commands_::jne) << " " << pOp->args[0];
-				else if (pOp->cmd == "ja")	 output << static_cast<CHAR>(commands_::ja) << " " << pOp->args[0];
-				else if (pOp->cmd == "jae")	 output << static_cast<CHAR>(commands_::jae) << " " << pOp->args[0];
-				else if (pOp->cmd == "jb")	 output << static_cast<CHAR>(commands_::jb) << " " << pOp->args[0];
-				else if (pOp->cmd == "jbe")  output << static_cast<CHAR>(commands_::jbe) << " " << pOp->args[0];
+				else if (pOp->cmd == "dump") WRITE(commands_::dump);
 
-				else if (pOp->cmd == "move") output << static_cast<CHAR>(commands_::move) << " " << pOp->args[0] << " " << pOp->args[1];
+				else if (pOp->cmd == "cmp")  WRITE(commands_::cmp),  SPACE, WRITES(pOp->args[0]), SPACE, WRITES(pOp->args[1]);
+				else if (pOp->cmd == "jump") WRITE(commands_::jump), SPACE, WRITES(pOp->args[0]);
 
-				else if (pOp->cmd == "in")	 output << static_cast<CHAR>(commands_::in);
-				else if (pOp->cmd == "out")  output << static_cast<CHAR>(commands_::out);
-				else if (pOp->cmd == "swi")  output << static_cast<CHAR>(commands_::swi);
+				else if (pOp->cmd == "je")	 WRITE(commands_::je),   SPACE, WRITES(pOp->args[0]);
+				else if (pOp->cmd == "jne")  WRITE(commands_::jne),  SPACE, WRITES(pOp->args[0]);
+				else if (pOp->cmd == "ja")	 WRITE(commands_::ja),   SPACE, WRITES(pOp->args[0]);
+				else if (pOp->cmd == "jae")	 WRITE(commands_::jae),  SPACE, WRITES(pOp->args[0]);
+				else if (pOp->cmd == "jb")	 WRITE(commands_::jb),   SPACE, WRITES(pOp->args[0]);
+				else if (pOp->cmd == "jbe")  WRITE(commands_::jbe),  SPACE, WRITES(pOp->args[0]);
 
-				else if (pOp->cmd == "end")  output << static_cast<CHAR>(commands_::end);
+				else if (pOp->cmd == "move") WRITE(commands_::move), SPACE, WRITES(pOp->args[0]), SPACE, WRITES(pOp->args[1]);
 
-				else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) output << pOp->cmd;
+				else if (pOp->cmd == "end")  WRITE(commands_::end);
+
+				else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) WRITES(pOp->cmd);
 
 				else
 				{
@@ -308,10 +310,14 @@ namespace NCompiler
 					return FALSE;
 				}
 
-				output << std::endl;
+				ENDL;
+#undef ENDL
+#undef SPACE
+#undef WRITES
+#undef WRITE
 			}
 			else break;
-
+			
 			delete pOp;
 		}
 

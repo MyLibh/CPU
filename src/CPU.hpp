@@ -30,9 +30,9 @@ namespace NCpu
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;
 
-		explicit CPU()  noexcept;
-		CPU(CONST CPU&) noexcept;
-		CPU(CPU&&)      noexcept;
+		explicit CPU()  _NOEXCEPT;
+		CPU(CONST CPU&) _NOEXCEPT;
+		CPU(CPU&&)      _NOEXCEPT;
 		~CPU();
 
 		CPU<T> &operator=(CONST CPU&);
@@ -59,7 +59,7 @@ namespace NCpu
 
 		std::pair<T, T> getPair();
 
-		VOID swap(CPU&) noexcept(std::_Is_nothrow_swappable<T>::value);
+		VOID swap(CPU&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>);
 
 		VOID move(REG, REG);
 		VOID move(crVal_, REG);
@@ -68,21 +68,21 @@ namespace NCpu
 	};
 
 	template<typename T>
-	inline CPU<T>::CPU() noexcept :
+	inline CPU<T>::CPU() _NOEXCEPT :
 		reg_(),
 		ram_(),
 		stack_()
 	{ }
 
 	template<typename T>
-	inline CPU<T>::CPU(CONST CPU &crCPU) noexcept :
+	inline CPU<T>::CPU(CONST CPU &crCPU) _NOEXCEPT :
 		reg_(crCPU.reg_),
 		ram_(crCPU.ram_),
 		stack_(crCPU.stack_)
 	{ }
 
 	template<typename T>
-	inline CPU<T>::CPU(CPU<T> &&rrCPU) noexcept :
+	inline CPU<T>::CPU(CPU<T> &&rrCPU) _NOEXCEPT :
 		reg_(std::move(rrCPU.reg_)),
 		ram_(std::move(rrCPU.ram_)),
 		stack_(std::move(rrCPU.stack_))
@@ -262,7 +262,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::swap(CPU &rCPU) noexcept(std::_Is_nothrow_swappable<T>::value)
+	inline VOID CPU<T>::swap(CPU &rCPU) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>)
 	{ 
 		reg_.swap(rCPU.reg_);
 		stack_.swap(rCPU.stack_); 

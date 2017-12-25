@@ -1,16 +1,19 @@
 :pochka
 11
-1 ax
+20 999 ax
+1 [ax]
 1 98
 1 -78
+1 ax
 11
-2
+2 
 3
+2 []
 20 4 ax
 20 ax cx
 11
 12 ax cx
 15 pochka
-24
+21
 5
 

@@ -18,6 +18,27 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\Compiler.hpp" />
+    <ClInclude Include="..\..\src\CPU.hpp" />
+    <ClInclude Include="..\..\src\Debugger.hpp" />
+    <ClInclude Include="..\..\src\MyMath.hpp" />
+    <ClInclude Include="..\..\src\MyTypedefs.hpp" />
+    <ClInclude Include="..\..\src\Parser.hpp" />
+    <ClInclude Include="..\..\src\RAM.hpp" />
+    <ClInclude Include="..\..\src\Register.hpp" />
+    <ClInclude Include="..\..\src\Stack.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\Debugger.cpp" />
+    <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\Parser.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\src\Tests\Bin\Text1Bin.txt" />
+    <Text Include="..\..\src\Tests\Com\Text1Com.txt" />
+    <Text Include="..\..\src\Tests\Text\Text1.txt" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{CD944352-A027-4FF1-A040-80EDF1639E6A}</ProjectGuid>
@@ -80,7 +101,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
@@ -114,27 +135,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="Compiler.hpp" />
-    <ClInclude Include="CPU.hpp" />
-    <ClInclude Include="Debugger.hpp" />
-    <ClInclude Include="MyMath.hpp" />
-    <ClInclude Include="MyTypedefs.hpp" />
-    <ClInclude Include="Parser.hpp" />
-    <ClInclude Include="RAM.hpp" />
-    <ClInclude Include="Register.hpp" />
-    <ClInclude Include="Stack.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Debugger.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Parser.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="Tests\Bin\Text1Bin.txt" />
-    <Text Include="Tests\Com\Text1Com.txt" />
-    <Text Include="Tests\Text\Text1.txt" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

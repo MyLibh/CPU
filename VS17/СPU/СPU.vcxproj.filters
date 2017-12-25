@@ -13,65 +13,65 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Файлы ресурсов\Com">
-      <UniqueIdentifier>{bfc8e861-f202-41e2-9482-ab244dba9284}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Файлы ресурсов\Bin">
-      <UniqueIdentifier>{886d37b9-ff53-4dab-bf75-4f1daea4ad6b}</UniqueIdentifier>
+      <UniqueIdentifier>{6511d060-7551-4bb2-91cb-34ead5d68267}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Com">
+      <UniqueIdentifier>{00185d25-b815-4ca6-a942-cae279dcba89}</UniqueIdentifier>
     </Filter>
     <Filter Include="Файлы ресурсов\Text">
-      <UniqueIdentifier>{42b63088-7fb0-4d69-8727-111be5a5876e}</UniqueIdentifier>
+      <UniqueIdentifier>{d231d91d-17aa-42b7-bc92-6bee97715229}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CPU.hpp">
+    <ClInclude Include="..\..\src\Compiler.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="MyMath.hpp">
+    <ClInclude Include="..\..\src\CPU.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="MyTypedefs.hpp">
+    <ClInclude Include="..\..\src\Debugger.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Stack.hpp">
+    <ClInclude Include="..\..\src\MyMath.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Compiler.hpp">
+    <ClInclude Include="..\..\src\MyTypedefs.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Parser.hpp">
+    <ClInclude Include="..\..\src\Parser.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Debugger.hpp">
+    <ClInclude Include="..\..\src\RAM.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Register.hpp">
+    <ClInclude Include="..\..\src\Register.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="RAM.hpp">
+    <ClInclude Include="..\..\src\Stack.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="..\..\src\Debugger.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Parser.cpp">
+    <ClCompile Include="..\..\src\main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Debugger.cpp">
+    <ClCompile Include="..\..\src\Parser.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Tests\Text\Text1.txt">
+    <Text Include="..\..\src\Tests\Text\Text1.txt">
       <Filter>Файлы ресурсов\Text</Filter>
     </Text>
-    <Text Include="Tests\Bin\Text1Bin.txt">
-      <Filter>Файлы ресурсов\Bin</Filter>
-    </Text>
-    <Text Include="Tests\Com\Text1Com.txt">
+    <Text Include="..\..\src\Tests\Com\Text1Com.txt">
       <Filter>Файлы ресурсов\Com</Filter>
+    </Text>
+    <Text Include="..\..\src\Tests\Bin\Text1Bin.txt">
+      <Filter>Файлы ресурсов\Bin</Filter>
     </Text>
   </ItemGroup>
 </Project>

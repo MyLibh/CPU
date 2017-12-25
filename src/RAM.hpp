@@ -22,9 +22,9 @@ namespace NRam
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;
 
-		explicit RAM()     noexcept;
-		RAM(CONST RAM<T>&) noexcept;
-		RAM(RAM<T>&&)      noexcept;
+		explicit RAM()     _NOEXCEPT;
+		RAM(CONST RAM<T>&) _NOEXCEPT;
+		RAM(RAM<T>&&)      _NOEXCEPT;
 		~RAM();
 
 		RAM<T> &operator=(CONST RAM&);
@@ -37,25 +37,25 @@ namespace NRam
 		SIZE_T put(rrVal_);
 		VOID pop();
 
-		VOID swap(RAM&) noexcept(std::_Is_nothrow_swappable<T>::value);
+		VOID swap(RAM&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>);
 
 		VOID dump() const;
 	};
 
 	template<typename T>
-	inline RAM<T>::RAM() noexcept :
+	inline RAM<T>::RAM() _NOEXCEPT :
 		counter_(NULL),
 		buf_()
 	{ }
 
 	template<typename T>
-	inline RAM<T>::RAM(CONST RAM &crRAM) noexcept :
+	inline RAM<T>::RAM(CONST RAM &crRAM) _NOEXCEPT :
 		counter_(crRAM.counter_),
 		buf_(crRAM.buf_)
 	{ }
 		
 	template<typename T>
-	inline RAM<T>::RAM(RAM &&rrRAM) noexcept :
+	inline RAM<T>::RAM(RAM &&rrRAM) _NOEXCEPT :
 		counter_(rrRAM.counter_),
 		buf_(std::move(rrRAM.buf_))
 	{
@@ -140,7 +140,7 @@ namespace NRam
 	}
 
 	template<typename T>
-	inline VOID swap(RAM<T> &rRAM) noexcept(std::_Is_nothrow_swappable<T>::value)
+	inline VOID swap(RAM<T> &rRAM) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>)
 	{
 		buf_.swap(rRAM.buf);
 	}

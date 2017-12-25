@@ -30,9 +30,9 @@ namespace NReg
 
 		std::array<T, REG::NUM> regs;
 
-		explicit Register()       noexcept;
-		Register(CONST Register&) noexcept;
-		Register(Register&&)      noexcept;
+		explicit Register()       _NOEXCEPT;
+		Register(CONST Register&) _NOEXCEPT;
+		Register(Register&&)      _NOEXCEPT;
 		~Register();
 
 		Register &operator=(CONST Register&);
@@ -41,23 +41,23 @@ namespace NReg
 		rVal_  operator[](REG);
 		crVal_ operator[](REG) const;
 
-		VOID swap(Register&) noexcept(std::_Is_nothrow_swappable<T>::value);
+		VOID swap(Register&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>);
 
 		VOID dump() const;
 	};
 
 	template<typename T>
-	inline Register<T>::Register() noexcept :
+	inline Register<T>::Register() _NOEXCEPT :
 		regs()
 	{ }
 
 	template<typename T>
-	inline Register<T>::Register(CONST Register &crReg) noexcept :
+	inline Register<T>::Register(CONST Register &crReg) _NOEXCEPT :
 		regs(crReg.regs)
 	{ }
 
 	template<typename T>
-	inline Register<T>::Register(Register &&rrReg) noexcept :
+	inline Register<T>::Register(Register &&rrReg) _NOEXCEPT :
 		regs(std::move(rrReg.regs))
 	{
 		// rrReg.regs.fill(NULL); // QUEST: should be or not(then no noexcept)
@@ -104,7 +104,7 @@ namespace NReg
 	}
 
 	template<typename T>
-	inline VOID Register<T>::swap(Register &rReg) noexcept(std::_Is_nothrow_swappable<T>::value)
+	inline VOID Register<T>::swap(Register &rReg) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>)
 	{ 
 		reg.swap(rReg.reg); 
 	}

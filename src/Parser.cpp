@@ -11,7 +11,7 @@
 
 namespace NParser
 {
-	Operation::Operation() noexcept :
+	Operation::Operation() _NOEXCEPT :
 		cmd(), 
 		args() 
 	{ }

@@ -16,7 +16,7 @@ namespace NParser
 		std::string                       cmd;
 		std::array<std::string, MAX_ARGS> args;
 
-		explicit Operation() noexcept;
+		explicit Operation() _NOEXCEPT;
 		Operation(CONST Operation&);
 		Operation(Operation&&);
 		~Operation();
