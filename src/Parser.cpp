@@ -5,6 +5,7 @@
 #include <iomanip>  // std::setw
 #include <sstream>  // std::stringstream
 #include <fstream>  // std::ifstream
+#include <string>   // std::string
 #include <cassert>  // assert
 
 #include "Parser.hpp"
@@ -54,13 +55,13 @@ namespace NParser
 	{
 		std::streamsize width = 1 << 3;
 
-		NDebugger::Debug("OP: ", NDebugger::TextColors::LightCyan, FALSE);
+		NDebugger::Debug("OP: ", NDebugger::TextColor::LightCyan, FALSE);
 		std::cout << std::setw(width) << (cmd.length() ? cmd : "null");
 
 		for (SIZE_T i = 0; i < MAX_ARGS; ++i)
 		{
 			std::cout << ", ";
-			NDebugger::Info("ARG" + std::to_string(i + 1) + ": ", NDebugger::TextColors::Cyan, FALSE);
+			NDebugger::Info("ARG" + std::to_string(i + 1) + ": ", NDebugger::TextColor::Cyan, FALSE);
 
 			std::cout << std::setw(width) << (args[i].length() ? args[i] : "null");
 		}
@@ -70,7 +71,10 @@ namespace NParser
 
 	//===============================================================================================================================================
 
-	static inline BOOL IsCommaExist(CRSTRING line) { return (line.empty() ? FALSE : (line[line.length() - 1] == ',')); }
+	static inline BOOL IsCommaExist(CRSTRING line) 
+	{ 
+		return (line.empty() ? FALSE : (line[line.length() - 1] == ','));
+	}
 
 	Operation *ParseCode(CONST CHAR *cpLine)
 	{

@@ -3,19 +3,17 @@
 #if _MSVC_LANG < 201402
 	namespace std
 	{
-		// Bad, but all is checked and i promise you, it will work properly XD
 		template<typename T>
 		class _Is_nothrow_swappable 
 		{
 			/* constexpr */ operator bool() { return false; }
 		};
-
-	
 	}
+
 	#define _NOEXCEPTARG(arg)	
 #else
 	#define _NOEXCEPTARG(...) _NOEXCEPT(__VA_ARGS__) 
-#endif // _MSVC_LANG < 201402
+#endif // _MSVC_LANG 
 
 #ifndef _WINDOWS_
 	
@@ -24,6 +22,7 @@
 	typedef size_t         SIZE_T;
 	typedef char           CHAR;
 	typedef unsigned short WORD;
+	typedef unsigned int   DWORD;
 
 	#define CONST const
 
@@ -57,7 +56,7 @@ typedef unsigned UNSIGNED;
 #define _CRT_SECURE_NO_WARNINGS                 0
 #define _CRT_NONSTDC_NO_WARNINGS                0
 
-#include <string>
+class string;
 typedef CONST std::string &CRSTRING;
 
 //===============================================================================================================================================

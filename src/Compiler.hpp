@@ -1,5 +1,8 @@
 #pragma once
 
+//#include <boost\serialization\serialization.hpp>
+// TODO: Make binary input/output with boost
+
 #include <fstream>
 #include <sstream>
 
@@ -17,11 +20,11 @@ namespace NCompiler
 	class Compiler final
 	{
 		CPU<T> cpu_;
+		
+		T getValue(CRSTRING) const;
 
-		T getValue(CRSTRING str) const;
-
-		REG  makeReg(CRSTRING str) const;
-		BOOL isReg(CRSTRING) const;
+		REG  makeReg(CRSTRING) const;
+		BOOL   isReg(CRSTRING) const;
 
 	public:
 		enum commands_ : UNSIGNED
@@ -66,7 +69,7 @@ namespace NCompiler
 		Compiler<T> &operator=(Compiler&&);
 
 		BOOL toComFile(CRSTRING) const;
-		BOOL toBinFile(CRSTRING) const;
+		//BOOL toBinFile(CRSTRING) const;
 
 		BOOL fromTextFile(CRSTRING);
 		BOOL fromComFile(CRSTRING);
@@ -377,9 +380,9 @@ namespace NCompiler
 
 				else if (pOp->cmd == "je")  { auto pair = cpu_.getPair(); if (pair.first == pair.second) file = FindLabel(file, pOp->args[0]); }
 				else if (pOp->cmd == "jne") { auto pair = cpu_.getPair(); if (pair.first != pair.second) file = FindLabel(file, pOp->args[0]); }
-				else if (pOp->cmd == "ja")  { auto pair = cpu_.getPair(); if (pair.first > pair.second) file = FindLabel(file, pOp->args[0]); }
+				else if (pOp->cmd == "ja")  { auto pair = cpu_.getPair(); if (pair.first  > pair.second) file = FindLabel(file, pOp->args[0]); }
 				else if (pOp->cmd == "jae") { auto pair = cpu_.getPair(); if (pair.first >= pair.second) file = FindLabel(file, pOp->args[0]); }
-				else if (pOp->cmd == "jb")  { auto pair = cpu_.getPair(); if (pair.first < pair.second) file = FindLabel(file, pOp->args[0]); }
+				else if (pOp->cmd == "jb")  { auto pair = cpu_.getPair(); if (pair.first  < pair.second) file = FindLabel(file, pOp->args[0]); }
 				else if (pOp->cmd == "jbe") { auto pair = cpu_.getPair(); if (pair.first <= pair.second) file = FindLabel(file, pOp->args[0]); }
 
 				else if (pOp->cmd == "move")

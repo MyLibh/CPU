@@ -22,34 +22,49 @@
     <Filter Include="Файлы ресурсов\Text">
       <UniqueIdentifier>{d231d91d-17aa-42b7-bc92-6bee97715229}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы заголовков\CPU">
+      <UniqueIdentifier>{81412f6b-64f1-47bb-9f1e-66868ee65bee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\Special">
+      <UniqueIdentifier>{1ee81f48-b0c4-468b-9a1b-0c46d6af8f82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Programms">
+      <UniqueIdentifier>{1706b93a-7db8-4132-8856-2cad4d113bba}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Compiler.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\CPU.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Debugger.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\MyMath.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\MyTypedefs.hpp">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\Parser.hpp">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\RAM.hpp">
-      <Filter>Файлы заголовков</Filter>
+    <ClInclude Include="..\..\src\CPU.hpp">
+      <Filter>Файлы заголовков\CPU</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\Register.hpp">
-      <Filter>Файлы заголовков</Filter>
+    <ClInclude Include="..\..\src\RAM.hpp">
+      <Filter>Файлы заголовков\CPU</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Stack.hpp">
-      <Filter>Файлы заголовков</Filter>
+      <Filter>Файлы заголовков\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Register.hpp">
+      <Filter>Файлы заголовков\CPU</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MyTypedefs.hpp">
+      <Filter>Файлы заголовков\Special</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MyMath.hpp">
+      <Filter>Файлы заголовков\Special</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Debugger.hpp">
+      <Filter>Файлы заголовков\Special</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Guard.hpp">
+      <Filter>Файлы заголовков\Special</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Hash.hpp">
+      <Filter>Файлы заголовков\Special</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -62,6 +77,9 @@
     <ClCompile Include="..\..\src\Parser.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Hash.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\src\Tests\Text\Text1.txt">
@@ -72,6 +90,9 @@
     </Text>
     <Text Include="..\..\src\Tests\Bin\Text1Bin.txt">
       <Filter>Файлы ресурсов\Bin</Filter>
+    </Text>
+    <Text Include="..\..\src\Tests\Programs\Fibbonachi.txt">
+      <Filter>Файлы ресурсов\Programms</Filter>
     </Text>
   </ItemGroup>
 </Project>

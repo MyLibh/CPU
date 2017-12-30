@@ -112,7 +112,7 @@ namespace NReg
 	template<typename T>
 	VOID Register<T>::dump() const
 	{
-		NDebugger::Info("\t[REGISTER DUMP]", NDebugger::TextColors::Green);
+		NDebugger::Info("\t[REGISTER DUMP]", NDebugger::TextColor::Green);
 
 		std::cout << "Register <" << typeid(T).name() << "> [0x" << this << "]\n{\n";
 
@@ -120,6 +120,6 @@ namespace NReg
 
 		std::cout << "\t[SP] = " << regs[REG::SP] << "\n}\n";
 
-		NDebugger::Info("\t[     END     ]\n", NDebugger::TextColors::Green);
+		NDebugger::Info("\t[     END     ]\n", NDebugger::TextColor::Green);
 	}
 } // namespace NReg 

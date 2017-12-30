@@ -2,7 +2,6 @@
 
 #include <array> // std::array
 
-#include "MyTypedefs.hpp"
 #include "Debugger.hpp"
 
 namespace NParser

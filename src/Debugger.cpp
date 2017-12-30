@@ -3,16 +3,17 @@
 
 #include <Windows.h> // SetConsoleTextAttribute, GetStdHandle
 #include <iostream>  // std::cerr, std::cout
+#include <string>    // std::string
 
 #include "Debugger.hpp"
 
 namespace NDebugger
 {
-	WORD SetColorConsole(TextColors color, TextColors background /* = TextColors::Black */)
+	WORD SetColorConsole(TextColor color, TextColor background /* = TextColor::Black */)
 	{
-		static TextColors oldText = TextColors::White,
-			              oldBckg = TextColors::Black;
-
+		static TextColor oldText = TextColor::White,
+			             oldBckg = TextColor::Black;
+		
 		std::swap(oldText, color);
 		std::swap(oldBckg, background);
 
@@ -24,19 +25,19 @@ namespace NDebugger
 
 	static WORD SetColorConsole(WORD color)
 	{
-		return SetColorConsole(static_cast<TextColors>(color & 0x0F), static_cast<TextColors>(color & 0xF0));
+		return SetColorConsole(static_cast<TextColor>(color & 0x0F), static_cast<TextColor>(color & 0xF0));
 	}
 
 	VOID Error(CRSTRING error) 
 	{
-		auto old = SetColorConsole(TextColors::Red);
+		auto old = SetColorConsole(TextColor::Red);
 
 		std::cerr << "[ERROR] " << error << std::endl;
 
 		SetColorConsole(old);
 	}
 
-	VOID Info(CRSTRING info, TextColors color /* = TextColors::White */, bool endline /* = TRUE */) 
+	VOID Info(CRSTRING info, TextColor color /* = TextColor::White */, bool endline /* = TRUE */) 
 	{
 		auto old = SetColorConsole(color);
 
@@ -47,9 +48,9 @@ namespace NDebugger
 		SetColorConsole(old);
 	}
 
-	VOID Debug(CRSTRING debugInfo, TextColors color /* = TextColors::White */, bool endline /* = TRUE */)
+	VOID Debug(CRSTRING debugInfo, TextColor color /* = TextColor::White */, bool endline /* = TRUE */)
 	{
-		Info("[DEBUG] ", TextColors::Brown, FALSE);
+		Info("[DEBUG] ", TextColor::Brown, FALSE);
 		Info(debugInfo, color, endline);
 	}
 } // namespace NDebugger

@@ -15,9 +15,8 @@ namespace NRam
 
 		SIZE_T                  counter_;
 		std::array<T, RAM_SIZE> buf_;
-	public:
-		
 
+	public:
 		typedef       T  &rVal_;
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;
@@ -148,7 +147,7 @@ namespace NRam
 	template<typename T>
 	VOID RAM<T>::dump() const
 	{
-		NDebugger::Info("\t[RAM DUMP]", NDebugger::TextColors::LightCyan);
+		NDebugger::Info("\t[RAM DUMP]", NDebugger::TextColor::LightCyan);
 		
 		std::cout << "RAM <" << typeid(T).name() << "> [0x" << this << "]\n{\n"
 			      << "\tram [" << counter_ << " of " << RAM_SIZE << "] = 0x" << &buf_ << "\n\t{\n\t\t";
@@ -162,6 +161,6 @@ namespace NRam
 
 		std::cout << "\n\t}\n}\n";
 
-		NDebugger::Info("\t[  END   ]\n", NDebugger::TextColors::LightCyan);
+		NDebugger::Info("\t[  END   ]\n", NDebugger::TextColor::LightCyan);
 	}
 } // namespace NRam

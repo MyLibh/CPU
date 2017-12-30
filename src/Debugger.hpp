@@ -5,7 +5,7 @@
 namespace NDebugger
 
 {
-	enum TextColors : WORD
+	enum TextColor : WORD
 	{
 		Black        = 0x00,
 		Blue         = 0x01,
@@ -25,9 +25,9 @@ namespace NDebugger
 		White        = 0x0F
 	};
 	
-	WORD SetColorConsole(TextColors, TextColors = TextColors::Black); 
+	WORD SetColorConsole(TextColor, TextColor = TextColor::Black); 
 
 	VOID Error(CRSTRING); 
-	VOID Info(CRSTRING, TextColors = TextColors::White, bool = TRUE);
-	VOID Debug(CRSTRING, TextColors = TextColors::White, bool = TRUE);
+	VOID Info(CRSTRING, TextColor = TextColor::White, bool = TRUE);
+	VOID Debug(CRSTRING, TextColor = TextColor::White, bool = TRUE);
 } //namespace NDebugger

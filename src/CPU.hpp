@@ -121,24 +121,32 @@ namespace NCpu
 	inline VOID CPU<T>::push(crVal_ val)
 	{ 
 		stack_.push(val); 
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
 	inline VOID CPU<T>::push(rrVal_ val) 
 	{ 
-		stack_.push(val); 
+		stack_.push(val);
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
 	inline VOID CPU<T>::push(REG reg)
 	{
 		stack_.push(reg_[reg]);
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
 	inline VOID CPU<T>::pop()
 	{ 
 		stack_.pop(); 
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
@@ -169,6 +177,8 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(a + b);
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
@@ -181,6 +191,8 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(a - b);
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
@@ -193,6 +205,8 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(a * b);
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
@@ -206,6 +220,8 @@ namespace NCpu
 
 		if (!b) throw std::logic_error("[CPU::div] \"Division by zero\"\n");
 		stack_.push(a / b);
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
@@ -223,6 +239,8 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(static_cast<T>(sqrt_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
@@ -234,6 +252,8 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(static_cast<T>(sin_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
@@ -245,6 +265,8 @@ namespace NCpu
 		stack_.pop();
 
 		stack_.push(static_cast<T>(cos_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
+
+		reg_[REG::SP] = stack_.top();
 	}
 
 	template<typename T>
@@ -257,6 +279,8 @@ namespace NCpu
 
 		pair.second = stack_.top();
 		stack_.pop();
+
+		reg_[REG::SP] = stack_.top();
 
 		return pair;
 	}
@@ -284,7 +308,7 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::dump() const
 	{
-		NDebugger::Info("\n\t\t[CPU DUMP]", NDebugger::TextColors::LightMagenta);
+		NDebugger::Info("\n\t\t[CPU DUMP]", NDebugger::TextColor::LightMagenta);
 
 		std::cout << "CPU <" << typeid(T).name() << "> [0x" << this << "]\n\n";
 
@@ -292,7 +316,7 @@ namespace NCpu
 		ram_.dump();
 		stack_.dump();
 
-		NDebugger::Info("\t\t[  END   ]\n", NDebugger::TextColors::LightMagenta);
+		NDebugger::Info("\t\t[  END   ]\n", NDebugger::TextColor::LightMagenta);
 	}
 } // namespace NCpu
 

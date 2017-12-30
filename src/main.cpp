@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#define CPU_GUARD_LVL 2
+
 #include "Compiler.hpp"
 
 using namespace NCompiler;
@@ -13,10 +15,10 @@ INT main(INT argc, CHAR *argv[])
 
 	try
 	{
-		NDebugger::SetColorConsole(NDebugger::TextColors::White);
+		NDebugger::SetColorConsole(NDebugger::TextColor::White);
 
 		Compiler<> comp;
-		comp.toComFile("..\\..\\src\\Tests\\Text\\" + file);
+		comp.fromTextFile("..\\..\\src\\Tests\\Text\\" + file);
 	}
 	catch (CONST std::exception &exc)
 	{

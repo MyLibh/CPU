@@ -22,6 +22,8 @@
     <ClInclude Include="..\..\src\Compiler.hpp" />
     <ClInclude Include="..\..\src\CPU.hpp" />
     <ClInclude Include="..\..\src\Debugger.hpp" />
+    <ClInclude Include="..\..\src\Guard.hpp" />
+    <ClInclude Include="..\..\src\Hash.hpp" />
     <ClInclude Include="..\..\src\MyMath.hpp" />
     <ClInclude Include="..\..\src\MyTypedefs.hpp" />
     <ClInclude Include="..\..\src\Parser.hpp" />
@@ -31,12 +33,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Debugger.cpp" />
+    <ClCompile Include="..\..\src\Hash.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\src\Tests\Bin\Text1Bin.txt" />
     <Text Include="..\..\src\Tests\Com\Text1Com.txt" />
+    <Text Include="..\..\src\Tests\Programs\Fibbonachi.txt" />
     <Text Include="..\..\src\Tests\Text\Text1.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
