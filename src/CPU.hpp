@@ -123,6 +123,7 @@ namespace NCpu
 		stack_.push(val); 
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
@@ -131,6 +132,7 @@ namespace NCpu
 		stack_.push(val);
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
@@ -139,6 +141,7 @@ namespace NCpu
 		stack_.push(reg_[reg]);
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
@@ -147,24 +150,28 @@ namespace NCpu
 		stack_.pop(); 
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
 	inline VOID CPU<T>::put(crVal_ val)
 	{
 		ram_.put(val);
+		ram_.rehash();
 	}
 
 	template<typename T>
 	inline VOID CPU<T>::put(rrVal_ val)
 	{
 		ram_.put(val);
+		ram_.rehash();
 	}
 
 	template<typename T>
 	inline VOID CPU<T>::popm()
 	{
 		ram_.pop();
+		ram_.rehash();
 	}
 
 	template<typename T>
@@ -179,6 +186,7 @@ namespace NCpu
 		stack_.push(a + b);
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
@@ -193,6 +201,7 @@ namespace NCpu
 		stack_.push(a - b);
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
@@ -207,6 +216,7 @@ namespace NCpu
 		stack_.push(a * b);
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
@@ -222,6 +232,7 @@ namespace NCpu
 		stack_.push(a / b);
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
@@ -241,6 +252,7 @@ namespace NCpu
 		stack_.push(static_cast<T>(sqrt_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
@@ -254,6 +266,7 @@ namespace NCpu
 		stack_.push(static_cast<T>(sin_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
@@ -267,6 +280,7 @@ namespace NCpu
 		stack_.push(static_cast<T>(cos_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 	}
 
 	template<typename T>
@@ -281,6 +295,7 @@ namespace NCpu
 		stack_.pop();
 
 		reg_[REG::SP] = stack_.top();
+		reg_.rehash();
 
 		return pair;
 	}
@@ -296,13 +311,15 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::move(REG src, REG dest) 
 	{ 
-		reg_[dest] = reg_[src]; 
+		reg_[dest] = reg_[src];
+		reg_.rehash();
 	}
 
 	template<typename T>
 	inline VOID CPU<T>::move(crVal_ src, REG dest) 
 	{ 
-		reg_[dest] = src; 
+		reg_[dest] = src;
+		reg_.rehash();
 	}
 
 	template<typename T>

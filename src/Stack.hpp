@@ -79,7 +79,7 @@ namespace NStack
 	template<typename T>
 	inline Stack<T>::Stack(SIZE_T size /* = DEFAULT_SIZE */) _NOEXCEPT :
 		CANARY_GUARD(canaryStart_(CANARY_VALUE),)
-		HASH_GUARD(hash_(""),)
+		HASH_GUARD(hash_(),)
 
 		counter_(NULL),
 		size_(size),
@@ -94,8 +94,8 @@ namespace NStack
 
 	template<typename T>
 	inline Stack<T>::Stack(CONST Stack &crStack) :
-		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
-		HASH_GUARD(hash_(), )
+		CANARY_GUARD(canaryStart_(CANARY_VALUE),)
+		HASH_GUARD(hash_(),)
 
 		counter_(crStack.counter_),
 		size_(crStack.size_),

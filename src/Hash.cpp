@@ -1,5 +1,8 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include <cassert>
-#include <iostream>
+
 #include "Hash.hpp"
 
 namespace NHash
@@ -78,7 +81,7 @@ namespace NHash
 		}
 
 		WORD symbolsToSub = realMinLength - hashLength;
-		for (SIZE_T i = 0, compressCount = realMinLength / symbolsToSub; hash_.length() < hashLength - 4; ++i) // Removing redundant items
+		for (SIZE_T i = 0, compressCount = realMinLength / symbolsToSub; hash_.length() < static_cast<WORD>(hashLength - 4); ++i) // Removing redundant items
 		{
 			if (i % compressCount == 0) hash_ += static_cast<CHAR>(getExistCode(tmp[i] + tmp[++i]));
 			else                        hash_ += static_cast<CHAR>(getExistCode(tmp[i]));

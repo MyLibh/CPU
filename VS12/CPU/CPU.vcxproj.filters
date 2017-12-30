@@ -42,6 +42,12 @@
     <ClInclude Include="..\..\src\Stack.hpp">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\Guard.hpp">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Hash.hpp">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Debugger.cpp">
@@ -53,13 +59,8 @@
     <ClCompile Include="..\..\src\Parser.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\..\src\Tests\Text\Text1.txt">
-      <Filter>Файлы ресурсов</Filter>
-    </Text>
-    <Text Include="..\..\src\Tests\Com\Text1Com.txt">
-      <Filter>Файлы ресурсов</Filter>
-    </Text>
+    <ClCompile Include="..\..\src\Hash.cpp">
+      <Filter>Файлы исходного кода</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
