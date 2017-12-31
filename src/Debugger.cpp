@@ -37,13 +37,13 @@ namespace NDebugger
 		SetColorConsole(old);
 	}
 
-	VOID Info(CRSTRING info, TextColor color /* = TextColor::White */, bool endline /* = TRUE */) 
+	VOID Info(CRSTRING info, TextColor color /* = TextColor::White */, bool endline /* = TRUE */, std::ostream &rOste /* = std::cout */) 
 	{
 		auto old = SetColorConsole(color);
 
-		std::cout << info;
+		rOste << info;
 
-		if(endline) std::cout << std::endl;
+		if(endline) rOste << std::endl;
 
 		SetColorConsole(old);
 	}

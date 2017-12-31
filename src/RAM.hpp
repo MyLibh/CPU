@@ -4,16 +4,18 @@
 
 #include "MyTypedefs.hpp"
 #include "Debugger.hpp"
+#include "Logger.hpp"
+
+extern Logger gLogger;
 
 namespace NRam
 {
 	template<typename T = INT>
 	class RAM final
 	{
-	private:
+	public:
 		static CONST SIZE_T RAM_SIZE = 1 << 4;
 
-	public:
 		typedef       T  &rVal_;
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;
@@ -38,7 +40,7 @@ namespace NRam
 		VOID swap(RAM&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>);
 
 		BOOL ok() const _NOEXCEPT;
-		VOID dump() const;
+		VOID dump(std::ostream& = std::cout) const;
 
 	private:
 		CANARY_GUARD(CONST std::string CANARY_VALUE = NHash::Hash("RAM").getHash();)
@@ -64,6 +66,13 @@ namespace NRam
 		)
 	};
 
+	//====================================================================================================================================
+
+	template<typename T>
+	Logger& operator<<(Logger&, CONST RAM<T>&);
+
+	//====================================================================================================================================
+
 	template<typename T>
 	inline RAM<T>::RAM() _NOEXCEPT :
 		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
@@ -75,6 +84,8 @@ namespace NRam
 		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
 	{ 
 		HASH_GUARD(hash_ = makeHash();)
+
+		LOG_CONSTRUCTING()
 
 		GUARD_CHECK()
 	}
@@ -89,6 +100,8 @@ namespace NRam
 
 		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
 	{ 
+		LOG_CONSTRUCTING()
+
 		GUARD_CHECK()
 	}
 		
@@ -105,6 +118,8 @@ namespace NRam
 		rrRAM.counter_ = NULL;
 		rrRAM.buf_.fill(NULL); 
 		HASH_GUARD(rrRAM.hash_.clear();)
+		
+		LOG_CONSTRUCTING()
 
 		GUARD_CHECK()
 	}
@@ -112,6 +127,7 @@ namespace NRam
 	template<typename T>
 	inline RAM<T>::~RAM()
 	{
+		LOG_DESTRUCTING()
 		GUARD_CHECK()
 	}
 
@@ -246,44 +262,60 @@ namespace NRam
 	}
 
 	template<typename T>
-	VOID RAM<T>::dump() const
+	VOID RAM<T>::dump(std::ostream &rOstr /* = std::cout */) const
 	{
-		NDebugger::Info("\t[RAM DUMP]", NDebugger::TextColor::LightCyan);
+		NDebugger::Info("\t[RAM DUMP]", NDebugger::TextColor::LightCyan, TRUE, rOstr);
 		
-		std::cout << "RAM <" << typeid(T).name() << "> [0x" << this << "]\n{\n"
-			      << "\tram [" << counter_ << " of " << RAM_SIZE << "] = 0x" << &buf_ << "\n\t{\n\t\t";
+		rOstr << "RAM <" << typeid(T).name() << "> [0x" << this << "]\n{\n"
+			  << "\tram [" << counter_ << " of " << RAM_SIZE << "] = 0x" << &buf_ << "\n\t{\n\t\t";
 
 		for (SIZE_T i = 0; i < counter_; ++i)
 		{
-			std::cout << "[" << std::setw(3) << i << "] = " << buf_[i] << (i + 1 == counter_ ? " " : ", ") << "  ";
+			rOstr << "[" << std::setw(3) << i << "] = " << buf_[i] << (i + 1 == counter_ ? " " : ", ") << "  ";
 
-			std::cout << "\n\t\t";
+			rOstr << "\n\t\t";
 		}
 
-		std::cout << "\n\t}\n";
+		rOstr << "\n\t}\n";
 
 		CANARY_GUARD
 		(
-			std::cout << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
+			rOstr << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
 
-			std::cout << "\tCANARY_START  = " << canaryStart_;
-			if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green);
-			else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red);
+		rOstr << "\tCANARY_START  = " << canaryStart_;
+			if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
+			else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
 
-			std::cout << "\tCANARY_FINISH = " << canaryFinish_;
-			if (canaryFinish_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green);
-			else                               NDebugger::Info(" FALSE", NDebugger::TextColor::Red);
+			rOstr << "\tCANARY_FINISH = " << canaryFinish_;
+			if (canaryFinish_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
+			else                               NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
 		)
 
 		HASH_GUARD
 		(
-			std::cout << "\n\tHASH = " << hash_;
-			if (hash_ == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green);
-			else                     NDebugger::Info(" FALSE", NDebugger::TextColor::Red);
+			rOstr << "\n\tHASH = " << hash_;
+			if (hash_ == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
+			else                     NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
 		)
 
-			std::cout << "}\n";
+		rOstr << "}\n";
 
-		NDebugger::Info("\t[  END   ]\n", NDebugger::TextColor::LightCyan);
+		NDebugger::Info("\t[  END   ]\n", NDebugger::TextColor::LightCyan, TRUE, rOstr);
+	}
+
+	//====================================================================================================================================
+
+	template<typename T>
+	Logger& operator<<(Logger &rLogger, CONST RAM<T> &crRAM)
+	{
+		std::string func("RAM<");
+		func += typeid(T).name();
+		func += ">";
+
+		rLogger.stdPack(func);
+
+		crRAM.dump(rLogger.getOfstream());
+
+		return rLogger;
 	}
 } // namespace NRam

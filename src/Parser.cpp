@@ -60,6 +60,8 @@ namespace NParser
 
 		for (SIZE_T i = 0; i < MAX_ARGS; ++i)
 		{
+			if (!args[i].length()) break;
+
 			std::cout << ", ";
 			NDebugger::Info("ARG" + std::to_string(i + 1) + ": ", NDebugger::TextColor::Cyan, FALSE);
 

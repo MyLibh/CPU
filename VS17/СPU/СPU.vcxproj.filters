@@ -31,6 +31,9 @@
     <Filter Include="Файлы ресурсов\Programms">
       <UniqueIdentifier>{1706b93a-7db8-4132-8856-2cad4d113bba}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Исходные файлы\Special">
+      <UniqueIdentifier>{9a5885b3-aa9e-4969-9361-a618c29f0076}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Compiler.hpp">
@@ -66,19 +69,25 @@
     <ClInclude Include="..\..\src\Hash.hpp">
       <Filter>Файлы заголовков\Special</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\Logger.hpp">
+      <Filter>Файлы заголовков\Special</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Debugger.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Parser.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\Debugger.cpp">
+      <Filter>Исходные файлы\Special</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\Hash.cpp">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Исходные файлы\Special</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Logger.cpp">
+      <Filter>Исходные файлы\Special</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,9 +1,10 @@
 #pragma once
 
+#include <iostream>
+
 #include "MyTypedefs.hpp"
 
 namespace NDebugger
-
 {
 	enum TextColor : WORD
 	{
@@ -28,6 +29,6 @@ namespace NDebugger
 	WORD SetColorConsole(TextColor, TextColor = TextColor::Black); 
 
 	VOID Error(CRSTRING); 
-	VOID Info(CRSTRING, TextColor = TextColor::White, bool = TRUE);
+	VOID Info(CRSTRING, TextColor = TextColor::White, bool = TRUE, std::ostream& = std::cout);
 	VOID Debug(CRSTRING, TextColor = TextColor::White, bool = TRUE);
 } //namespace NDebugger

@@ -1,0 +1,6 @@
+[DEBUG][Sun Dec 31 17:14:27 2017][    Logger] Logging started
+[DEBUG][Sun Dec 31 17:14:27 2017][  Register] Constructing
+[DEBUG][Sun Dec 31 17:14:27 2017][       RAM] Constructing
+[DEBUG][Sun Dec 31 17:14:27 2017][      ~RAM] Destructing
+[DEBUG][Sun Dec 31 17:14:27 2017][ ~Register] Destructing
+[DEBUG][Sun Dec 31 17:14:27 2017][    Logger] Logging finished

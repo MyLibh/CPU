@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include <string> // std::string
 
 #include "MyTypedefs.hpp"
 
@@ -9,7 +9,6 @@ namespace NHash
 	CONST WORD MIN_HASH_LENGTH = 4;
 	CONST WORD MD5_HASH_LENGTH = 1 << 5;
 
-		
 	class Hash
 	{
 		Hash(CONST Hash&);
