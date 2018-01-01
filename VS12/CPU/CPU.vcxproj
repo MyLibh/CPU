@@ -16,6 +16,7 @@
     <ClInclude Include="..\..\src\Debugger.hpp" />
     <ClInclude Include="..\..\src\Guard.hpp" />
     <ClInclude Include="..\..\src\Hash.hpp" />
+    <ClInclude Include="..\..\src\Logger.hpp" />
     <ClInclude Include="..\..\src\MyMath.hpp" />
     <ClInclude Include="..\..\src\MyTypedefs.hpp" />
     <ClInclude Include="..\..\src\Parser.hpp" />
@@ -26,6 +27,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\Debugger.cpp" />
     <ClCompile Include="..\..\src\Hash.cpp" />
+    <ClCompile Include="..\..\src\Logger.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\Parser.cpp" />
   </ItemGroup>
@@ -60,10 +62,11 @@
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -71,7 +74,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>

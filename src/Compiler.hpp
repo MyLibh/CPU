@@ -1,8 +1,5 @@
 #pragma once
 
-//#include <boost\serialization\serialization.hpp>
-// TODO: Make binary input/output with boost
-
 #include <fstream>
 #include <sstream>
 
@@ -11,10 +8,84 @@
 
 namespace NCompiler
 {
+#pragma region Class Wrap2BinaryIO
+	
+	template<typename T>
+	class Wrap2BinaryIO
+	{
+	public:
+		Wrap2BinaryIO();
+		Wrap2BinaryIO(CONST T&);
+		~Wrap2BinaryIO();
+
+		operator T&();
+		operator CONST T&() const;
+
+	private:
+		T val_;
+	};
+
+	//====================================================================================================================================
+
+	template<typename T>
+	std::istream &operator>>(std::istream&, Wrap2BinaryIO<T>&);
+
+	template<typename T>
+	std::ostream &operator<<(std::ostream&, Wrap2BinaryIO<T>&);
+
+	//====================================================================================================================================
+
+	template<typename T>
+	Wrap2BinaryIO<T>::Wrap2BinaryIO() :
+		val_()
+	{ }
+
+	template<typename T>
+	Wrap2BinaryIO<T>::Wrap2BinaryIO(CONST T &val) :
+		val_(val)
+	{ }
+
+	template<typename T>
+	Wrap2BinaryIO<T>::~Wrap2BinaryIO()
+	{ }
+
+	template<typename T>
+	Wrap2BinaryIO<T>::operator T&()
+	{
+		return val_;
+	}
+
+	template<typename T>
+	Wrap2BinaryIO<T>::operator CONST T&() const
+	{
+		return val_;
+	}
+
+	//====================================================================================================================================
+
+	template<typename T>
+	std::istream &operator>>(std::istream &rIstr, Wrap2BinaryIO<T> &rVal)
+	{
+		rIstr.read(reinterpret_cast<CHAR*>(&static_cast<T&>(rVal)), sizeof(T));
+
+		return rIstr;
+	}
+
+	template<typename T>
+	std::ostream &operator<<(std::ostream &rOstr, Wrap2BinaryIO<T> &rVal)
+	{
+		rOstr.write(reinterpret_cast<CONST CHAR*>(&static_cast<T&>(rVal)), sizeof(T));
+
+		return rOstr;
+	}
+#pragma endregion
+
+#pragma region Usings
 	using namespace NParser;
 
 	using NCpu::REG;
 	using NCpu::CPU;
+#pragma endregion
 
 	template<typename T = INT>
 	class Compiler final
@@ -69,11 +140,11 @@ namespace NCompiler
 		Compiler<T> &operator=(Compiler&&);
 
 		BOOL toComFile(CRSTRING) const;
-		//BOOL toBinFile(CRSTRING) const;
+		BOOL toBinFile(CRSTRING) const;
 
 		BOOL fromTextFile(CRSTRING);
 		BOOL fromComFile(CRSTRING);
-		//BOOL fromBinFile(CRSTRING);
+		BOOL fromBinFile(CRSTRING);
 	};
 
 	template<typename T>
@@ -149,6 +220,8 @@ namespace NCompiler
 
 		return (*this);
 	}
+
+#pragma region Functions toSomeFile
 
 	template<typename T>
 	BOOL Compiler<T>::toComFile(CRSTRING filename) const
@@ -235,7 +308,7 @@ namespace NCompiler
 		return TRUE;
 	}
 
-	/*template<typename T>
+	template<typename T>
 	BOOL Compiler<T>::toBinFile(CRSTRING filename) const
 	{
 		std::ifstream input(filename + ".txt");
@@ -265,41 +338,42 @@ namespace NCompiler
 			Operation *pOp = ParseCode(tmp);
 			if (pOp)
 			{
+				if(!pOp->cmd.length()) continue;
 
-#define WRITE(what) output.write(reinterpret_cast<CHAR*>(what), sizeof(what))
-#define WRITES(what) output.write(what.c_str(), what.length())
-#define SPACE WRITE(' ')
-#define ENDL WRITE('\n')
+#define COMMAND(command) Wrap2BinaryIO<WORD>(command)
+#define ARG(index)       Wrap2BinaryIO<std::string>(pOp->args[index])
+				
+#define SPACE            Wrap2BinaryIO<std::string>(" ")
 
-				if      (pOp->cmd == "push") WRITE(commands_::push), SPACE, WRITES(pOp->args[0]); 
-				else if (pOp->cmd == "pop")  WRITE(commands_::pop),  SPACE, WRITES(pOp->args[0]);
+				if      (pOp->cmd == "push") output << COMMAND(commands_::push) << SPACE << ARG(0); 
+				else if (pOp->cmd == "pop")  output << COMMAND(commands_::pop)  << SPACE << ARG(0);
 
-				else if (pOp->cmd == "add")	 WRITE(commands_::add);
-				else if (pOp->cmd == "sub")  WRITE(commands_::sub);
-				else if (pOp->cmd == "mul")	 WRITE(commands_::mul);
-				else if (pOp->cmd == "div")	 WRITE(commands_::div);
-				else if (pOp->cmd == "dup")	 WRITE(commands_::dup);
-				else if (pOp->cmd == "sin")  WRITE(commands_::sin);
-				else if (pOp->cmd == "cos")  WRITE(commands_::cos);
-				else if (pOp->cmd == "sqrt") WRITE(commands_::sqrt);
+				else if (pOp->cmd == "add")	 output << COMMAND(commands_::add);
+				else if (pOp->cmd == "sub")  output << COMMAND(commands_::sub);
+				else if (pOp->cmd == "mul")	 output << COMMAND(commands_::mul);
+				else if (pOp->cmd == "div")	 output << COMMAND(commands_::div);
+				else if (pOp->cmd == "dup")	 output << COMMAND(commands_::dup);
+				else if (pOp->cmd == "sin")  output << COMMAND(commands_::sin);
+				else if (pOp->cmd == "cos")  output << COMMAND(commands_::cos);
+				else if (pOp->cmd == "sqrt") output << COMMAND(commands_::sqrt);
 
-				else if (pOp->cmd == "dump") WRITE(commands_::dump);
+				else if (pOp->cmd == "dump") output << COMMAND(commands_::dump);
 
-				else if (pOp->cmd == "cmp")  WRITE(commands_::cmp),  SPACE, WRITES(pOp->args[0]), SPACE, WRITES(pOp->args[1]);
-				else if (pOp->cmd == "jump") WRITE(commands_::jump), SPACE, WRITES(pOp->args[0]);
+				else if (pOp->cmd == "cmp")  output << COMMAND(commands_::cmp)  << SPACE << ARG(0) << SPACE << ARG(1);
+				else if (pOp->cmd == "jump") output << COMMAND(commands_::jump) << SPACE << ARG(0);
 
-				else if (pOp->cmd == "je")	 WRITE(commands_::je),   SPACE, WRITES(pOp->args[0]);
-				else if (pOp->cmd == "jne")  WRITE(commands_::jne),  SPACE, WRITES(pOp->args[0]);
-				else if (pOp->cmd == "ja")	 WRITE(commands_::ja),   SPACE, WRITES(pOp->args[0]);
-				else if (pOp->cmd == "jae")	 WRITE(commands_::jae),  SPACE, WRITES(pOp->args[0]);
-				else if (pOp->cmd == "jb")	 WRITE(commands_::jb),   SPACE, WRITES(pOp->args[0]);
-				else if (pOp->cmd == "jbe")  WRITE(commands_::jbe),  SPACE, WRITES(pOp->args[0]);
+				else if (pOp->cmd == "je")	 output << COMMAND(commands_::je)  << SPACE << ARG(0);
+				else if (pOp->cmd == "jne")  output << COMMAND(commands_::jne) << SPACE << ARG(0);
+				else if (pOp->cmd == "ja")	 output << COMMAND(commands_::ja)  << SPACE << ARG(0);
+				else if (pOp->cmd == "jae")	 output << COMMAND(commands_::jae) << SPACE << ARG(0);
+				else if (pOp->cmd == "jb")	 output << COMMAND(commands_::jb)  << SPACE << ARG(0);
+				else if (pOp->cmd == "jbe")  output << COMMAND(commands_::jbe) << SPACE << ARG(0);
 
-				else if (pOp->cmd == "move") WRITE(commands_::move), SPACE, WRITES(pOp->args[0]), SPACE, WRITES(pOp->args[1]);
+				else if (pOp->cmd == "move") output << COMMAND(commands_::move) << SPACE << ARG(0) << SPACE << ARG(1);
 
-				else if (pOp->cmd == "end")  WRITE(commands_::end);
+				else if (pOp->cmd == "end")  output << COMMAND(commands_::end);
 
-				else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) WRITES(pOp->cmd);
+				else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) output << Wrap2BinaryIO<std::string>(pOp->cmd);
 
 				else
 				{
@@ -313,11 +387,12 @@ namespace NCompiler
 					return FALSE;
 				}
 
-				ENDL;
-#undef ENDL
+			//output << SPACE;
+
 #undef SPACE
-#undef WRITES
-#undef WRITE
+
+#undef ARG
+#undef COMMAND
 			}
 			else break;
 			
@@ -328,7 +403,11 @@ namespace NCompiler
 		input.close();
 
 		return TRUE;
-	}*/
+	}
+
+#pragma endregion
+
+#pragma region Functions fromSomeFile
 
 	template<typename T>
 	BOOL Compiler<T>::fromTextFile(CRSTRING filename)
@@ -364,6 +443,7 @@ namespace NCompiler
 					if (pOp->args[0][0] == '[') cpu_.popm();
 					else                        cpu_.pop();
 				}
+
 				else if (pOp->cmd == "add") cpu_.add();
 				else if (pOp->cmd == "sub") cpu_.sub();
 				else if (pOp->cmd == "mul") cpu_.mul();
@@ -444,18 +524,20 @@ namespace NCompiler
 					auto val = getValue(pOp->args[0]);
 					auto reg = makeReg(pOp->args[0]);
 
-					if (pOp->args[0][0] == '[')
-					{
-						NDebugger::Error("Not released yet");
-
-						throw;
-					}
-					else if (reg != REG::NUM) cpu_.push(reg);
-					else		              cpu_.push(val);
+					if      (pOp->args[0][0] == '[' && reg != REG::NUM) cpu_.put(reg);
+					else if (pOp->args[0][0] == '[' && reg == REG::NUM) cpu_.put(val);
+					else if (                          reg != REG::NUM) cpu_.push(reg);
+					else		                                        cpu_.push(val);
 
 					break;
 				}
-				case commands_::pop:  cpu_.pop();  break;
+				case commands_::pop:  
+				{
+					if (pOp->args[0][0] == '[') cpu_.popm();
+					else                        cpu_.pop();
+
+					break;
+				}  
 
 				case commands_::add:  cpu_.add();  break;
 				case commands_::sub:  cpu_.sub();  break;
@@ -513,4 +595,95 @@ namespace NCompiler
 
 		return TRUE;
 	}
+	
+	template<typename T>
+	BOOL Compiler<T>::fromBinFile(CRSTRING filename)
+	{
+		std::ifstream file(filename + ".txt", std::ios::binary);
+		if (!file.is_open())
+		{
+			NDebugger::Error("Cannot open file: " + filename);
+
+			return FALSE;
+		}
+
+		while (!file.eof())
+		{
+			Wrap2BinaryIO<WORD> command;
+			file >> command;
+
+			switch (command)
+				{
+				case commands_::push:
+				{
+					Wrap2BinaryIO<std::string> arg;
+					auto val = getValue(arg);
+					auto reg = makeReg(arg);
+
+					if (arg.operator const std::string &()[0] == '[')
+					{
+						NDebugger::Error("Not released yet");
+
+						throw;
+					}
+					else if (reg != REG::NUM) cpu_.push(reg);
+					else		              cpu_.push(val);
+
+					break;
+				}
+				case commands_::pop:  cpu_.pop();  break;
+
+				case commands_::add:  cpu_.add();  break;
+				case commands_::sub:  cpu_.sub();  break;
+				case commands_::mul:  cpu_.mul();  break;
+				case commands_::div:  cpu_.div();  break;
+				case commands_::sqrt: cpu_.sqrt(); break;
+				case commands_::dup:  cpu_.dup();  break;
+				case commands_::sin:  cpu_.sin();  break;
+				case commands_::cos:  cpu_.cos();  break;
+
+				case commands_::dump: cpu_.dump(); break;
+
+				//case commands_::cmp: cpu_.push(getValue(pOp->args[0])), cpu_.push(getValue(pOp->args[1])); break;
+				//case commands_::jump: file = FindLabel(file, pOp->args[0]);  break;
+
+				//case commands_::je:  { auto pair = cpu_.getPair(); if (pair.first == pair.second) file = FindLabel(file, pOp->args[0]); break; }
+				//case commands_::jne: { auto pair = cpu_.getPair(); if (pair.first != pair.second) file = FindLabel(file, pOp->args[0]); break; }
+				//case commands_::ja:  { auto pair = cpu_.getPair(); if (pair.first > pair.second) file = FindLabel(file, pOp->args[0]); break; }
+				//case commands_::jae: { auto pair = cpu_.getPair(); if (pair.first >= pair.second) file = FindLabel(file, pOp->args[0]); break; }
+				//case commands_::jb:  { auto pair = cpu_.getPair(); if (pair.first < pair.second) file = FindLabel(file, pOp->args[0]); break; }
+				//case commands_::jbe: { auto pair = cpu_.getPair(); if (pair.first <= pair.second) file = FindLabel(file, pOp->args[0]); break; }
+
+				//case commands_::move:
+				//{
+				//	BOOL isArg0Reg = isReg(pOp->args[0]),
+				//		 isArg1Reg = isReg(pOp->args[1]);
+
+				//  if      ( isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(pOp->args[0]), makeReg(pOp->args[1]));
+	            //  else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(pOp->args[0]), makeReg(pOp->args[1]));
+					
+				//	break;
+				//}
+
+				case commands_::end: { file.close(); return TRUE; }
+
+				case commands_::undefined: break;
+
+				default:
+				{
+					NDebugger::Error("Unknown command: " + std::to_string(command));
+
+					file.close();
+
+					return FALSE;
+				}
+				}
+		}
+
+		file.close();
+
+		return TRUE;
+	}
+	 
+#pragma endregion
 } // NCompiler

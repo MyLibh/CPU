@@ -28,6 +28,21 @@ private:
 	std::ofstream log_;
 };
 
-#define LOG_DUMPING()      gLogger << *this;
-#define LOG_CONSTRUCTING() gLogger.write(__func__, "Constructing");
-#define LOG_DESTRUCTING()  gLogger.write(__func__, "Destructing");
+#ifdef _DEBUG
+	#define LOG_DUMPING()      gLogger << *this;
+	#define LOG_CONSTRUCTING() gLogger.write(__FUNCTION__, "Constructing");
+	#define LOG_DESTRUCTING()  gLogger.write(__FUNCTION__, "Destructing");
+	#define LOG_ERROR(error)   gLogger.write(__FUNCTION__, error);
+	#define LOG_INFO()
+#elif defined RELEASE
+	#define LOG_DUMPING()      
+	#define LOG_CONSTRUCTING() gLogger.write(__FUNCTION__, "Constructing");	
+	#define LOG_DESTRUCTING()  gLogger.write(__FUNCTION__, "Destructing");  
+	#define LOG_ERROR(error) 
+	#define LOG_INFO()
+#else
+	#define LOG_DUMPING()      
+	#define LOG_CONSTRUCTING()  
+	#define LOG_DESTRUCTING()
+	#define LOG_ERROR(error)
+#endif // _DEBUG

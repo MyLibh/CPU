@@ -28,30 +28,30 @@ namespace NDebugger
 		return SetColorConsole(static_cast<TextColor>(color & 0x0F), static_cast<TextColor>(color & 0xF0));
 	}
 
-	VOID Error(CRSTRING error) 
+	VOID Error(CRSTRING error, std::ostream &rOstr /* = std::cerr */) 
 	{
 		auto old = SetColorConsole(TextColor::Red);
 
-		std::cerr << "[ERROR] " << error << std::endl;
+		rOstr << "[ERROR] " << error << std::endl;
 
 		SetColorConsole(old);
 	}
 
-	VOID Info(CRSTRING info, TextColor color /* = TextColor::White */, bool endline /* = TRUE */, std::ostream &rOste /* = std::cout */) 
+	VOID Info(CRSTRING info, TextColor color /* = TextColor::White */, bool endline /* = TRUE */, std::ostream &rOstr /* = std::cout */) 
 	{
 		auto old = SetColorConsole(color);
 
-		rOste << info;
+		rOstr << info;
 
-		if(endline) rOste << std::endl;
+		if(endline) rOstr << std::endl;
 
 		SetColorConsole(old);
 	}
 
-	VOID Debug(CRSTRING debugInfo, TextColor color /* = TextColor::White */, bool endline /* = TRUE */)
+	VOID Debug(CRSTRING debugInfo, TextColor color /* = TextColor::White */, bool endline /* = TRUE */, std::ostream &rOstr /* = std::cout */)
 	{
-		Info("[DEBUG] ", TextColor::Brown, FALSE);
-		Info(debugInfo, color, endline);
+		Info("[DEBUG] ", TextColor::Brown, FALSE, rOstr);
+		Info(debugInfo, color, endline, rOstr);
 	}
 } // namespace NDebugger
 

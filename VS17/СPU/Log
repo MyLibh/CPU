@@ -1,6 +1,25 @@
-[DEBUG][Sun Dec 31 17:14:27 2017][    Logger] Logging started
-[DEBUG][Sun Dec 31 17:14:27 2017][  Register] Constructing
-[DEBUG][Sun Dec 31 17:14:27 2017][       RAM] Constructing
-[DEBUG][Sun Dec 31 17:14:27 2017][      ~RAM] Destructing
-[DEBUG][Sun Dec 31 17:14:27 2017][ ~Register] Destructing
-[DEBUG][Sun Dec 31 17:14:27 2017][    Logger] Logging finished
+[DEBUG][14:07:58][                          Logger] Logging started
+[DEBUG][14:14:46][   NReg::Register<int>::Register] Constructing
+[DEBUG][14:14:46][             NRam::RAM<int>::RAM] Constructing
+[DEBUG][14:14:46][       NStack::Stack<int>::Stack] Constructing
+[DEBUG][14:14:46][                          Parser] OP:     dump
+[DEBUG][14:14:46][                          Parser] OP:  :pochka
+[DEBUG][14:14:46][                          Parser] OP:     move, ARG1:      999, ARG2:       ax
+[DEBUG][14:14:46][                          Parser] OP:     push, ARG1:     [ax]
+[DEBUG][14:14:46][                          Parser] OP:     push, ARG1:       98
+[DEBUG][14:14:46][                          Parser] OP:     push, ARG1:      -78
+[DEBUG][14:14:46][                          Parser] OP:     push, ARG1:       ax
+[DEBUG][14:14:46][                          Parser] OP:     dump
+[DEBUG][14:14:46][                          Parser] OP:      pop
+[DEBUG][14:14:46][                          Parser] OP:      add
+[DEBUG][14:14:46][                          Parser] OP:      pop, ARG1:       []
+[DEBUG][14:14:46][                          Parser] OP:     move, ARG1:        4, ARG2:       ax
+[DEBUG][14:14:46][                          Parser] OP:     move, ARG1:       ax, ARG2:       cx
+[DEBUG][14:14:46][                          Parser] OP:     dump
+[DEBUG][14:14:46][                          Parser] OP:      cmp, ARG1:       ax, ARG2:       cx
+[DEBUG][14:14:46][                          Parser] OP:      jne, ARG1:   pochka
+[DEBUG][14:14:46][                          Parser] OP:      end
+[DEBUG][14:14:46][      NStack::Stack<int>::~Stack] Destructing
+[DEBUG][14:14:46][            NRam::RAM<int>::~RAM] Destructing
+[DEBUG][14:14:46][  NReg::Register<int>::~Register] Destructing
+[DEBUG][14:14:54][                          Logger] Logging finished

@@ -13,46 +13,55 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Заголовочные файлы\CPU">
+      <UniqueIdentifier>{7fc7f591-11a1-4e08-9b7a-c5968934e6bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Заголовочные файлы\Special">
+      <UniqueIdentifier>{77426ffb-9a43-44bb-b05d-ce8ac9d4f350}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы исходного кода\Special">
+      <UniqueIdentifier>{8a2e83f8-f13c-4707-88d5-fdf808625fe1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Compiler.hpp">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\CPU.hpp">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\Debugger.hpp">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\MyMath.hpp">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\MyTypedefs.hpp">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\Parser.hpp">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\CPU.hpp">
+      <Filter>Заголовочные файлы\CPU</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\RAM.hpp">
-      <Filter>Заголовочные файлы</Filter>
+      <Filter>Заголовочные файлы\CPU</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Register.hpp">
-      <Filter>Заголовочные файлы</Filter>
+      <Filter>Заголовочные файлы\CPU</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Stack.hpp">
-      <Filter>Заголовочные файлы</Filter>
+      <Filter>Заголовочные файлы\CPU</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\Guard.hpp">
-      <Filter>Заголовочные файлы</Filter>
+    <ClInclude Include="..\..\src\Debugger.hpp">
+      <Filter>Заголовочные файлы\Special</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\Hash.hpp">
-      <Filter>Заголовочные файлы</Filter>
+      <Filter>Заголовочные файлы\Special</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Guard.hpp">
+      <Filter>Заголовочные файлы\Special</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MyMath.hpp">
+      <Filter>Заголовочные файлы\Special</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\MyTypedefs.hpp">
+      <Filter>Заголовочные файлы\Special</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Logger.hpp">
+      <Filter>Заголовочные файлы\Special</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\Debugger.cpp">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\main.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
@@ -60,7 +69,13 @@
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\Hash.cpp">
-      <Filter>Файлы исходного кода</Filter>
+      <Filter>Файлы исходного кода\Special</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Debugger.cpp">
+      <Filter>Файлы исходного кода\Special</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Logger.cpp">
+      <Filter>Файлы исходного кода\Special</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

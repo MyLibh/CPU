@@ -14,17 +14,13 @@ namespace NCpu
 
 	using NRam::RAM;
 
-	using NStack::Stack;
+	using NStack::Stack; 
 
 #pragma endregion
 
 	template<typename T = INT>
 	class CPU final
 	{
-		Register<T> reg_;
-		RAM<T>      ram_;
-		Stack<T>    stack_;
-
 	public:
 		typedef       T  &rVal_;
 		typedef       T &&rrVal_;
@@ -45,6 +41,7 @@ namespace NCpu
 
 		VOID put(crVal_);
 		VOID put(rrVal_);
+		VOID put(REG);
 		VOID popm();
 
 		VOID add();
@@ -64,7 +61,12 @@ namespace NCpu
 		VOID move(REG, REG);
 		VOID move(crVal_, REG);
 
-		VOID dump() const;
+		VOID dump(std::ostream& = std::cout) const;
+		
+	private:
+		Register<T> reg_;
+		RAM<T>      ram_;
+		Stack<T>    stack_;
 	};
 
 	template<typename T>
@@ -168,6 +170,13 @@ namespace NCpu
 	}
 
 	template<typename T>
+	inline VOID CPU<T>::put(REG reg)
+	{
+		ram_.put(reg_[reg]);
+		ram_.rehash();
+	}
+
+	template<typename T>
 	inline VOID CPU<T>::popm()
 	{
 		ram_.pop();
@@ -244,7 +253,9 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::sqrt()
 	{
-		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
+#pragma warning(disable : 4127) // The conditional expression is a constant
+		if (std::is_arithmetic<T>()) assert(!"Type T must be arithmetic\n");
+#pragma warning(default : 4127)
 
 		auto a = stack_.top();
 		stack_.pop();
@@ -258,7 +269,9 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::sin()
 	{
+#pragma warning(disable : 4127) // The conditional expression is a constant
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
+#pragma warning(default : 4127)
 
 		auto a = stack_.top();
 		stack_.pop();
@@ -272,7 +285,9 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::cos()
 	{
+#pragma warning(disable : 4127) // The conditional expression is a constant
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
+#pragma warning(default : 4127)
 
 		auto a = stack_.top();
 		stack_.pop();
@@ -323,17 +338,17 @@ namespace NCpu
 	}
 
 	template<typename T>
-	VOID CPU<T>::dump() const
+	VOID CPU<T>::dump(std::ostream &rOstr /* = std::cout */) const
 	{
-		NDebugger::Info("\n\t\t[CPU DUMP]", NDebugger::TextColor::LightMagenta);
+		NDebugger::Info("\n\t\t[CPU DUMP]", NDebugger::TextColor::LightMagenta, TRUE, rOstr);
 
-		std::cout << "CPU <" << typeid(T).name() << "> [0x" << this << "]\n\n";
+		rOstr << "CPU <" << typeid(T).name() << "> [0x" << this << "]\n\n";
 
 		reg_.dump();
 		ram_.dump();
 		stack_.dump();
 
-		NDebugger::Info("\t\t[  END   ]\n", NDebugger::TextColor::LightMagenta);
+		NDebugger::Info("\t\t[  END   ]\n", NDebugger::TextColor::LightMagenta, TRUE, rOstr);
 	}
 } // namespace NCpu
 

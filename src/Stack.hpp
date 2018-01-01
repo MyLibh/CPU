@@ -6,8 +6,11 @@
 
 #include "Debugger.hpp"
 #include "Guard.hpp"
+#include "Logger.hpp"
 
 //cmd -D_SCL_SECURE_NO_WARNINGS
+
+extern Logger gLogger;
 
 namespace NStack
 {
@@ -47,10 +50,10 @@ namespace NStack
 		HASH_GUARD(inline SIZE_T getHash() const _NOEXCEPT { return hash_; })
 
 		BOOL ok() const _NOEXCEPT;
-		VOID dump() const;
+		VOID dump(std::ostream& = std::cout) const;
 
 	private:
-		CANARY_GUARD(CONST std::string CANARY_VALUE = NHash::Hash("Stack").getHash();)
+		CANARY_GUARD(CONST std::string CANARY_VALUE;)
 
 		CANARY_GUARD(std::string canaryStart_;)
 		HASH_GUARD(std::string hash_;)
@@ -74,10 +77,23 @@ namespace NStack
 				return NHash::Hash(tmp).getHash();				
 			}
 		)
+
+		static SIZE_T numberOfInstances;
 	};
 
 	template<typename T>
+	SIZE_T Stack<T>::numberOfInstances = 0;
+
+	//====================================================================================================================================
+
+	template<typename T>
+	Logger& operator<<(Logger&, CONST Stack<T>&);
+
+	//====================================================================================================================================
+
+	template<typename T>
 	inline Stack<T>::Stack(SIZE_T size /* = DEFAULT_SIZE */) _NOEXCEPT :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + ++numberOfInstances).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE),)
 		HASH_GUARD(hash_(),)
 
@@ -89,11 +105,17 @@ namespace NStack
 	{
 		HASH_GUARD(hash_ = makeHash();)
 
+		CANARY_GUARD(numberOfInstances--;)
+		numberOfInstances++;
+
+		LOG_CONSTRUCTING()
+
 		GUARD_CHECK()
 	}
 
 	template<typename T>
 	inline Stack<T>::Stack(CONST Stack &crStack) :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + ++numberOfInstances).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE),)
 		HASH_GUARD(hash_(),)
 
@@ -107,11 +129,17 @@ namespace NStack
 
 		HASH_GUARD(hash_ = makeHash();)
 
+		CANARY_GUARD(numberOfInstances--;)
+		numberOfInstances++;
+
+		LOG_CONSTRUCTING()
+
 		GUARD_CHECK()
 	}
 
 	template<typename T>
 	inline Stack<T>::Stack(Stack &&rrStack) _NOEXCEPT :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + ++numberOfInstances).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 		HASH_GUARD(hash_(rrStack.hash_), )
 
@@ -124,8 +152,12 @@ namespace NStack
 		rrStack.counter_ = NULL;
 		rrStack.size_    = NULL;
 		rrStack.buffer_  = nullptr;
-
 		HASH_GUARD(rrStack.hash_.clear();)
+
+		CANARY_GUARD(numberOfInstances--;)
+		numberOfInstances++;
+
+		LOG_CONSTRUCTING()
 
 		GUARD_CHECK()
 	}
@@ -133,6 +165,10 @@ namespace NStack
 	template<typename T>
 	inline Stack<T>::~Stack()
 	{
+		numberOfInstances--;
+
+		LOG_DESTRUCTING()
+
 		GUARD_CHECK()
 	}
 
@@ -318,40 +354,56 @@ namespace NStack
 	}
 
 	template<typename T>
-	VOID Stack<T>::dump() const
+	VOID Stack<T>::dump(std::ostream &rOstr /* = std::cout */) const
 	{
-		NDebugger::Info("\t[STACK DUMP]", NDebugger::TextColor::Yellow);
+		NDebugger::Info("\t[STACK DUMP]", NDebugger::TextColor::Yellow, TRUE, rOstr);
 
-		std::cout << "Stack <" << typeid(T).name() << "> [0x" << this << "]\n"
-			<< "{\n\tbuffer [" << counter_ << "] = 0x" << buffer_.get() << "\n\t{\n";
+		rOstr << "Stack <" << typeid(T).name() << "> [0x" << this << "]\n"
+			  << "{\n\tbuffer [" << counter_ << "] = 0x" << buffer_.get() << "\n\t{\n";
 
-		if (counter_) for (SIZE_T i = 0; i < counter_; ++i) std::cout << "\t\t[" << i << "] = " << std::setw(8) << buffer_[i] << std::endl;
-		else                                                std::cout << "\t\tempty\n";
+		if (counter_) for (SIZE_T i = 0; i < counter_; ++i) rOstr << "\t\t[" << i << "] = " << std::setw(8) << buffer_[i] << std::endl;
+		else                                                rOstr << "\t\tempty\n";
 
-		std::cout << "\t}\n\n";
+		rOstr << "\t}\n\n";
 
 		CANARY_GUARD
 		(
-			std::cout << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
+			rOstr << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
 
-			std::cout << "\tCANARY_START  = " << canaryStart_;
-			if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green);
-			else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red);
+			rOstr << "\tCANARY_START  = " << canaryStart_;
+			if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
+			else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
 
-			std::cout << "\tCANARY_FINISH = " << canaryFinish_;
-			if (canaryFinish_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green); 
-			else                               NDebugger::Info(" FALSE", NDebugger::TextColor::Red);
+			rOstr << "\tCANARY_FINISH = " << canaryFinish_;
+			if (canaryFinish_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr); 
+			else                               NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
 			)
 
 		HASH_GUARD
 		(
-			std::cout << "\n\tHASH = " << hash_;		
-			if (hash_ == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green);
-			else                     NDebugger::Info(" FALSE", NDebugger::TextColor::Red);
+			rOstr << "\n\tHASH = " << hash_;		
+			if (hash_ == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
+			else                     NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
 		)
 
 		std::cout << "}\n";
 
-		NDebugger::Info("\t[   END    ]\n", NDebugger::TextColor::Yellow);
+		NDebugger::Info("\t[   END    ]\n", NDebugger::TextColor::Yellow, TRUE, rOstr);
+	}
+
+	//====================================================================================================================================
+
+	template<typename T>
+	Logger& operator<<(Logger &rLogger, CONST Stack<T> &crStack)
+	{
+		std::string func("Stack<");
+		func += typeid(T).name();
+		func += ">";
+
+		rLogger.stdPack(func);
+
+		crStack.dump(rLogger.getOfstream());
+
+		return rLogger;
 	}
 } // namespace NStack

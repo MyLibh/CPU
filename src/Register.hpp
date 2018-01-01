@@ -51,7 +51,7 @@ namespace NReg
 		VOID dump(std::ostream& = std::cout) const;
 
 	private:
-		CANARY_GUARD(CONST std::string CANARY_VALUE = NHash::Hash("Register").getHash();)
+		CANARY_GUARD(CONST std::string CANARY_VALUE;)
 
 		CANARY_GUARD(std::string canaryStart_;)
 		HASH_GUARD(std::string hash_;)
@@ -70,7 +70,12 @@ namespace NReg
 				return NHash::Hash(tmp).getHash();
 			}
 		)
+
+		static SIZE_T numberOfInstances;
 	};
+
+	template<typename T>
+	SIZE_T Register<T>::numberOfInstances = 0;
 
 	//====================================================================================================================================
 
@@ -81,6 +86,7 @@ namespace NReg
 
 	template<typename T>
 	inline Register<T>::Register() _NOEXCEPT :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Register" + ++numberOfInstances).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE),)
 		HASH_GUARD(hash_(),)
 
@@ -89,7 +95,8 @@ namespace NReg
 		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
 	{ 
 		HASH_GUARD(hash_ = makeHash();)
-
+		CANARY_GUARD(numberOfInstances--;)
+		numberOfInstances++;
 		LOG_CONSTRUCTING()
 
 		GUARD_CHECK()
@@ -97,6 +104,7 @@ namespace NReg
 
 	template<typename T>
 	inline Register<T>::Register(CONST Register &crReg) _NOEXCEPT :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Register" + ++numberOfInstances).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 		HASH_GUARD(hash_(crReg.hash_),)
 
@@ -104,6 +112,9 @@ namespace NReg
 
 		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
 	{ 
+		CANARY_GUARD(numberOfInstances--;)
+		numberOfInstances++;
+
 		LOG_CONSTRUCTING()
 
 		GUARD_CHECK()
@@ -111,6 +122,7 @@ namespace NReg
 
 	template<typename T>
 	inline Register<T>::Register(Register &&rrReg) _NOEXCEPT :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Register" + ++numberOfInstances).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE),)
 		HASH_GUARD(hash_(std::move(rrReg.hash_)),)
 
@@ -119,8 +131,9 @@ namespace NReg
 		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
 	{
 		rrReg.regs_.fill(NULL);
-
 		HASH_GUARD(rrReg.hash_.clear();)
+		CANARY_GUARD(numberOfInstances--;)
+		numberOfInstances++;
 
 		LOG_CONSTRUCTING()
 
@@ -130,7 +143,9 @@ namespace NReg
 	template<typename T>
 	inline Register<T>::~Register()
 	{
+		numberOfInstances--;
 		LOG_DESTRUCTING()
+
 		GUARD_CHECK()
 	}
 

@@ -43,7 +43,7 @@ namespace NRam
 		VOID dump(std::ostream& = std::cout) const;
 
 	private:
-		CANARY_GUARD(CONST std::string CANARY_VALUE = NHash::Hash("RAM").getHash();)
+		CANARY_GUARD(CONST std::string CANARY_VALUE;)
 
 		CANARY_GUARD(std::string canaryStart_;)
 		HASH_GUARD(std::string hash_;)
@@ -64,7 +64,12 @@ namespace NRam
 				return NHash::Hash(tmp).getHash();
 			}
 		)
+
+		static SIZE_T numberOfInstances;
 	};
+
+	template<typename T>
+	SIZE_T RAM<T>::numberOfInstances = 0;
 
 	//====================================================================================================================================
 
@@ -75,6 +80,7 @@ namespace NRam
 
 	template<typename T>
 	inline RAM<T>::RAM() _NOEXCEPT :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("RAM" + ++numberOfInstances).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 		HASH_GUARD(hash_(), )
 
@@ -84,6 +90,8 @@ namespace NRam
 		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
 	{ 
 		HASH_GUARD(hash_ = makeHash();)
+		CANARY_GUARD(numberOfInstances--;)
+		numberOfInstances++;
 
 		LOG_CONSTRUCTING()
 
@@ -92,6 +100,7 @@ namespace NRam
 
 	template<typename T>
 	inline RAM<T>::RAM(CONST RAM &crRAM) _NOEXCEPT :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("RAM" + ++numberOfInstances).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 		HASH_GUARD(hash_(crRAM.hash_), )
 
@@ -100,13 +109,17 @@ namespace NRam
 
 		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
 	{ 
+		CANARY_GUARD(numberOfInstances--;)
+		numberOfINstances++;
+	
 		LOG_CONSTRUCTING()
-
+		
 		GUARD_CHECK()
 	}
 		
 	template<typename T>
 	inline RAM<T>::RAM(RAM &&rrRAM) _NOEXCEPT :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("RAM" + ++numberOfInstances).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 		HASH_GUARD(hash_(std::move(rrRAM.hash_)), )
 
@@ -118,7 +131,10 @@ namespace NRam
 		rrRAM.counter_ = NULL;
 		rrRAM.buf_.fill(NULL); 
 		HASH_GUARD(rrRAM.hash_.clear();)
-		
+
+		CANARY_GUARD(numberOfInstances--;)
+		numberOfInstances++;
+
 		LOG_CONSTRUCTING()
 
 		GUARD_CHECK()
@@ -127,7 +143,9 @@ namespace NRam
 	template<typename T>
 	inline RAM<T>::~RAM()
 	{
+		numberOfInstances--;
 		LOG_DESTRUCTING()
+
 		GUARD_CHECK()
 	}
 

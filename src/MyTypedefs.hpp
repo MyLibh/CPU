@@ -11,8 +11,10 @@
 	}
 
 	#define _NOEXCEPTARG(arg)	
+	#define STATIC static
 #else
 	#define _NOEXCEPTARG(...) _NOEXCEPT(__VA_ARGS__) 
+	#define STATIC
 #endif // _MSVC_LANG 
 
 #ifndef _WINDOWS_

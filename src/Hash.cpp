@@ -80,18 +80,18 @@ namespace NHash
 			hash_.clear();
 		}
 
-		WORD symbolsToSub = realMinLength - hashLength;
+		WORD symbolsToSub = static_cast<WORD>(realMinLength) - hashLength;
 		for (SIZE_T i = 0, compressCount = realMinLength / symbolsToSub; hash_.length() < static_cast<WORD>(hashLength - 4); ++i) // Removing redundant items
 		{
 			if (i % compressCount == 0) hash_ += static_cast<CHAR>(getExistCode(tmp[i] + tmp[++i]));
 			else                        hash_ += static_cast<CHAR>(getExistCode(tmp[i]));
 		}
 
-		hash_ += static_cast<CHAR>(getExistCode(strSault));
-		hash_ += static_cast<CHAR>(getExistCode(strLength));
+		hash_ += static_cast<CHAR>(getExistCode(static_cast<WORD>(strSault)));
+		hash_ += static_cast<CHAR>(getExistCode(static_cast<WORD>(strLength)));
 
-		hash_ += static_cast<CHAR>(getExistCode(maxSault));
-		hash_ += static_cast<CHAR>(getExistCode(maxLength));
+		hash_ += static_cast<CHAR>(getExistCode(static_cast<WORD>(maxSault)));
+		hash_ += static_cast<CHAR>(getExistCode(static_cast<WORD>(maxLength)));
 
 		return hash_;
 	}

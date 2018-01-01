@@ -9,6 +9,9 @@
 #include <cassert>  // assert
 
 #include "Parser.hpp"
+#include "Logger.hpp"
+
+extern Logger gLogger;
 
 namespace NParser
 {
@@ -51,27 +54,36 @@ namespace NParser
 		return (*this);
 	}
 
-	VOID Operation::dump() const
+	VOID Operation::dump(std::ostream &rOstr) const
 	{
 		std::streamsize width = 1 << 3;
 
-		NDebugger::Debug("OP: ", NDebugger::TextColor::LightCyan, FALSE);
-		std::cout << std::setw(width) << (cmd.length() ? cmd : "null");
+		NDebugger::Info("OP: ", NDebugger::TextColor::LightCyan, FALSE, rOstr);
+		rOstr << std::setw(width) << (cmd.length() ? cmd : "null");
 
 		for (SIZE_T i = 0; i < MAX_ARGS; ++i)
 		{
 			if (!args[i].length()) break;
 
-			std::cout << ", ";
-			NDebugger::Info("ARG" + std::to_string(i + 1) + ": ", NDebugger::TextColor::Cyan, FALSE);
+			rOstr << ", ";
+			NDebugger::Info("ARG" + std::to_string(i + 1) + ": ", NDebugger::TextColor::Cyan, FALSE, rOstr);
 
-			std::cout << std::setw(width) << (args[i].length() ? args[i] : "null");
+			rOstr << std::setw(width) << (args[i].length() ? args[i] : "null");
 		}
 
-		std::cout << std::endl;
+		rOstr << std::endl;
 	}
 
 	//===============================================================================================================================================
+	
+	Logger &operator<<(Logger &rLogger, CONST Operation &crOp)
+	{
+		rLogger.stdPack("Parser");
+
+		crOp.dump(rLogger.getOfstream());
+
+		return rLogger;
+	}
 
 	static inline BOOL IsCommaExist(CRSTRING line) 
 	{ 
@@ -92,7 +104,9 @@ namespace NParser
 			if (IsCommaExist(const_cast<CRSTRING>(a))) a.pop_back();
 		}
 
-#ifdef DEBUG
+#ifdef _DEBUG
+		gLogger << *pOperation;
+
 		pOperation->dump();
 #endif // DEBUG
 

@@ -28,7 +28,7 @@ namespace NDebugger
 	
 	WORD SetColorConsole(TextColor, TextColor = TextColor::Black); 
 
-	VOID Error(CRSTRING); 
+	VOID Error(CRSTRING, std::ostream& = std::cerr); 
 	VOID Info(CRSTRING, TextColor = TextColor::White, bool = TRUE, std::ostream& = std::cout);
-	VOID Debug(CRSTRING, TextColor = TextColor::White, bool = TRUE);
+	VOID Debug(CRSTRING, TextColor = TextColor::White, bool = TRUE, std::ostream& = std::cout);
 } //namespace NDebugger

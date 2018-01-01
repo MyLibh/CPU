@@ -1,0 +1,102 @@
+[DEBUG][03:34:00][                          Logger] Logging started
+[DEBUG][06:05:59][   NReg::Register<int>::Register] Constructing
+[DEBUG][06:05:59][             NRam::RAM<int>::RAM] Constructing
+[DEBUG][06:05:59][       NStack::Stack<int>::Stack] Constructing
+[DEBUG][06:05:59][                          Parser] OP:       11
+[DEBUG][06:05:59][                          Parser] OP:  :pochka
+[DEBUG][06:05:59][                          Parser] OP:       20, ARG1:      999, ARG2:       ax
+[DEBUG][06:05:59][                          Parser] OP:        1, ARG1:     [ax]
+[DEBUG][06:05:59][                          Parser] OP:        1, ARG1:       98
+[DEBUG][06:05:59][                          Parser] OP:        1, ARG1:      -78
+[DEBUG][06:05:59][                          Parser] OP:        1, ARG1:       ax
+[DEBUG][06:05:59][                          Parser] OP:       11
+[DEBUG][06:06:00][                          Parser] OP:        2
+[DEBUG][06:06:00][                          Parser] OP:        3
+[DEBUG][06:06:00][                          Parser] OP:        2, ARG1:       []
+[DEBUG][06:06:00][                          Parser] OP:       20, ARG1:        4, ARG2:       ax
+[DEBUG][06:06:00][                          Parser] OP:       20, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:00][                          Parser] OP:       11
+[DEBUG][06:06:01][                          Parser] OP:       12, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:01][                          Parser] OP:       14, ARG1:   pochka
+[DEBUG][06:06:01][                          Parser] OP:     null
+[DEBUG][06:06:01][                          Parser] OP:       20, ARG1:      999, ARG2:       ax
+[DEBUG][06:06:01][                          Parser] OP:        1, ARG1:     [ax]
+[DEBUG][06:06:01][                          Parser] OP:        1, ARG1:       98
+[DEBUG][06:06:01][                          Parser] OP:        1, ARG1:      -78
+[DEBUG][06:06:01][                          Parser] OP:        1, ARG1:       ax
+[DEBUG][06:06:01][                          Parser] OP:       11
+[DEBUG][06:06:01][                          Parser] OP:        2
+[DEBUG][06:06:01][                          Parser] OP:        3
+[DEBUG][06:06:01][                          Parser] OP:        2, ARG1:       []
+[DEBUG][06:06:01][                          Parser] OP:       20, ARG1:        4, ARG2:       ax
+[DEBUG][06:06:01][                          Parser] OP:       20, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:01][                          Parser] OP:       11
+[DEBUG][06:06:02][                          Parser] OP:       12, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:02][                          Parser] OP:       14, ARG1:   pochka
+[DEBUG][06:06:02][                          Parser] OP:     null
+[DEBUG][06:06:02][                          Parser] OP:       20, ARG1:      999, ARG2:       ax
+[DEBUG][06:06:02][                          Parser] OP:        1, ARG1:     [ax]
+[DEBUG][06:06:02][                          Parser] OP:        1, ARG1:       98
+[DEBUG][06:06:02][                          Parser] OP:        1, ARG1:      -78
+[DEBUG][06:06:02][                          Parser] OP:        1, ARG1:       ax
+[DEBUG][06:06:02][                          Parser] OP:       11
+[DEBUG][06:06:03][                          Parser] OP:        2
+[DEBUG][06:06:03][                          Parser] OP:        3
+[DEBUG][06:06:03][                          Parser] OP:        2, ARG1:       []
+[DEBUG][06:06:03][                          Parser] OP:       20, ARG1:        4, ARG2:       ax
+[DEBUG][06:06:03][                          Parser] OP:       20, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:03][                          Parser] OP:       11
+[DEBUG][06:06:03][                          Parser] OP:       12, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:03][                          Parser] OP:       14, ARG1:   pochka
+[DEBUG][06:06:03][                          Parser] OP:     null
+[DEBUG][06:06:03][                          Parser] OP:       20, ARG1:      999, ARG2:       ax
+[DEBUG][06:06:03][                          Parser] OP:        1, ARG1:     [ax]
+[DEBUG][06:06:03][                          Parser] OP:        1, ARG1:       98
+[DEBUG][06:06:03][                          Parser] OP:        1, ARG1:      -78
+[DEBUG][06:06:03][                          Parser] OP:        1, ARG1:       ax
+[DEBUG][06:06:03][                          Parser] OP:       11
+[DEBUG][06:06:04][                          Parser] OP:        2
+[DEBUG][06:06:04][                          Parser] OP:        3
+[DEBUG][06:06:04][                          Parser] OP:        2, ARG1:       []
+[DEBUG][06:06:04][                          Parser] OP:       20, ARG1:        4, ARG2:       ax
+[DEBUG][06:06:04][                          Parser] OP:       20, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:04][                          Parser] OP:       11
+[DEBUG][06:06:05][                          Parser] OP:       12, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:05][                          Parser] OP:       14, ARG1:   pochka
+[DEBUG][06:06:05][                          Parser] OP:     null
+[DEBUG][06:06:05][                          Parser] OP:       20, ARG1:      999, ARG2:       ax
+[DEBUG][06:06:05][                          Parser] OP:        1, ARG1:     [ax]
+[DEBUG][06:06:05][                          Parser] OP:        1, ARG1:       98
+[DEBUG][06:06:05][                          Parser] OP:        1, ARG1:      -78
+[DEBUG][06:06:05][                          Parser] OP:        1, ARG1:       ax
+[DEBUG][06:06:05][                          Parser] OP:       11
+[DEBUG][06:06:05][                          Parser] OP:        2
+[DEBUG][06:06:05][                          Parser] OP:        3
+[DEBUG][06:06:05][                          Parser] OP:        2, ARG1:       []
+[DEBUG][06:06:05][                          Parser] OP:       20, ARG1:        4, ARG2:       ax
+[DEBUG][06:06:05][                          Parser] OP:       20, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:05][                          Parser] OP:       11
+[DEBUG][06:06:06][                          Parser] OP:       12, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:06][                          Parser] OP:       14, ARG1:   pochka
+[DEBUG][06:06:06][                          Parser] OP:     null
+[DEBUG][06:06:06][                          Parser] OP:       20, ARG1:      999, ARG2:       ax
+[DEBUG][06:06:06][                          Parser] OP:        1, ARG1:     [ax]
+[DEBUG][06:06:06][                          Parser] OP:        1, ARG1:       98
+[DEBUG][06:06:06][                          Parser] OP:        1, ARG1:      -78
+[DEBUG][06:06:06][                          Parser] OP:        1, ARG1:       ax
+[DEBUG][06:06:06][                          Parser] OP:       11
+[DEBUG][06:06:07][                          Parser] OP:        2
+[DEBUG][06:06:07][                          Parser] OP:        3
+[DEBUG][06:06:07][                          Parser] OP:        2, ARG1:       []
+[DEBUG][06:06:07][                          Parser] OP:       20, ARG1:        4, ARG2:       ax
+[DEBUG][06:06:07][                          Parser] OP:       20, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:07][                          Parser] OP:       11
+[DEBUG][06:06:07][                          Parser] OP:       12, ARG1:       ax, ARG2:       cx
+[DEBUG][06:06:07][                          Parser] OP:       14, ARG1:   pochka
+[DEBUG][06:06:07][                          Parser] OP:     null
+[DEBUG][06:06:07][                          Parser] OP:       20, ARG1:      999, ARG2:       ax
+[DEBUG][06:06:07][                          Parser] OP:        1, ARG1:     [ax]
+[DEBUG][06:06:07][                          Parser] OP:        1, ARG1:       98
+[DEBUG][06:06:08][                          Parser] OP:        1, ARG1:      -78
+[DEBUG][06:06:08][                          Parser] OP:        1, ARG1:       ax
+[DEBUG][06:06:08][                          Parser] OP:       11

@@ -3,6 +3,7 @@
 #include <array> // std::array
 
 #include "Debugger.hpp"
+#include "Logger.hpp"
 
 namespace NParser
 {
@@ -23,8 +24,10 @@ namespace NParser
 		Operation &operator=(CONST Operation&);
 		Operation &operator=(Operation&&);
 
-		VOID dump() const;
+		VOID dump(std::ostream& = std::cout) const;
 	};
+
+	Logger &operator<<(Logger&, CONST Operation&);
 
 	Operation *ParseCode(CONST CHAR*);
 

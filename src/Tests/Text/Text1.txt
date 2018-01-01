@@ -1,5 +1,5 @@
-:pochka
 dump
+:pochka
 move 999, ax
 push [ax]
 push 98
