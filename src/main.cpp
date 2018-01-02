@@ -11,14 +11,14 @@ using namespace NCompiler;
 
 INT main(INT argc, CHAR *argv[])
 {
-	std::string file = (argc >= 2 ? argv[1] : "Text1");
+	std::string file = (argc >= 2 ? argv[1] : "Text1Bin");
 
 	try
 	{
 		NDebugger::SetColorConsole(NDebugger::TextColor::White);
 
-		Compiler<> comp;
-		comp.fromTextFile("..\\..\\src\\Tests\\Text\\" + file);
+ 		Compiler<> comp;
+		comp.fromBinFile("..\\..\\src\\Tests\\Text\\" + file);
 	}
 	catch (CONST std::exception &exc)
 	{

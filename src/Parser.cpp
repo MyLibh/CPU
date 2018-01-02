@@ -99,7 +99,6 @@ namespace NParser
 	Operation *ParseCode(CONST CHAR *cpLine)
 	{
 		Operation *pOperation = new Operation;
-		if (!pOperation) throw std::exception("[NParser::ParseCode] \"Cannot allocate memory for parsing\"\n");
 
 		std::stringstream sstr(cpLine);
 		sstr >> pOperation->cmd;
@@ -125,12 +124,10 @@ namespace NParser
 		{
 			NDebugger::Error(std::string("[") + __FUNCTION__ + "Ifstream is not open");
 
-			rCode.close();
-
 			return FALSE;
 		}
 
-		rCode.seekg(0);
+		rCode.seekg(std::ios::beg);
 		while (!rCode.eof())
 		{
 			std::string tmp;

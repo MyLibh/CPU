@@ -12,7 +12,7 @@ namespace NParser
 
 	struct Operation
 	{
-		static CONST WORD MAX_ARGS = 1 << 2;
+		static CONST WORD MAX_ARGS = (1 << 2) - 1;
 
 		std::string                       cmd;
 		std::array<std::string, MAX_ARGS> args;

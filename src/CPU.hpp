@@ -263,9 +263,10 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::sqrt()
 	{
+#pragma warning(push)
 #pragma warning(disable : 4127) // The conditional expression is a constant
 		if (std::is_arithmetic<T>()) assert(!"Type T must be arithmetic\n");
-#pragma warning(default : 4127)
+#pragma warning(pop)
 
 		auto a = stack_.top();
 		stack_.pop();
@@ -279,9 +280,10 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::sin()
 	{
+#pragma warning(push)
 #pragma warning(disable : 4127) // The conditional expression is a constant
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
-#pragma warning(default : 4127)
+#pragma warning(pop)
 
 		auto a = stack_.top();
 		stack_.pop();
@@ -295,9 +297,10 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::cos()
 	{
+#pragma warning(push)
 #pragma warning(disable : 4127) // The conditional expression is a constant
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
-#pragma warning(default : 4127)
+#pragma warning(pop)
 
 		auto a = stack_.top();
 		stack_.pop();

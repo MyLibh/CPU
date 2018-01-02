@@ -27,7 +27,7 @@ namespace NRam
 		SIZE_T put(rrVal_);
 		VOID pop();
 
-		VOID swap(Ram&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>);
+		VOID swap(Ram&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>); //-V762
 
 		virtual BOOL ok() const _NOEXCEPT override;
 		virtual VOID dump(std::ostream& = std::cout) const override;
@@ -80,8 +80,8 @@ namespace NRam
 	{
 		if (this != &crRam)
 		{
-			(*(Storage*)this) = crRam;
-			counter_ = crRam.counter_;
+			*static_cast<Storage*>(this) = crRam;
+			counter_                     = crRam.counter_;
 		}
 
 		return (*this);
@@ -92,8 +92,8 @@ namespace NRam
 	{
 		assert(this != &rrRam);
 
-		(*(Storage*)this)  = std::move(rrRam);
-		counter_           = std::move(rrRam.counter_);
+		*static_cast<Storage*>(this) = std::move(rrRam);
+		counter_                     = std::move(rrRam.counter_);
 
 		rrRam.counter_ = NULL;
 

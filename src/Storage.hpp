@@ -206,10 +206,9 @@ inline VOID Storage<T, SIZE>::swap(Storage &rStorage)
 template<typename T, SIZE_T SIZE>
 inline BOOL Storage<T, SIZE>::ok() const _NOEXCEPT
 {
-	return (this &&
-		CANARY_GUARD(canaryStart_ == CANARY_VALUE && canaryFinish_ == CANARY_VALUE && )
-		HASH_GUARD(hash_ == makeHash() && )
-		&buf_);
+	return (CANARY_GUARD(canaryStart_ == CANARY_VALUE && canaryFinish_ == CANARY_VALUE && )
+			HASH_GUARD(hash_ == makeHash() && )
+			&buf_);
 }
 
 template<typename T, SIZE_T SIZE>

@@ -19,12 +19,12 @@
 
 #ifndef _WINDOWS_
 	
-	typedef bool		   BOOL;
-	typedef int			   INT;
-	typedef size_t         SIZE_T;
-	typedef char           CHAR;
-	typedef unsigned short WORD;
-	typedef unsigned int   DWORD;
+	typedef bool		   BOOL; //-V677
+	typedef int			   INT; //-V677
+	typedef size_t         SIZE_T; //-V677
+	typedef char           CHAR; //-V677
+	typedef unsigned short WORD; //-V677
+	typedef unsigned int   DWORD; //-V677
 
 	#define CONST const
 
@@ -37,8 +37,8 @@
 	#undef VOID
 #endif // VOID
 
-typedef void     VOID;
-typedef float    FLOAT;
+typedef void     VOID; //-V677
+typedef float    FLOAT; //-V677
 typedef double   DOUBLE;
 typedef unsigned UNSIGNED;
 

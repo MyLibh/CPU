@@ -1,25 +1,8 @@
-[DEBUG][05:45:39][                          Logger] Logging started
-[DEBUG][06:48:04][NRegister::Register<int>::Register] Constructing
-[DEBUG][06:48:04][             NRam::Ram<int>::Ram] Constructing
-[DEBUG][06:48:04][       NStack::Stack<int>::Stack] Constructing
-[DEBUG][06:48:04][                          Parser] OP:     dump
-[DEBUG][06:48:04][                          Parser] OP:  :pochka
-[DEBUG][06:48:04][                          Parser] OP:     move, ARG1:      999, ARG2:       ax
-[DEBUG][06:48:04][                          Parser] OP:     push, ARG1:     [ax]
-[DEBUG][06:48:04][                          Parser] OP:     push, ARG1:       98
-[DEBUG][06:48:04][                          Parser] OP:     push, ARG1:      -78
-[DEBUG][06:48:04][                          Parser] OP:     push, ARG1:       ax
-[DEBUG][06:48:04][                          Parser] OP:     dump
-[DEBUG][06:48:04][                          Parser] OP:      pop
-[DEBUG][06:48:04][                          Parser] OP:      add
-[DEBUG][06:48:04][                          Parser] OP:      pop, ARG1:       []
-[DEBUG][06:48:04][                          Parser] OP:     move, ARG1:        4, ARG2:       ax
-[DEBUG][06:48:04][                          Parser] OP:     move, ARG1:       ax, ARG2:       cx
-[DEBUG][06:48:04][                          Parser] OP:     dump
-[DEBUG][06:48:04][                          Parser] OP:      cmp, ARG1:       ax, ARG2:       cx
-[DEBUG][06:48:04][                          Parser] OP:      jne, ARG1:   pochka
-[DEBUG][06:48:04][                          Parser] OP:      end
-[DEBUG][06:48:04][      NStack::Stack<int>::~Stack] Destructing
-[DEBUG][06:48:04][            NRam::Ram<int>::~Ram] Destructing
-[DEBUG][06:48:04][NRegister::Register<int>::~Register] Destructing
-[DEBUG][06:48:04][                          Logger] Logging finished
+[DEBUG][13:52:02][                          Logger] Logging started
+[DEBUG][14:18:01][NRegister::Register<int>::Register] Constructing
+[DEBUG][14:18:01][             NRam::Ram<int>::Ram] Constructing
+[DEBUG][14:18:01][       NStack::Stack<int>::Stack] Constructing
+[DEBUG][14:18:01][      NStack::Stack<int>::~Stack] Destructing
+[DEBUG][14:18:01][            NRam::Ram<int>::~Ram] Destructing
+[DEBUG][14:18:01][NRegister::Register<int>::~Register] Destructing
+[DEBUG][14:18:16][                          Logger] Logging finished

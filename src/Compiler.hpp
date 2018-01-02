@@ -8,15 +8,15 @@
 
 namespace NCompiler
 {
-#pragma region Class Wrap2BinaryIO
+#pragma region Class Wrap4BinaryIO
 	
 	template<typename T>
-	class Wrap2BinaryIO
+	class Wrap4BinaryIO final
 	{
 	public:
-		Wrap2BinaryIO();
-		Wrap2BinaryIO(CONST T&);
-		~Wrap2BinaryIO();
+		Wrap4BinaryIO();
+		Wrap4BinaryIO(CONST T&);
+		~Wrap4BinaryIO();
 
 		operator T&();
 		operator CONST T&() const;
@@ -28,35 +28,35 @@ namespace NCompiler
 	//====================================================================================================================================
 
 	template<typename T>
-	std::istream &operator>>(std::istream&, Wrap2BinaryIO<T>&);
+	std::istream &operator>>(std::istream&, Wrap4BinaryIO<T>&);
 
 	template<typename T>
-	std::ostream &operator<<(std::ostream&, Wrap2BinaryIO<T>&);
+	std::ostream &operator<<(std::ostream&, Wrap4BinaryIO<T>&);
 
 	//====================================================================================================================================
 
 	template<typename T>
-	Wrap2BinaryIO<T>::Wrap2BinaryIO() :
+	inline Wrap4BinaryIO<T>::Wrap4BinaryIO() :
 		val_()
 	{ }
 
 	template<typename T>
-	Wrap2BinaryIO<T>::Wrap2BinaryIO(CONST T &val) :
-		val_(val)
+	inline Wrap4BinaryIO<T>::Wrap4BinaryIO(CONST T &crVal) :
+		val_(crVal)
 	{ }
 
 	template<typename T>
-	Wrap2BinaryIO<T>::~Wrap2BinaryIO()
+	inline Wrap4BinaryIO<T>::~Wrap4BinaryIO()
 	{ }
 
 	template<typename T>
-	Wrap2BinaryIO<T>::operator T&()
+	inline Wrap4BinaryIO<T>::operator T&()
 	{
 		return val_;
 	}
 
 	template<typename T>
-	Wrap2BinaryIO<T>::operator CONST T&() const
+	inline Wrap4BinaryIO<T>::operator CONST T&() const
 	{
 		return val_;
 	}
@@ -64,20 +64,48 @@ namespace NCompiler
 	//====================================================================================================================================
 
 	template<typename T>
-	std::istream &operator>>(std::istream &rIstr, Wrap2BinaryIO<T> &rVal)
+	inline std::istream &operator>>(std::istream &rIstr, Wrap4BinaryIO<T> &rVal)
 	{
 		rIstr.read(reinterpret_cast<CHAR*>(&static_cast<T&>(rVal)), sizeof(T));
 
 		return rIstr;
 	}
 
+	template<> 
+	std::istream &operator>><std::string>(std::istream &rIstr, Wrap4BinaryIO<std::string> &rVal)
+	{
+		SIZE_T size = 0;
+		rIstr.read(reinterpret_cast<CHAR*>(&size), sizeof(size));
+		
+		CHAR *pBuf = new CHAR[size + 1]();
+		rIstr.read(pBuf, size);
+		pBuf[size] = '\0';
+
+		rVal = std::string(pBuf);
+		
+		delete[] pBuf;
+
+		return rIstr;
+	}
+
 	template<typename T>
-	std::ostream &operator<<(std::ostream &rOstr, Wrap2BinaryIO<T> &rVal)
+	std::ostream &operator<<(std::ostream &rOstr, Wrap4BinaryIO<T> &rVal)
 	{
 		rOstr.write(reinterpret_cast<CONST CHAR*>(&static_cast<T&>(rVal)), sizeof(T));
 
 		return rOstr;
 	}
+
+	template<>
+	std::ostream &operator<<<std::string>(std::ostream &rOstr, Wrap4BinaryIO<std::string> &rVal)
+	{	
+		SIZE_T size = rVal.operator CRSTRING().length();
+		rOstr.write(reinterpret_cast<CONST CHAR*>(&size), sizeof(size));
+		rOstr.write(rVal.operator CRSTRING().c_str(), size);
+
+		return rOstr;
+	}
+
 #pragma endregion
 
 #pragma region Usings
@@ -332,6 +360,12 @@ namespace NCompiler
 			return FALSE;
 		}
 
+#pragma warning(push)
+#pragma warning(disable:4238) // Standard extension: use of the right-hand class value as a left-handed value in defines
+
+#define WRITE_STRING(str) Wrap4BinaryIO<std::string>(str)
+#define ARG(index)        WRITE_STRING(pOp->args[index])
+
 		while (!input.eof())
 		{
 			CHAR tmp[MAX_LINE_LENGTH] = {};
@@ -342,40 +376,35 @@ namespace NCompiler
 			{
 				if(!pOp->cmd.length()) continue;
 
-#define COMMAND(command) Wrap2BinaryIO<WORD>(command)
-#define ARG(index)       Wrap2BinaryIO<std::string>(pOp->args[index])
-				
-#define SPACE            Wrap2BinaryIO<std::string>(" ")
+				else if (pOp->cmd == "push") output << WRITE_STRING(pOp->cmd) << ARG(0);
+				else if (pOp->cmd == "pop")  output << WRITE_STRING(pOp->cmd) << ARG(0);
 
-				if      (pOp->cmd == "push") output << COMMAND(commands_::push) << SPACE << ARG(0); 
-				else if (pOp->cmd == "pop")  output << COMMAND(commands_::pop)  << SPACE << ARG(0);
+				else if (pOp->cmd == "add")	 output << WRITE_STRING(pOp->cmd);
+				else if (pOp->cmd == "sub")  output << WRITE_STRING(pOp->cmd);
+				else if (pOp->cmd == "mul")	 output << WRITE_STRING(pOp->cmd);
+				else if (pOp->cmd == "div")	 output << WRITE_STRING(pOp->cmd);
+				else if (pOp->cmd == "dup")	 output << WRITE_STRING(pOp->cmd);
+				else if (pOp->cmd == "sin")  output << WRITE_STRING(pOp->cmd);
+				else if (pOp->cmd == "cos")  output << WRITE_STRING(pOp->cmd);
+				else if (pOp->cmd == "sqrt") output << WRITE_STRING(pOp->cmd);
 
-				else if (pOp->cmd == "add")	 output << COMMAND(commands_::add);
-				else if (pOp->cmd == "sub")  output << COMMAND(commands_::sub);
-				else if (pOp->cmd == "mul")	 output << COMMAND(commands_::mul);
-				else if (pOp->cmd == "div")	 output << COMMAND(commands_::div);
-				else if (pOp->cmd == "dup")	 output << COMMAND(commands_::dup);
-				else if (pOp->cmd == "sin")  output << COMMAND(commands_::sin);
-				else if (pOp->cmd == "cos")  output << COMMAND(commands_::cos);
-				else if (pOp->cmd == "sqrt") output << COMMAND(commands_::sqrt);
+				else if (pOp->cmd == "dump") output << WRITE_STRING(pOp->cmd);
 
-				else if (pOp->cmd == "dump") output << COMMAND(commands_::dump);
+				else if (pOp->cmd == "cmp")  output << WRITE_STRING(pOp->cmd) << ARG(0) << ARG(1);
+				else if (pOp->cmd == "jump") output << WRITE_STRING(pOp->cmd) << ARG(0);
 
-				else if (pOp->cmd == "cmp")  output << COMMAND(commands_::cmp)  << SPACE << ARG(0) << SPACE << ARG(1);
-				else if (pOp->cmd == "jump") output << COMMAND(commands_::jump) << SPACE << ARG(0);
+				else if (pOp->cmd == "je")	 output << WRITE_STRING(pOp->cmd) << ARG(0);
+				else if (pOp->cmd == "jne")  output << WRITE_STRING(pOp->cmd) << ARG(0);
+				else if (pOp->cmd == "ja")	 output << WRITE_STRING(pOp->cmd) << ARG(0);
+				else if (pOp->cmd == "jae")	 output << WRITE_STRING(pOp->cmd) << ARG(0);
+				else if (pOp->cmd == "jb")	 output << WRITE_STRING(pOp->cmd) << ARG(0);
+				else if (pOp->cmd == "jbe")  output << WRITE_STRING(pOp->cmd) << ARG(0);
 
-				else if (pOp->cmd == "je")	 output << COMMAND(commands_::je)  << SPACE << ARG(0);
-				else if (pOp->cmd == "jne")  output << COMMAND(commands_::jne) << SPACE << ARG(0);
-				else if (pOp->cmd == "ja")	 output << COMMAND(commands_::ja)  << SPACE << ARG(0);
-				else if (pOp->cmd == "jae")	 output << COMMAND(commands_::jae) << SPACE << ARG(0);
-				else if (pOp->cmd == "jb")	 output << COMMAND(commands_::jb)  << SPACE << ARG(0);
-				else if (pOp->cmd == "jbe")  output << COMMAND(commands_::jbe) << SPACE << ARG(0);
+				else if (pOp->cmd == "move") output << WRITE_STRING(pOp->cmd) << ARG(0) << ARG(1);
 
-				else if (pOp->cmd == "move") output << COMMAND(commands_::move) << SPACE << ARG(0) << SPACE << ARG(1);
+				else if (pOp->cmd == "end")  output << WRITE_STRING(pOp->cmd);
 
-				else if (pOp->cmd == "end")  output << COMMAND(commands_::end);
-
-				else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) output << Wrap2BinaryIO<std::string>(pOp->cmd);
+				else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) output << WRITE_STRING(pOp->cmd);
 
 				else
 				{
@@ -389,17 +418,17 @@ namespace NCompiler
 					return FALSE;
 				}
 
-			//output << SPACE;
 
-#undef SPACE
-
-#undef ARG
-#undef COMMAND
 			}
 			else break;
 			
 			delete pOp;
 		}
+
+#undef ARG
+#undef WRITE_STRING
+
+#pragma warning(pop)
 
 		output.close();
 		input.close();
@@ -479,7 +508,7 @@ namespace NCompiler
 
 				else if (pOp->cmd == "end") { delete pOp; break; }
 
-				else if (pOp->cmd[0] == ':' || !pOp->cmd.length()) {}
+				else if (pOp->cmd[0] == ':') {} // Push to func stack
 
 				else
 				{
@@ -613,77 +642,84 @@ namespace NCompiler
 			return FALSE;
 		}
 
+#define COMMAND command.operator CRSTRING()
+
 		while (!file.eof())
 		{
-			Wrap2BinaryIO<WORD> command;
+			Wrap4BinaryIO<std::string> command;
 			file >> command;
 
-			switch (command)
-				{
-				case commands_::push:
-				{
-					Wrap2BinaryIO<std::string> arg;
-					auto val = getValue(arg);
-					auto reg = makeReg(arg);
+			if (COMMAND == "push")
+			{
+				file >> command;
+				auto val = getValue(command);
+				auto reg = makeReg(command);
 
-					if (arg.operator const std::string &()[0] == '[')
-					{
-						NDebugger::Error("Not released yet");
+				if      (COMMAND[0] == '[' && reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::RAM);
+				else if (COMMAND[0] == '[' && reg == REG::NUM) cpu_.push(val, CPU<>::MemoryStorage::RAM);
+				else if (                     reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
+				else		                                   cpu_.push(val, CPU<>::MemoryStorage::STACK);
+			}
+			else if (COMMAND == "pop")
+			{
+				file >> command;
+				if (COMMAND[0] == '[') cpu_.pop(CPU<>::MemoryStorage::RAM);
+				else                   cpu_.pop(CPU<>::MemoryStorage::STACK);
+			}
 
-						throw;
-					}
-					else if (reg != REG::NUM) cpu_.push(reg);
-					else		              cpu_.push(val);
+			else if (COMMAND == "add") cpu_.add();
+			else if (COMMAND == "sub") cpu_.sub();
+			else if (COMMAND == "mul") cpu_.mul();
+			else if (COMMAND == "div") cpu_.div();
+			else if (COMMAND == "dup") cpu_.dup();
+			else if (COMMAND == "sin") cpu_.sin();
+			else if (COMMAND == "cos") cpu_.cos();
+			else if (COMMAND == "sqrt") cpu_.sqrt();
 
-					break;
-				}
-				case commands_::pop:  cpu_.pop();  break;
+			else if (COMMAND == "dump") cpu_.dump();
 
-				case commands_::add:  cpu_.add();  break;
-				case commands_::sub:  cpu_.sub();  break;
-				case commands_::mul:  cpu_.mul();  break;
-				case commands_::div:  cpu_.div();  break;
-				case commands_::sqrt: cpu_.sqrt(); break;
-				case commands_::dup:  cpu_.dup();  break;
-				case commands_::sin:  cpu_.sin();  break;
-				case commands_::cos:  cpu_.cos();  break;
+			else if (COMMAND == "cmp")
+			{
+				file >> command; //-V760
+				cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
+				
+				file >> command;
+				cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
+			}
+			//else if (command == "jump") Move2Label(file, pOp->args[0]);
 
-				case commands_::dump: cpu_.dump(); break;
+			//else if (command == "je") { auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2Label(file, pOp->args[0]); }
+			//else if (command == "jne") { auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2Label(file, pOp->args[0]); }
+			//else if (command == "ja") { auto pair = cpu_.getPair(); if (pair.first  > pair.second) Move2Label(file, pOp->args[0]); }
+			//else if (command == "jae") { auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2Label(file, pOp->args[0]); }
+			//else if (pOp->cmd == "jb") { auto pair = cpu_.getPair(); if (pair.first  < pair.second) Move2Label(file, pOp->args[0]); }
+			//else if (pOp->cmd == "jbe") { auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2Label(file, pOp->args[0]); }
 
-				//case commands_::cmp: cpu_.push(getValue(pOp->args[0])), cpu_.push(getValue(pOp->args[1])); break;
-				//case commands_::jump: Move2Label(file, pOp->args[0]);  break;
+			else if (COMMAND == "move")
+			{
+				std::string arg0, 
+					        arg1;
+				file >> arg0 >> arg1;
 
-				//case commands_::je:  { auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2Label(file, pOp->args[0]); break; }
-				//case commands_::jne: { auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2Label(file, pOp->args[0]); break; }
-				//case commands_::ja:  { auto pair = cpu_.getPair(); if (pair.first > pair.second) Move2Label(file, pOp->args[0]); break; }
-				//case commands_::jae: { auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2Label(file, pOp->args[0]); break; }
-				//case commands_::jb:  { auto pair = cpu_.getPair(); if (pair.first < pair.second) Move2Label(file, pOp->args[0]); break; }
-				//case commands_::jbe: { auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2Label(file, pOp->args[0]); break; }
+				BOOL isArg0Reg = isReg(arg0),
+					 isArg1Reg = isReg(arg1);
 
-				//case commands_::move:
-				//{
-				//	BOOL isArg0Reg = isReg(pOp->args[0]),
-				//		 isArg1Reg = isReg(pOp->args[1]);
+				if      ( isArg0Reg &&  isArg1Reg) cpu_.move( makeReg(arg0), makeReg(arg1));
+				else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(arg0), makeReg(arg1));
+			}
 
-				//  if      ( isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(pOp->args[0]), makeReg(pOp->args[1]));
-	            //  else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(pOp->args[0]), makeReg(pOp->args[1]));
-					
-				//	break;
-				//}
+			else if (COMMAND == "end") break;
 
-				case commands_::end: { file.close(); return TRUE; }
+			else if (COMMAND[0] == ':') {} // Push to func stack
 
-				case commands_::undefined: break;
+			else
+			{
+				NDebugger::Error("Unknown command: " + COMMAND);
 
-				default:
-				{
-					NDebugger::Error("Unknown command: " + std::to_string(command));
+				file.close();
 
-					file.close();
-
-					return FALSE;
-				}
-				}
+				return FALSE;
+			}
 		}
 
 		file.close();

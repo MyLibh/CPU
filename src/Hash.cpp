@@ -71,7 +71,7 @@ namespace NHash
 		{
 			for (SIZE_T i = 0, mid = (tmp.length() >> 1); i < mid; ++i)
 			{
-				assert(mid - i > 0 && mid + i < tmp.length());
+				assert(mid != i && mid + i < tmp.length());
 
 				hash_ += static_cast<CHAR>(getExistCode(tmp[mid - 1] + tmp[mid + 1]));
 			}

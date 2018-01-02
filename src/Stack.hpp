@@ -306,7 +306,7 @@ namespace NStack
 	{
 		GUARD_CHECK()
 
-		if (!counter_) throw std::out_of_range("[Stack::pop] \"Stack out of range\"\n");
+		if (!counter_) throw std::out_of_range(__FUNCTION__);
 
 		--counter_;
 
@@ -320,7 +320,7 @@ namespace NStack
 	{
 		GUARD_CHECK()
 
-		if (!counter_) std::out_of_range("[Stack::pop] \"Stack out of range\"\n");
+		if (!counter_) throw std::out_of_range(__FUNCTION__);
 
 		GUARD_CHECK()
 
@@ -347,8 +347,7 @@ namespace NStack
 	template<typename T>
 	inline BOOL Stack<T>::ok() const _NOEXCEPT
 	{
-		return (this &&
-				CANARY_GUARD(canaryStart_ == CANARY_VALUE && canaryFinish_ == CANARY_VALUE && )
+		return (CANARY_GUARD(canaryStart_ == CANARY_VALUE && canaryFinish_ == CANARY_VALUE && )
 				HASH_GUARD(hash_ == makeHash() && )
 				(size_ > counter_) && buffer_);		
 	}
