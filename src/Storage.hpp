@@ -29,6 +29,8 @@ public:
 
 	HASH_GUARD(inline VOID rehash() { hash_ = makeHash(); })
 
+	HASH_GUARD(inline CRSTRING getHash() const { return hash_; })
+
 	virtual VOID swap(Storage&);
 
 	virtual BOOL ok() const _NOEXCEPT;
@@ -36,17 +38,15 @@ public:
 
 protected:
 	CANARY_GUARD(CONST std::string CANARY_VALUE;)
-
 	CANARY_GUARD(std::string canaryStart_;)
-	HASH_GUARD(std::string hash_;)
-
+	
 	std::array<T, SIZE> buf_;
 
 	CANARY_GUARD(std::string canaryFinish_;)
 
 	HASH_GUARD
 	(
-		virtual std::string makeHash() const
+		std::string makeHash() const
 		{
 			std::string tmp;
 			for (CONST auto &x : buf_) tmp += std::to_string(x);
@@ -54,6 +54,9 @@ protected:
 			return NHash::Hash(tmp).getHash();
 		}
 	)
+
+private:
+	HASH_GUARD(std::string hash_;)
 
 	static SIZE_T numberOfInstances;
 };

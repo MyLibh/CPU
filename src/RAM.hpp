@@ -34,18 +34,6 @@ namespace NRam
 
 	private:
 		SIZE_T counter_;
-
-		HASH_GUARD
-		(
-			virtual std::string makeHash() const override
-			{
-				std::string tmp;
-				tmp += std::to_string(counter_);
-				for (CONST auto &x : buf_) tmp += std::to_string(x);
-
-				return NHash::Hash(tmp).getHash();
-			}
-		)
 	};
 
 	//====================================================================================================================================
@@ -61,10 +49,6 @@ namespace NRam
 		counter_(NULL)
 	{ 
 		LOG_CONSTRUCTING()
-
-		HASH_GUARD(hash_ = makeHash();)	
-
-		GUARD_CHECK()
 	}
 
 	template<typename T>
@@ -73,8 +57,6 @@ namespace NRam
 		counter_(crRam.counter_)
 	{ 	
 		LOG_CONSTRUCTING()
-		
-		GUARD_CHECK()
 	}
 		
 	template<typename T>
@@ -85,32 +67,22 @@ namespace NRam
 		LOG_CONSTRUCTING()
 
 		rrRam.counter_ = NULL;
-
-		GUARD_CHECK()
 	}
 
 	template<typename T>
 	inline Ram<T>::~Ram()
 	{
 		LOG_DESTRUCTING()
-
-		GUARD_CHECK()
-
-		HASH_GUARD(hash_ = Storage::makeHash();)
 	}
 
 	template<typename T>
 	inline Ram<T> &Ram<T>::operator=(CONST Ram &crRam) _NOEXCEPT
 	{
-		GUARD_CHECK()
-
 		if (this != &crRam)
 		{
-			Storage  = crRam;
+			(*(Storage*)this) = crRam;
 			counter_ = crRam.counter_;
 		}
-
-		GUARD_CHECK()
 
 		return (*this);
 	}
@@ -118,16 +90,12 @@ namespace NRam
 	template<typename T>
 	inline Ram<T> &Ram<T>::operator=(Ram &&rrRam) _NOEXCEPT
 	{
-		GUARD_CHECK()
-
 		assert(this != &rrRam);
 
-		Storage  = std::move(rrRam);
-		counter_ = std::move(rrRam.counter_);
+		(*(Storage*)this)  = std::move(rrRam);
+		counter_           = std::move(rrRam.counter_);
 
 		rrRam.counter_ = NULL;
-
-		GUARD_CHECK()
 
 		return (*this);
 	}
@@ -135,11 +103,7 @@ namespace NRam
 	template<typename T>
 	inline typename Ram<T>::rVal_ Ram<T>::operator[](SIZE_T index)
 	{
-		GUARD_CHECK()
-
 		if (index >= counter_) throw std::out_of_range(__FUNCTION__);
-
-		GUARD_CHECK()
 
 		return buf_[index];
 	}
@@ -147,11 +111,7 @@ namespace NRam
 	template<typename T>
 	inline typename Ram<T>::crVal_ Ram<T>::operator[](SIZE_T index) const
 	{
-		GUARD_CHECK()
-
 		if (index >= counter_) throw std::out_of_range(__FUNCTION__);
-
-		GUARD_CHECK()
 
 		return buf_[index];
 	}
@@ -159,15 +119,11 @@ namespace NRam
 	template<typename T>
 	inline SIZE_T Ram<T>::put(crVal_ val)
 	{
-		GUARD_CHECK()
-
 		if (counter_ == RAM_SIZE) throw std::out_of_range(__FUNCTION__);
 
 		buf_[counter_] = val;
 		counter_++;
 		HASH_GUARD(rehash();)
-
-		GUARD_CHECK()
 
 		return counter_ - 1;
 	}
@@ -175,15 +131,11 @@ namespace NRam
 	template<typename T>
 	inline SIZE_T Ram<T>::put(rrVal_ val)
 	{
-		GUARD_CHECK()
-
 		if (counter_ == RAM_SIZE) throw std::out_of_range(__FUNCTION__);
 
 		buf_[counter_] = std::move(val);
 		counter_++;
 		HASH_GUARD(rehash();)
-
-		GUARD_CHECK()
 
 		return counter_ - 1;
 	}
@@ -191,27 +143,19 @@ namespace NRam
 	template<typename T>
 	inline VOID Ram<T>::pop()
 	{
-		GUARD_CHECK()
-
 		if (!counter_) throw std::out_of_range(__FUNCTION__);
 
 		counter_--;
 		HASH_GUARD(rehash();)
-
-		GUARD_CHECK()
 	}
 
 	template<typename T>
 	inline VOID Ram<T>::swap(Ram<T> &rRam) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>)
 	{
-		GUARD_CHECK()
-		
 		using std::swap; // To have all possible swaps
 
 		swap(Storage, rRam);
 		swap(counter_, rRam.counter_);
-
-		GUARD_CHECK()
 	}
 
 	template<typename T>
@@ -252,9 +196,9 @@ namespace NRam
 
 		HASH_GUARD
 		(
-			rOstr << "\n\tHASH = " << hash_;
-			if (hash_ == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
-			else                     NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
+			rOstr << "\n\tHASH = " << getHash();
+			if (getHash() == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
+			else                         NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
 		)
 
 		rOstr << "}\n";

@@ -92,9 +92,9 @@ namespace NRegister
 
 		HASH_GUARD
 		(
-			rOstr << "\n\tHASH = " << hash_;
-			if (hash_ == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
-			else                     NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
+			rOstr << "\n\tHASH = " << getHash();
+			if (getHash() == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
+			else                         NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
 		)
 
 		rOstr << "}\n";
