@@ -20,7 +20,7 @@ namespace NStack
 		VOID reallocMemory();
 
 	public:
-		static CONST SIZE_T DEFAULT_SIZE = 2;
+		static CONST SIZE_T DEFAULT_SIZE = 1;
 
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;

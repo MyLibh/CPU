@@ -9,10 +9,10 @@ namespace NCpu
 {
 #pragma region Usings
 
-	using NReg::REG;
-	using NReg::Register;
+	using NRegister::REG;
+	using NRegister::Register;
 
-	using NRam::RAM;
+	using NRam::Ram;
 
 	using NStack::Stack; 
 
@@ -26,6 +26,13 @@ namespace NCpu
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;
 
+		enum MemoryStorage
+		{
+			REGISTER,
+			RAM,
+			STACK
+		};
+
 		explicit CPU()  _NOEXCEPT;
 		CPU(CONST CPU&) _NOEXCEPT;
 		CPU(CPU&&)      _NOEXCEPT;
@@ -34,15 +41,10 @@ namespace NCpu
 		CPU<T> &operator=(CONST CPU&);
 		CPU<T> &operator=(CPU&&);
 
-		VOID push(crVal_);
-		VOID push(rrVal_);
-		VOID push(REG);
-		VOID pop();
-
-		VOID put(crVal_);
-		VOID put(rrVal_);
-		VOID put(REG);
-		VOID popm();
+		VOID push(crVal_, MemoryStorage);
+		VOID push(rrVal_, MemoryStorage);
+		VOID push(REG, MemoryStorage);
+		VOID pop(MemoryStorage);
 
 		VOID add();
 		VOID sub();
@@ -65,7 +67,7 @@ namespace NCpu
 		
 	private:
 		Register<T> reg_;
-		RAM<T>      ram_;
+		Ram<T>      ram_;
 		Stack<T>    stack_;
 	};
 
@@ -120,67 +122,75 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::push(crVal_ val)
+	inline VOID CPU<T>::push(crVal_ val, MemoryStorage memory)
 	{ 
-		stack_.push(val); 
+		if (memory == MemoryStorage::STACK)
+		{
+			stack_.push(val);
 
-		reg_[REG::SP] = stack_.top();
-		reg_.rehash();
+			reg_[REG::SP] = stack_.top();
+			reg_.rehash();
+		}
+		else if (memory == MemoryStorage::RAM)
+		{
+			ram_.put(val);
+			ram_.rehash();
+		}
+		else NDebugger::Error(std::string("[") + __FUNCTION__ + "] Undefined operation");
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::push(rrVal_ val) 
+	inline VOID CPU<T>::push(rrVal_ val, MemoryStorage memory)
 	{ 
-		stack_.push(val);
+		if (memory == MemoryStorage::STACK)
+		{
+			stack_.push(val);
 
-		reg_[REG::SP] = stack_.top();
-		reg_.rehash();
+			reg_[REG::SP] = stack_.top();
+			reg_.rehash();
+		}
+		else if (memory == MemoryStorage::RAM)
+		{
+			ram_.put(val);
+			ram_.rehash();
+		}
+		else NDebugger::Error(std::string("[") + __FUNCTION__ + "] Undefined operation");
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::push(REG reg)
-	{
-		stack_.push(reg_[reg]);
+	inline VOID CPU<T>::push(REG reg, MemoryStorage memory)
+	{	
+		if (memory == MemoryStorage::STACK)
+		{
+			stack_.push(reg_[reg]);
 
-		reg_[REG::SP] = stack_.top();
-		reg_.rehash();
+			reg_[REG::SP] = stack_.top();
+			reg_.rehash();
+		}
+		else if (memory == MemoryStorage::RAM)
+		{
+			ram_.put(reg_[reg]);
+			ram_.rehash();
+		}
+		else NDebugger::Error(std::string("[") + __FUNCTION__ + "] Undefined operation");
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::pop()
+	inline VOID CPU<T>::pop(MemoryStorage memory)
 	{ 
-		stack_.pop(); 
+		if (memory == MemoryStorage::STACK)
+		{
+			stack_.pop();
 
-		reg_[REG::SP] = stack_.top();
-		reg_.rehash();
-	}
-
-	template<typename T>
-	inline VOID CPU<T>::put(crVal_ val)
-	{
-		ram_.put(val);
-		ram_.rehash();
-	}
-
-	template<typename T>
-	inline VOID CPU<T>::put(rrVal_ val)
-	{
-		ram_.put(val);
-		ram_.rehash();
-	}
-
-	template<typename T>
-	inline VOID CPU<T>::put(REG reg)
-	{
-		ram_.put(reg_[reg]);
-		ram_.rehash();
-	}
-
-	template<typename T>
-	inline VOID CPU<T>::popm()
-	{
-		ram_.pop();
-		ram_.rehash();
+			reg_[REG::SP] = stack_.top();
+			reg_.rehash();
+		}
+		else if (memory == MemoryStorage::RAM)
+		{
+			ram_.pop();
+			ram_.rehash();
+		}
+		else NDebugger::Error(std::string("[") + __FUNCTION__ + "] Undefined operation");
 	}
 
 	template<typename T>

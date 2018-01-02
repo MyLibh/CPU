@@ -28,6 +28,8 @@ private:
 	std::ofstream log_;
 };
 
+extern Logger gLogger;
+
 #ifdef _DEBUG
 	#define LOG_DUMPING()      gLogger << *this;
 	#define LOG_CONSTRUCTING() gLogger.write(__FUNCTION__, "Constructing");

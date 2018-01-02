@@ -3,7 +3,8 @@
 #include <array> // std::array
 
 #include "Debugger.hpp"
-#include "Logger.hpp"
+
+class Logger;
 
 namespace NParser
 {
@@ -27,9 +28,13 @@ namespace NParser
 		VOID dump(std::ostream& = std::cout) const;
 	};
 
+	//===============================================================================================================================================
+	
 	Logger &operator<<(Logger&, CONST Operation&);
+
+	//===============================================================================================================================================
 
 	Operation *ParseCode(CONST CHAR*);
 
-	std::ifstream FindLabel(std::ifstream&, CRSTRING);
+	BOOL Move2Label(std::ifstream&, CRSTRING);
 } // namespace NParser

@@ -72,6 +72,9 @@
     <ClInclude Include="..\..\src\Logger.hpp">
       <Filter>Файлы заголовков\Special</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\Storage.hpp">
+      <Filter>Файлы заголовков\CPU</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main.cpp">

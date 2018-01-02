@@ -81,10 +81,12 @@ namespace NCompiler
 #pragma endregion
 
 #pragma region Usings
+
 	using namespace NParser;
 
 	using NCpu::REG;
 	using NCpu::CPU;
+
 #pragma endregion
 
 	template<typename T = INT>
@@ -221,7 +223,7 @@ namespace NCompiler
 		return (*this);
 	}
 
-#pragma region Functions toSomeFile
+#pragma region Functions Compiler<>::toSomeFile
 
 	template<typename T>
 	BOOL Compiler<T>::toComFile(CRSTRING filename) const
@@ -407,7 +409,7 @@ namespace NCompiler
 
 #pragma endregion
 
-#pragma region Functions fromSomeFile
+#pragma region Functions Compiler<>::fromSomeFile
 
 	template<typename T>
 	BOOL Compiler<T>::fromTextFile(CRSTRING filename)
@@ -433,15 +435,15 @@ namespace NCompiler
 					auto val = getValue(pOp->args[0]);
 					auto reg = makeReg(pOp->args[0]);
 
-					if      (pOp->args[0][0] == '[' && reg != REG::NUM) cpu_.put(reg);
-					else if (pOp->args[0][0] == '[' && reg == REG::NUM) cpu_.put(val);
-					else if (                          reg != REG::NUM) cpu_.push(reg);
-					else		                                        cpu_.push(val);
+					if      (pOp->args[0][0] == '[' && reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::RAM);
+					else if (pOp->args[0][0] == '[' && reg == REG::NUM) cpu_.push(val, CPU<>::MemoryStorage::RAM);
+					else if (                          reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
+					else		                                        cpu_.push(val, CPU<>::MemoryStorage::STACK);
 				}
 				else if (pOp->cmd == "pop")
 				{
-					if (pOp->args[0][0] == '[') cpu_.popm();
-					else                        cpu_.pop();
+					if (pOp->args[0][0] == '[') cpu_.pop(CPU<>::MemoryStorage::RAM);
+					else                        cpu_.pop(CPU<>::MemoryStorage::STACK);
 				}
 
 				else if (pOp->cmd == "add") cpu_.add();
@@ -455,15 +457,16 @@ namespace NCompiler
 
 				else if (pOp->cmd == "dump") cpu_.dump();
 
-				else if (pOp->cmd == "cmp")  cpu_.push(getValue(pOp->args[0])), cpu_.push(getValue(pOp->args[1]));
-				else if (pOp->cmd == "jump") { file = FindLabel(file, pOp->args[0]); }
+				else if (pOp->cmd == "cmp")  cpu_.push(getValue(pOp->args[0]), CPU<>::MemoryStorage::STACK), 
+					                         cpu_.push(getValue(pOp->args[1]), CPU<>::MemoryStorage::STACK);
+				else if (pOp->cmd == "jump") Move2Label(file, pOp->args[0]);
 
-				else if (pOp->cmd == "je")  { auto pair = cpu_.getPair(); if (pair.first == pair.second) file = FindLabel(file, pOp->args[0]); }
-				else if (pOp->cmd == "jne") { auto pair = cpu_.getPair(); if (pair.first != pair.second) file = FindLabel(file, pOp->args[0]); }
-				else if (pOp->cmd == "ja")  { auto pair = cpu_.getPair(); if (pair.first  > pair.second) file = FindLabel(file, pOp->args[0]); }
-				else if (pOp->cmd == "jae") { auto pair = cpu_.getPair(); if (pair.first >= pair.second) file = FindLabel(file, pOp->args[0]); }
-				else if (pOp->cmd == "jb")  { auto pair = cpu_.getPair(); if (pair.first  < pair.second) file = FindLabel(file, pOp->args[0]); }
-				else if (pOp->cmd == "jbe") { auto pair = cpu_.getPair(); if (pair.first <= pair.second) file = FindLabel(file, pOp->args[0]); }
+				else if (pOp->cmd == "je")  { auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2Label(file, pOp->args[0]); }
+				else if (pOp->cmd == "jne") { auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2Label(file, pOp->args[0]); }
+				else if (pOp->cmd == "ja")  { auto pair = cpu_.getPair(); if (pair.first  > pair.second) Move2Label(file, pOp->args[0]); }
+				else if (pOp->cmd == "jae") { auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2Label(file, pOp->args[0]); }
+				else if (pOp->cmd == "jb")  { auto pair = cpu_.getPair(); if (pair.first  < pair.second) Move2Label(file, pOp->args[0]); }
+				else if (pOp->cmd == "jbe") { auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2Label(file, pOp->args[0]); }
 
 				else if (pOp->cmd == "move")
 				{
@@ -524,17 +527,17 @@ namespace NCompiler
 					auto val = getValue(pOp->args[0]);
 					auto reg = makeReg(pOp->args[0]);
 
-					if      (pOp->args[0][0] == '[' && reg != REG::NUM) cpu_.put(reg);
-					else if (pOp->args[0][0] == '[' && reg == REG::NUM) cpu_.put(val);
-					else if (                          reg != REG::NUM) cpu_.push(reg);
-					else		                                        cpu_.push(val);
+					if      (pOp->args[0][0] == '[' && reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::RAM);
+					else if (pOp->args[0][0] == '[' && reg == REG::NUM) cpu_.push(val, CPU<>::MemoryStorage::RAM);
+					else if (                          reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
+					else		                                        cpu_.push(val, CPU<>::MemoryStorage::STACK);
 
 					break;
 				}
 				case commands_::pop:  
 				{
-					if (pOp->args[0][0] == '[') cpu_.popm();
-					else                        cpu_.pop();
+					if (pOp->args[0][0] == '[') cpu_.pop(CPU<>::MemoryStorage::RAM);
+					else                        cpu_.pop(CPU<>::MemoryStorage::STACK);
 
 					break;
 				}  
@@ -550,15 +553,18 @@ namespace NCompiler
 
 				case commands_::dump: cpu_.dump(); break;
 
-				case commands_::cmp: cpu_.push(getValue(pOp->args[0])), cpu_.push(getValue(pOp->args[1])); break;
-				case commands_::jump: file = FindLabel(file, pOp->args[0]);  break;
+				case commands_::cmp: 
+					cpu_.push(getValue(pOp->args[0]), CPU<>::MemoryStorage::STACK), 
+					cpu_.push(getValue(pOp->args[1]), CPU<>::MemoryStorage::STACK); 
+					break;
+				case commands_::jump: Move2Label(file, pOp->args[0]);  break;
 
-				case commands_::je:  { auto pair = cpu_.getPair(); if (pair.first == pair.second) file = FindLabel(file, pOp->args[0]); break; }
-				case commands_::jne: { auto pair = cpu_.getPair(); if (pair.first != pair.second) file = FindLabel(file, pOp->args[0]); break; }
-				case commands_::ja:  { auto pair = cpu_.getPair(); if (pair.first > pair.second) file = FindLabel(file, pOp->args[0]); break; }
-				case commands_::jae: { auto pair = cpu_.getPair(); if (pair.first >= pair.second) file = FindLabel(file, pOp->args[0]); break; }
-				case commands_::jb:  { auto pair = cpu_.getPair(); if (pair.first < pair.second) file = FindLabel(file, pOp->args[0]); break; }
-				case commands_::jbe: { auto pair = cpu_.getPair(); if (pair.first <= pair.second) file = FindLabel(file, pOp->args[0]); break; }
+				case commands_::je:  { auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2Label(file, pOp->args[0]); break; }
+				case commands_::jne: { auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2Label(file, pOp->args[0]); break; }
+				case commands_::ja:  { auto pair = cpu_.getPair(); if (pair.first >  pair.second) Move2Label(file, pOp->args[0]); break; }
+				case commands_::jae: { auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2Label(file, pOp->args[0]); break; }
+				case commands_::jb:  { auto pair = cpu_.getPair(); if (pair.first <  pair.second) Move2Label(file, pOp->args[0]); break; }
+				case commands_::jbe: { auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2Label(file, pOp->args[0]); break; }
 
 				case commands_::move:
 				{
@@ -645,14 +651,14 @@ namespace NCompiler
 				case commands_::dump: cpu_.dump(); break;
 
 				//case commands_::cmp: cpu_.push(getValue(pOp->args[0])), cpu_.push(getValue(pOp->args[1])); break;
-				//case commands_::jump: file = FindLabel(file, pOp->args[0]);  break;
+				//case commands_::jump: Move2Label(file, pOp->args[0]);  break;
 
-				//case commands_::je:  { auto pair = cpu_.getPair(); if (pair.first == pair.second) file = FindLabel(file, pOp->args[0]); break; }
-				//case commands_::jne: { auto pair = cpu_.getPair(); if (pair.first != pair.second) file = FindLabel(file, pOp->args[0]); break; }
-				//case commands_::ja:  { auto pair = cpu_.getPair(); if (pair.first > pair.second) file = FindLabel(file, pOp->args[0]); break; }
-				//case commands_::jae: { auto pair = cpu_.getPair(); if (pair.first >= pair.second) file = FindLabel(file, pOp->args[0]); break; }
-				//case commands_::jb:  { auto pair = cpu_.getPair(); if (pair.first < pair.second) file = FindLabel(file, pOp->args[0]); break; }
-				//case commands_::jbe: { auto pair = cpu_.getPair(); if (pair.first <= pair.second) file = FindLabel(file, pOp->args[0]); break; }
+				//case commands_::je:  { auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2Label(file, pOp->args[0]); break; }
+				//case commands_::jne: { auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2Label(file, pOp->args[0]); break; }
+				//case commands_::ja:  { auto pair = cpu_.getPair(); if (pair.first > pair.second) Move2Label(file, pOp->args[0]); break; }
+				//case commands_::jae: { auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2Label(file, pOp->args[0]); break; }
+				//case commands_::jb:  { auto pair = cpu_.getPair(); if (pair.first < pair.second) Move2Label(file, pOp->args[0]); break; }
+				//case commands_::jbe: { auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2Label(file, pOp->args[0]); break; }
 
 				//case commands_::move:
 				//{

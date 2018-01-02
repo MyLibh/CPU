@@ -1,165 +1,113 @@
 #pragma once
 
-#include <array> // std::array
-
-#include "MyTypedefs.hpp"
 #include "Debugger.hpp"
+#include "Storage.hpp"
 #include "Logger.hpp"
-
-extern Logger gLogger;
 
 namespace NRam
 {
+	CONST SIZE_T RAM_SIZE = 1 << 4;
+
 	template<typename T = INT>
-	class RAM final
+	class Ram final : public Storage<T, RAM_SIZE>
 	{
 	public:
-		static CONST SIZE_T RAM_SIZE = 1 << 4;
+		explicit Ram()     _NOEXCEPT;
+		Ram(CONST Ram<T>&) _NOEXCEPT;
+		Ram(Ram<T>&&)      _NOEXCEPT;
+		~Ram();
 
-		typedef       T  &rVal_;
-		typedef       T &&rrVal_;
-		typedef CONST T  &crVal_;
+		Ram<T> &operator=(CONST Ram&) _NOEXCEPT;
+		Ram<T> &operator=(Ram&&)      _NOEXCEPT ;
 
-		explicit RAM()     _NOEXCEPT;
-		RAM(CONST RAM<T>&) _NOEXCEPT;
-		RAM(RAM<T>&&)      _NOEXCEPT;
-		~RAM();
-
-		RAM<T> &operator=(CONST RAM&) _NOEXCEPT;
-		RAM<T> &operator=(RAM&&)      _NOEXCEPT;
-
-		rVal_  operator[](SIZE_T);
-		crVal_ operator[](SIZE_T) const;
-
-		HASH_GUARD(inline VOID rehash() { hash_ = makeHash(); })
+		virtual rVal_  operator[](SIZE_T)       override;
+		virtual crVal_ operator[](SIZE_T) const override;
 
 		SIZE_T put(crVal_);
 		SIZE_T put(rrVal_);
 		VOID pop();
 
-		VOID swap(RAM&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>);
+		VOID swap(Ram&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>);
 
-		BOOL ok() const _NOEXCEPT;
-		VOID dump(std::ostream& = std::cout) const;
+		virtual BOOL ok() const _NOEXCEPT override;
+		virtual VOID dump(std::ostream& = std::cout) const override;
 
 	private:
-		CANARY_GUARD(CONST std::string CANARY_VALUE;)
-
-		CANARY_GUARD(std::string canaryStart_;)
-		HASH_GUARD(std::string hash_;)
-
-		SIZE_T                  counter_;
-		std::array<T, RAM_SIZE> buf_;
-
-		CANARY_GUARD(std::string canaryFinish_;)
+		SIZE_T counter_;
 
 		HASH_GUARD
 		(
-			std::string makeHash() const
+			virtual std::string makeHash() const override
 			{
 				std::string tmp;
 				tmp += std::to_string(counter_);
-				for (SIZE_T i = 0; i < counter_; ++i) tmp += std::to_string(buf_[i]);
+				for (CONST auto &x : buf_) tmp += std::to_string(x);
 
 				return NHash::Hash(tmp).getHash();
 			}
 		)
-
-		static SIZE_T numberOfInstances;
 	};
 
+	//====================================================================================================================================
+
 	template<typename T>
-	SIZE_T RAM<T>::numberOfInstances = 0;
+	Logger& operator<<(Logger&, CONST Ram<T>&);
 
 	//====================================================================================================================================
 
 	template<typename T>
-	Logger& operator<<(Logger&, CONST RAM<T>&);
-
-	//====================================================================================================================================
-
-	template<typename T>
-	inline RAM<T>::RAM() _NOEXCEPT :
-		CANARY_GUARD(CANARY_VALUE(NHash::Hash("RAM" + ++numberOfInstances).getHash()),)
-		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
-		HASH_GUARD(hash_(), )
-
-		counter_(NULL),
-		buf_()
-
-		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
+	inline Ram<T>::Ram() _NOEXCEPT :
+		Storage(),
+		counter_(NULL)
 	{ 
-		HASH_GUARD(hash_ = makeHash();)
-		CANARY_GUARD(numberOfInstances--;)
-		numberOfInstances++;
-
 		LOG_CONSTRUCTING()
+
+		HASH_GUARD(hash_ = makeHash();)	
 
 		GUARD_CHECK()
 	}
 
 	template<typename T>
-	inline RAM<T>::RAM(CONST RAM &crRAM) _NOEXCEPT :
-		CANARY_GUARD(CANARY_VALUE(NHash::Hash("RAM" + ++numberOfInstances).getHash()),)
-		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
-		HASH_GUARD(hash_(crRAM.hash_), )
-
-		counter_(crRAM.counter_),
-		buf_(crRAM.buf_)
-
-		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
-	{ 
-		CANARY_GUARD(numberOfInstances--;)
-		numberOfINstances++;
-	
+	inline Ram<T>::Ram(CONST Ram &crRam) _NOEXCEPT :
+		Storage(crRam),
+		counter_(crRam.counter_)
+	{ 	
 		LOG_CONSTRUCTING()
 		
 		GUARD_CHECK()
 	}
 		
 	template<typename T>
-	inline RAM<T>::RAM(RAM &&rrRAM) _NOEXCEPT :
-		CANARY_GUARD(CANARY_VALUE(NHash::Hash("RAM" + ++numberOfInstances).getHash()),)
-		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
-		HASH_GUARD(hash_(std::move(rrRAM.hash_)), )
-
-		counter_(rrRAM.counter_),
-		buf_(std::move(rrRAM.buf_))
-
-		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
+	inline Ram<T>::Ram(Ram &&rrRam) _NOEXCEPT :
+		Storage(rrRam),
+		counter_(rrRam.counter_)
 	{
-		rrRAM.counter_ = NULL;
-		rrRAM.buf_.fill(NULL); 
-		HASH_GUARD(rrRAM.hash_.clear();)
-
-		CANARY_GUARD(numberOfInstances--;)
-		numberOfInstances++;
-
 		LOG_CONSTRUCTING()
+
+		rrRam.counter_ = NULL;
 
 		GUARD_CHECK()
 	}
 
 	template<typename T>
-	inline RAM<T>::~RAM()
+	inline Ram<T>::~Ram()
 	{
-		numberOfInstances--;
 		LOG_DESTRUCTING()
 
 		GUARD_CHECK()
+
+		HASH_GUARD(hash_ = Storage::makeHash();)
 	}
 
 	template<typename T>
-	inline RAM<T> &RAM<T>::operator=(CONST RAM &crRAM) _NOEXCEPT
+	inline Ram<T> &Ram<T>::operator=(CONST Ram &crRam) _NOEXCEPT
 	{
 		GUARD_CHECK()
 
-		if (this != &crRAM)
+		if (this != &crRam)
 		{
-			counter_ = crRAM.counter_;
-			buf_     = crRAM.buf_;
-
-			HASH_GUARD(hash_ = crRAM.hash_();)
+			Storage  = crRam;
+			counter_ = crRam.counter_;
 		}
 
 		GUARD_CHECK()
@@ -168,31 +116,28 @@ namespace NRam
 	}
 
 	template<typename T>
-	inline RAM<T> &RAM<T>::operator=(RAM &&rrRAM) _NOEXCEPT
+	inline Ram<T> &Ram<T>::operator=(Ram &&rrRam) _NOEXCEPT
 	{
 		GUARD_CHECK()
 
-		assert(this != &rrRAM);
+		assert(this != &rrRam);
 
-		counter_ = rrRAM.counter_;
-		buf_     = std::move(rrRAM.buf_);
-		HASH_GUARD(hash_ = rrRAM.hash_;)
+		Storage  = std::move(rrRam);
+		counter_ = std::move(rrRam.counter_);
 
-		rrRAM.counter_ = NULL;
-		rrRAM.buf_.fill(NULL);
-		HASH_GUARD(rrRAM.hash_.clear();)
+		rrRam.counter_ = NULL;
 
 		GUARD_CHECK()
 
 		return (*this);
 	}
-
+	
 	template<typename T>
-	inline typename RAM<T>::rVal_ RAM<T>::operator[](SIZE_T index) 
+	inline typename Ram<T>::rVal_ Ram<T>::operator[](SIZE_T index)
 	{
 		GUARD_CHECK()
 
-		if (index >= counter_) throw std::out_of_range("[RAM::operator[]] \"RAM out of range\"\n");
+		if (index >= counter_) throw std::out_of_range(__FUNCTION__);
 
 		GUARD_CHECK()
 
@@ -200,11 +145,11 @@ namespace NRam
 	}
 
 	template<typename T>
-	inline typename RAM<T>::crVal_ RAM<T>::operator[](SIZE_T index) const
+	inline typename Ram<T>::crVal_ Ram<T>::operator[](SIZE_T index) const
 	{
 		GUARD_CHECK()
 
-		if (index >= counter_) throw std::out_of_range("[RAM::operator[]] \"RAM out of range\"\n");
+		if (index >= counter_) throw std::out_of_range(__FUNCTION__);
 
 		GUARD_CHECK()
 
@@ -212,11 +157,11 @@ namespace NRam
 	}
 
 	template<typename T>
-	inline SIZE_T RAM<T>::put(crVal_ val)
+	inline SIZE_T Ram<T>::put(crVal_ val)
 	{
 		GUARD_CHECK()
 
-		if (counter_ == RAM_SIZE) throw std::out_of_range("[RAM::put] \"RAM out of range\"\n");
+		if (counter_ == RAM_SIZE) throw std::out_of_range(__FUNCTION__);
 
 		buf_[counter_] = val;
 		counter_++;
@@ -228,11 +173,11 @@ namespace NRam
 	}
 
 	template<typename T>
-	inline SIZE_T RAM<T>::put(rrVal_ val)
+	inline SIZE_T Ram<T>::put(rrVal_ val)
 	{
 		GUARD_CHECK()
 
-		if (counter_ == RAM_SIZE) throw std::out_of_range("[RAM::put] \"RAM out of range\"\n");
+		if (counter_ == RAM_SIZE) throw std::out_of_range(__FUNCTION__);
 
 		buf_[counter_] = std::move(val);
 		counter_++;
@@ -244,11 +189,11 @@ namespace NRam
 	}
 
 	template<typename T>
-	inline VOID RAM<T>::pop()
+	inline VOID Ram<T>::pop()
 	{
 		GUARD_CHECK()
 
-		if (!counter_) throw std::out_of_range("[RAM::put] \"RAM out of range\"\n");
+		if (!counter_) throw std::out_of_range(__FUNCTION__);
 
 		counter_--;
 		HASH_GUARD(rehash();)
@@ -257,34 +202,30 @@ namespace NRam
 	}
 
 	template<typename T>
-	inline VOID swap(RAM<T> &rRAM) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>)
+	inline VOID Ram<T>::swap(Ram<T> &rRam) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>)
 	{
 		GUARD_CHECK()
 		
-		using std::swap;
+		using std::swap; // To have all possible swaps
 
-		swap(buf_, rRAM.buf_);
-		HASH_GUARD(swap(hash_, rRAM.hash_);)
+		swap(Storage, rRam);
+		swap(counter_, rRam.counter_);
 
 		GUARD_CHECK()
 	}
 
 	template<typename T>
-	inline BOOL RAM<T>::ok() const _NOEXCEPT
+	inline BOOL Ram<T>::ok() const _NOEXCEPT
 	{
-		return (this &&
-				CANARY_GUARD(canaryStart_ == CANARY_VALUE && canaryFinish_ == CANARY_VALUE && )
-				HASH_GUARD(hash_ == makeHash() && )
-				(counter_ < RAM_SIZE) &&
-				buf_.size());
+		return (Storage::ok() && (counter_ < RAM_SIZE));
 	}
 
 	template<typename T>
-	VOID RAM<T>::dump(std::ostream &rOstr /* = std::cout */) const
+	VOID Ram<T>::dump(std::ostream &rOstr /* = std::cout */) const
 	{
 		NDebugger::Info("\t[RAM DUMP]", NDebugger::TextColor::LightCyan, TRUE, rOstr);
 		
-		rOstr << "RAM <" << typeid(T).name() << "> [0x" << this << "]\n{\n"
+		rOstr << "Ram <" << typeid(T).name() << "> [0x" << this << "]\n{\n"
 			  << "\tram [" << counter_ << " of " << RAM_SIZE << "] = 0x" << &buf_ << "\n\t{\n\t\t";
 
 		for (SIZE_T i = 0; i < counter_; ++i)
@@ -294,13 +235,13 @@ namespace NRam
 			rOstr << "\n\t\t";
 		}
 
-		rOstr << "\n\t}\n";
+		rOstr << "\n\t}\n\n";
 
 		CANARY_GUARD
 		(
 			rOstr << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
 
-		rOstr << "\tCANARY_START  = " << canaryStart_;
+			rOstr << "\tCANARY_START  = " << canaryStart_;
 			if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
 			else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
 
@@ -324,15 +265,15 @@ namespace NRam
 	//====================================================================================================================================
 
 	template<typename T>
-	Logger& operator<<(Logger &rLogger, CONST RAM<T> &crRAM)
+	Logger& operator<<(Logger &rLogger, CONST Ram<T> &crRam)
 	{
-		std::string func("RAM<");
+		std::string func("Ram<");
 		func += typeid(T).name();
 		func += ">";
 
 		rLogger.stdPack(func);
 
-		crRAM.dump(rLogger.getOfstream());
+		crRam.dump(rLogger.getOfstream());
 
 		return rLogger;
 	}

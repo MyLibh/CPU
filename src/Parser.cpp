@@ -15,6 +15,8 @@ extern Logger gLogger;
 
 namespace NParser
 {
+#pragma region Struct Operation
+
 	Operation::Operation() _NOEXCEPT :
 		cmd(), 
 		args() 
@@ -74,6 +76,8 @@ namespace NParser
 		rOstr << std::endl;
 	}
 
+#pragma endregion
+
 	//===============================================================================================================================================
 	
 	Logger &operator<<(Logger &rLogger, CONST Operation &crOp)
@@ -84,6 +88,8 @@ namespace NParser
 
 		return rLogger;
 	}
+
+	//===============================================================================================================================================
 
 	static inline BOOL IsCommaExist(CRSTRING line) 
 	{ 
@@ -113,21 +119,27 @@ namespace NParser
 		return pOperation;
 	}
 
-	std::ifstream FindLabel(std::ifstream &rCode, CRSTRING label)
+	BOOL Move2Label(std::ifstream &rCode, CRSTRING label)
 	{
-		std::ifstream code(std::move(rCode));
-		if (!code.is_open()) NDebugger::Error(__FUNCTION__);
+		if (!rCode.is_open())
+		{
+			NDebugger::Error(std::string("[") + __FUNCTION__ + "Ifstream is not open");
 
-		code.seekg(0);
-		while (!code.eof())
+			rCode.close();
+
+			return FALSE;
+		}
+
+		rCode.seekg(0);
+		while (!rCode.eof())
 		{
 			std::string tmp;
-			code >> tmp;
+			rCode >> tmp;
 
 			if (":" + label == tmp) break;
 		}
-		code.seekg(code.tellg());
+		rCode.seekg(rCode.tellg());
 
-		return code;
+		return TRUE;
 	}
 } // namespace NParser

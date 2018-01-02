@@ -31,6 +31,7 @@
     <ClInclude Include="..\..\src\RAM.hpp" />
     <ClInclude Include="..\..\src\Register.hpp" />
     <ClInclude Include="..\..\src\Stack.hpp" />
+    <ClInclude Include="..\..\src\Storage.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Debugger.cpp" />
