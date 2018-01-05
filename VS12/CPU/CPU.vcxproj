@@ -23,6 +23,7 @@
     <ClInclude Include="..\..\src\RAM.hpp" />
     <ClInclude Include="..\..\src\Register.hpp" />
     <ClInclude Include="..\..\src\Stack.hpp" />
+    <ClInclude Include="..\..\src\Wrap4BinaryIO.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Debugger.cpp" />
@@ -30,6 +31,13 @@
     <ClCompile Include="..\..\src\Logger.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
     <ClCompile Include="..\..\src\Parser.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\src\Tests\Programs\Fibbonachi.txt" />
+    <Text Include="..\..\src\Tests\Text\Text1.txt" />
+    <Text Include="..\..\src\Tests\Text\Text1BinCom.txt" />
+    <Text Include="..\..\src\Tests\Text\Text1BinText.txt" />
+    <Text Include="..\..\src\Tests\Text\Text1Com.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{93295D37-94A5-44FD-B9F8-C32C09ADCA16}</ProjectGuid>

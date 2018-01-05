@@ -82,7 +82,7 @@ namespace NParser
 	
 	Logger &operator<<(Logger &rLogger, CONST Operation &crOp)
 	{
-		rLogger.stdPack("Parser");
+		if(crOp.cmd.length()) rLogger.stdPack("Parser");
 
 		crOp.dump(rLogger.getOfstream());
 
@@ -148,7 +148,7 @@ namespace NParser
 			return FALSE;
 		}
 		
-		auto length = label.length();
+		//auto length = label.length();
 		rCode.seekg(seekFrom);	
 		while (!rCode.eof())
 		{

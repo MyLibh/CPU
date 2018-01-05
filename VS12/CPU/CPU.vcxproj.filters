@@ -22,6 +22,12 @@
     <Filter Include="Файлы исходного кода\Special">
       <UniqueIdentifier>{8a2e83f8-f13c-4707-88d5-fdf808625fe1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы ресурсов\Programs">
+      <UniqueIdentifier>{733eb2c3-8176-4e6b-a37d-c6dad8503d1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Text">
+      <UniqueIdentifier>{b593b7e2-7978-4961-bcd2-ece33100246f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\Compiler.hpp">
@@ -60,6 +66,9 @@
     <ClInclude Include="..\..\src\Logger.hpp">
       <Filter>Заголовочные файлы\Special</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\Wrap4BinaryIO.hpp">
+      <Filter>Заголовочные файлы\Special</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main.cpp">
@@ -77,5 +86,22 @@
     <ClCompile Include="..\..\src\Logger.cpp">
       <Filter>Файлы исходного кода\Special</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\src\Tests\Programs\Fibbonachi.txt">
+      <Filter>Файлы ресурсов\Programs</Filter>
+    </Text>
+    <Text Include="..\..\src\Tests\Text\Text1.txt">
+      <Filter>Файлы ресурсов\Text</Filter>
+    </Text>
+    <Text Include="..\..\src\Tests\Text\Text1BinCom.txt">
+      <Filter>Файлы ресурсов\Text</Filter>
+    </Text>
+    <Text Include="..\..\src\Tests\Text\Text1BinText.txt">
+      <Filter>Файлы ресурсов\Text</Filter>
+    </Text>
+    <Text Include="..\..\src\Tests\Text\Text1Com.txt">
+      <Filter>Файлы ресурсов\Text</Filter>
+    </Text>
   </ItemGroup>
 </Project>

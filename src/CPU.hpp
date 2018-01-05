@@ -83,7 +83,7 @@ namespace NCpu
 		stack_(),
 		funcRetAddr_()
 	{ 
-		static_assert(std::is_arithmetic<T>(), "Error type in CPU\n");
+		static_assert(std::is_arithmetic<T>::value, "Wrong type in CPU\n");
 		LOG_CONSTRUCTING()
 	}
 
@@ -94,7 +94,7 @@ namespace NCpu
 		stack_(crCPU.stack_),
 		funcRetAddr_(crCPU.funcRetAddr_)
 	{
-		static_assert(std::is_arithmetic<T>(), "Error type in CPU\n");
+		static_assert(std::is_arithmetic<T>::value, "Wrong type in CPU\n");
 		LOG_CONSTRUCTING()
 	}
 
@@ -105,7 +105,7 @@ namespace NCpu
 		stack_(std::move(rrCPU.stack_)),
 		funcRetAddr_(std::move(rrCPU.funcRetAddr_))
 	{
-		static_assert(std::is_arithmetic<T>(), "Error type in CPU\n");
+		static_assert(std::is_arithmetic<T>::value, "Wrong type in CPU\n");
 		LOG_CONSTRUCTING()
 	}
 
@@ -145,6 +145,8 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::push(crVal_ val, MemoryStorage memory)
 	{ 
+		LOG_ARGS(crVal_, val)
+
 		if (memory == MemoryStorage::STACK)
 		{
 			stack_.push(val);
@@ -159,6 +161,8 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::push(rrVal_ val, MemoryStorage memory)
 	{ 
+		LOG_ARGS(rrVal_, val)
+
 		if (memory == MemoryStorage::STACK)
 		{
 			stack_.push(val);
@@ -173,6 +177,8 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::push(REG reg, MemoryStorage memory)
 	{	
+		LOG_ARGS(SIZE_T, static_cast<SIZE_T>(reg))
+
 		if (memory == MemoryStorage::STACK)
 		{
 			stack_.push(reg_[static_cast<SIZE_T>(reg)]);
@@ -187,12 +193,16 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::push(std::streampos pos)
 	{
+		LOG_ARGS(std::streampos, pos)
+
 		funcRetAddr_.push(pos);
 	}
 
 	template<typename T>
 	inline VOID CPU<T>::pop(MemoryStorage memory)
 	{ 
+		LOG_FUNC()
+
 		if (memory == MemoryStorage::STACK)
 		{
 			stack_.pop();
@@ -208,12 +218,16 @@ namespace NCpu
 	template<typename T>
 	inline std::streampos CPU<T>::top() const _NOEXCEPT
 	{	
+		LOG_FUNC()
+
 		return funcRetAddr_.top();
 	}
 
 	template<typename T>
 	VOID CPU<T>::add()
 	{
+		LOG_FUNC()
+
 		auto a = stack_.top();
 		stack_.pop();
 
@@ -229,6 +243,8 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::sub()
 	{
+		LOG_FUNC()
+
 		auto a = stack_.top();
 		stack_.pop();
 
@@ -244,6 +260,8 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::mul()
 	{
+		LOG_FUNC()
+		
 		auto a = stack_.top();
 		stack_.pop();
 
@@ -259,6 +277,8 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::div()
 	{
+		LOG_FUNC()
+
 		auto a = stack_.top();
 		stack_.pop();
 
@@ -275,12 +295,16 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::dup()
 	{
+		LOG_FUNC()
+
 		stack_.push(stack_.top());
 	}
 
 	template<typename T>
 	VOID CPU<T>::sqrt()
 	{
+		LOG_FUNC()
+
 #pragma warning(push)
 #pragma warning(disable : 4127) // The conditional expression is a constant
 		if (std::is_arithmetic<T>()) assert(!"Type T must be arithmetic\n");
@@ -298,6 +322,8 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::sin()
 	{
+		LOG_FUNC()
+
 #pragma warning(push)
 #pragma warning(disable : 4127) // The conditional expression is a constant
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
@@ -315,6 +341,8 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::cos()
 	{
+		LOG_FUNC()
+
 #pragma warning(push)
 #pragma warning(disable : 4127) // The conditional expression is a constant
 		if (std::is_arithmetic<T>::value) assert(!"Type T must be arithmetic\n");
@@ -332,6 +360,8 @@ namespace NCpu
 	template<typename T>
 	std::pair<T, T> CPU<T>::getPair()
 	{
+		LOG_FUNC()
+			
 		std::pair<T, T> pair;
 
 		pair.first = stack_.top();
@@ -358,6 +388,8 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::move(REG src, REG dest) 
 	{ 
+		LOG_ARGS(SIZE_T, static_cast<SIZE_T>(src), static_cast<SIZE_T>(dest))
+		
 		reg_[static_cast<SIZE_T>(dest)] = reg_[static_cast<SIZE_T>(src)];
 		reg_.rehash();
 	}
@@ -365,6 +397,8 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::move(crVal_ src, REG dest) 
 	{ 
+		LOG_ARGS(SIZE_T, src, reinterpret_cast<crVal_>(dest))
+
 		reg_[static_cast<SIZE_T>(dest)] = src;
 		reg_.rehash();
 	}
@@ -372,6 +406,8 @@ namespace NCpu
 	template<typename T>
 	VOID CPU<T>::dump(std::ostream &rOstr /* = std::cout */) const
 	{
+		LOG_FUNC()
+			
 		NDebugger::Info("\n\t\t[CPU DUMP]", NDebugger::TextColor::LightMagenta, TRUE, rOstr);
 
 		rOstr << "CPU <" << typeid(T).name() << "> [0x" << this << "]\n\n";

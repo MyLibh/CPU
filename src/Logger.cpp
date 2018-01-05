@@ -10,12 +10,14 @@
 
 Logger gLogger; // Global instance of class Logger for all other classes
 
+CONST std::streamsize LOG_FUNC_SIZE = 1 << 6;
+
 inline Logger::Logger() :
 	log_("CPU.log")
 {
 	if (!log_.is_open()) throw std::runtime_error("Cannot open build file\n");
 	
-	log_ << "[DEBUG][" << __TIME__ << "][" << std::setw(32) << "Logger" << "] Logging started\n";
+	log_ << "[DEBUG][" << __TIME__ << "][" << std::setw(LOG_FUNC_SIZE) << "Logger" << "] Logging started\n";
 }
 
 inline Logger::~Logger()
@@ -30,28 +32,19 @@ std::ofstream &Logger::getOfstream()
 	return log_;
 }
 
-template<typename T>
-inline VOID Logger::printData(SIZE_T argc, ...)
-{
-	va_list args;
-	va_start(args, argc);
-	for (; argc != 0; --argc) log_ << va_arg(argc, T);
-
-	va_end(args);
-}
-
 BOOL Logger::stdPack(CRSTRING func, Type type /* = Type::Debug */)
 {
 	if (!log_.is_open()) return FALSE;
 
 	using std::chrono::system_clock;
-	auto tt  = system_clock::to_time_t(system_clock::now());
+	auto tt = system_clock::to_time_t(system_clock::now());
+
 	std::tm *ptm = new tm;
 	localtime_s(ptm, &tt);
 
 	log_ << "[" << (type == Type::Debug ? "DEBUG]" : "RELEASE]") << "["
 		 << std::put_time(ptm, "%X")
-		 << "][" << std::setw(32) << func.c_str() << "] ";
+		 << "][" << std::setw(LOG_FUNC_SIZE) << func.c_str() << "] ";
 
 	delete ptm;
 
