@@ -26,11 +26,12 @@ namespace NCpu
 		typedef       T &&rrVal_;
 		typedef CONST T  &crVal_;
 
-		enum MemoryStorage
+		enum class MemoryStorage
 		{
 			REGISTER,
 			RAM,
-			STACK
+			STACK,
+			STACK_FUNC_RET_ADDR
 		};
 
 		explicit CPU()  _NOEXCEPT;
@@ -44,7 +45,10 @@ namespace NCpu
 		VOID push(crVal_, MemoryStorage);
 		VOID push(rrVal_, MemoryStorage);
 		VOID push(REG, MemoryStorage);
+		VOID push(std::streampos);
 		VOID pop(MemoryStorage);
+
+		std::streampos top() const _NOEXCEPT;
 
 		VOID add();
 		VOID sub();
@@ -66,44 +70,60 @@ namespace NCpu
 		VOID dump(std::ostream& = std::cout) const;
 		
 	private:
-		Register<T> reg_;
-		Ram<T>      ram_;
-		Stack<T>    stack_;
+		Register<T>           reg_;
+		Ram<T>                ram_;
+		Stack<T>              stack_;
+		Stack<std::streampos> funcRetAddr_;
 	};
 
 	template<typename T>
 	inline CPU<T>::CPU() _NOEXCEPT :
 		reg_(),
 		ram_(),
-		stack_()
-	{ }
+		stack_(),
+		funcRetAddr_()
+	{ 
+		static_assert(std::is_arithmetic<T>(), "Error type in CPU\n");
+		LOG_CONSTRUCTING()
+	}
 
 	template<typename T>
 	inline CPU<T>::CPU(CONST CPU &crCPU) _NOEXCEPT :
 		reg_(crCPU.reg_),
 		ram_(crCPU.ram_),
-		stack_(crCPU.stack_)
-	{ }
+		stack_(crCPU.stack_),
+		funcRetAddr_(crCPU.funcRetAddr_)
+	{
+		static_assert(std::is_arithmetic<T>(), "Error type in CPU\n");
+		LOG_CONSTRUCTING()
+	}
 
 	template<typename T>
 	inline CPU<T>::CPU(CPU<T> &&rrCPU) _NOEXCEPT :
 		reg_(std::move(rrCPU.reg_)),
 		ram_(std::move(rrCPU.ram_)),
-		stack_(std::move(rrCPU.stack_))
-	{ }
+		stack_(std::move(rrCPU.stack_)),
+		funcRetAddr_(std::move(rrCPU.funcRetAddr_))
+	{
+		static_assert(std::is_arithmetic<T>(), "Error type in CPU\n");
+		LOG_CONSTRUCTING()
+	}
 
 	template<typename T>
 	inline CPU<T>::~CPU()
-	{ }
+	{
+		LOG_DESTRUCTING()
+	}
 
 	template<typename T>
 	inline CPU<T> &CPU<T>::operator=(CONST CPU &crCPU)
 	{
 		if (this != &crCPU)
 		{
-			reg_   = crCPU.reg_;
-			ram_   = crCPU.ram_;
-			stack_ = crCPU.stack_;
+			reg_         = crCPU.reg_;
+			ram_         = crCPU.ram_;
+			stack_       = crCPU.stack_;
+			funcRetAddr_ = crCPU.funcRetAddr_;
 		}
 
 		return (*this);
@@ -114,9 +134,10 @@ namespace NCpu
 	{
 		assert(this != &rrCPU);
 
-		reg_   = std::move(rrCPU.reg_);
-		ram_   = std::move(rrCPU.ram_);
-		stack_ = std::move(rrCPU.stack_);
+		reg_		 = std::move(rrCPU.reg_);
+		ram_		 = std::move(rrCPU.ram_);
+		stack_       = std::move(rrCPU.stack_);
+		funcRetAddr_ = std::move(rrCPU.funcRetAddr_);
 
 		return (*this);
 	}
@@ -128,14 +149,10 @@ namespace NCpu
 		{
 			stack_.push(val);
 
-			reg_[REG::SP] = stack_.top();
+			reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 			reg_.rehash();
 		}
-		else if (memory == MemoryStorage::RAM)
-		{
-			ram_.put(val);
-			ram_.rehash();
-		}
+		else if (memory == MemoryStorage::RAM) ram_.put(val);
 		else NDebugger::Error(std::string("[") + __FUNCTION__ + "] Undefined operation");
 	}
 
@@ -146,14 +163,10 @@ namespace NCpu
 		{
 			stack_.push(val);
 
-			reg_[REG::SP] = stack_.top();
+			reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 			reg_.rehash();
 		}
-		else if (memory == MemoryStorage::RAM)
-		{
-			ram_.put(val);
-			ram_.rehash();
-		}
+		else if (memory == MemoryStorage::RAM) ram_.put(val);		
 		else NDebugger::Error(std::string("[") + __FUNCTION__ + "] Undefined operation");
 	}
 
@@ -162,17 +175,19 @@ namespace NCpu
 	{	
 		if (memory == MemoryStorage::STACK)
 		{
-			stack_.push(reg_[reg]);
+			stack_.push(reg_[static_cast<SIZE_T>(reg)]);
 
-			reg_[REG::SP] = stack_.top();
+			reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 			reg_.rehash();
 		}
-		else if (memory == MemoryStorage::RAM)
-		{
-			ram_.put(reg_[reg]);
-			ram_.rehash();
-		}
+		else if (memory == MemoryStorage::RAM) ram_.put(reg_[static_cast<SIZE_T>(reg)]);	
 		else NDebugger::Error(std::string("[") + __FUNCTION__ + "] Undefined operation");
+	}
+	
+	template<typename T>
+	inline VOID CPU<T>::push(std::streampos pos)
+	{
+		funcRetAddr_.push(pos);
 	}
 
 	template<typename T>
@@ -182,15 +197,18 @@ namespace NCpu
 		{
 			stack_.pop();
 
-			reg_[REG::SP] = stack_.top();
+			reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 			reg_.rehash();
 		}
-		else if (memory == MemoryStorage::RAM)
-		{
-			ram_.pop();
-			ram_.rehash();
-		}
+		else if (memory == MemoryStorage::RAM) ram_.pop();
+		else if (memory == MemoryStorage::STACK_FUNC_RET_ADDR) funcRetAddr_.pop();
 		else NDebugger::Error(std::string("[") + __FUNCTION__ + "] Undefined operation");
+	}
+
+	template<typename T>
+	inline std::streampos CPU<T>::top() const _NOEXCEPT
+	{	
+		return funcRetAddr_.top();
 	}
 
 	template<typename T>
@@ -204,7 +222,7 @@ namespace NCpu
 
 		stack_.push(a + b);
 
-		reg_[REG::SP] = stack_.top();
+		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
@@ -219,7 +237,7 @@ namespace NCpu
 
 		stack_.push(a - b);
 
-		reg_[REG::SP] = stack_.top();
+		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
@@ -234,7 +252,7 @@ namespace NCpu
 
 		stack_.push(a * b);
 
-		reg_[REG::SP] = stack_.top();
+		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
@@ -250,7 +268,7 @@ namespace NCpu
 		if (!b) throw std::logic_error("[CPU::div] \"Division by zero\"\n");
 		stack_.push(a / b);
 
-		reg_[REG::SP] = stack_.top();
+		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
@@ -273,7 +291,7 @@ namespace NCpu
 
 		stack_.push(static_cast<T>(sqrt_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
 
-		reg_[REG::SP] = stack_.top();
+		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
@@ -290,7 +308,7 @@ namespace NCpu
 
 		stack_.push(static_cast<T>(sin_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
 
-		reg_[REG::SP] = stack_.top();
+		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
@@ -307,7 +325,7 @@ namespace NCpu
 
 		stack_.push(static_cast<T>(cos_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
 
-		reg_[REG::SP] = stack_.top();
+		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
@@ -322,7 +340,7 @@ namespace NCpu
 		pair.second = stack_.top();
 		stack_.pop();
 
-		reg_[REG::SP] = stack_.top();
+		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
 		reg_.rehash();
 
 		return pair;
@@ -334,19 +352,20 @@ namespace NCpu
 		reg_.swap(rCPU.reg_);
 		stack_.swap(rCPU.stack_); 
 		ram_.swap(rCPU.ram_);
+		funcRetAddr_.swap(rCPU.funcRetAddr_);
 	}
 
 	template<typename T>
 	inline VOID CPU<T>::move(REG src, REG dest) 
 	{ 
-		reg_[dest] = reg_[src];
+		reg_[static_cast<SIZE_T>(dest)] = reg_[static_cast<SIZE_T>(src)];
 		reg_.rehash();
 	}
 
 	template<typename T>
 	inline VOID CPU<T>::move(crVal_ src, REG dest) 
 	{ 
-		reg_[dest] = src;
+		reg_[static_cast<SIZE_T>(dest)] = src;
 		reg_.rehash();
 	}
 

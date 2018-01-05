@@ -11,20 +11,19 @@
 	}
 
 	#define _NOEXCEPTARG(arg)	
-	#define STATIC static
+	#define _CONSTEXPR17 inline
 #else
 	#define _NOEXCEPTARG(...) _NOEXCEPT(__VA_ARGS__) 
-	#define STATIC
 #endif // _MSVC_LANG 
 
 #ifndef _WINDOWS_
 	
-	typedef bool		   BOOL; //-V677
-	typedef int			   INT; //-V677
+	typedef bool		   BOOL;   //-V677
+	typedef int			   INT;    //-V677
 	typedef size_t         SIZE_T; //-V677
-	typedef char           CHAR; //-V677
-	typedef unsigned short WORD; //-V677
-	typedef unsigned int   DWORD; //-V677
+	typedef char           CHAR;   //-V677
+	typedef unsigned short WORD;   //-V677
+	typedef unsigned int   DWORD;  //-V677
 
 	#define CONST const
 

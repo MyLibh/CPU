@@ -6,14 +6,22 @@
 1 -78
 1 ax
 11
+FUNC:
+8
+2 
+21 BABY
+22
 2 
 3
 2 []
 20 4 ax
 20 ax cx
 11
+21 FUNC
 12 ax cx
 15 pochka
-21
+23
 5
-
+BABY:
+20 666 ex
+22

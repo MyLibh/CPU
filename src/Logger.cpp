@@ -10,15 +10,15 @@
 
 Logger gLogger; // Global instance of class Logger for all other classes
 
-Logger::Logger() :
-	log_("Log")
+inline Logger::Logger() :
+	log_("CPU.log")
 {
 	if (!log_.is_open()) throw std::runtime_error("Cannot open build file\n");
 	
 	log_ << "[DEBUG][" << __TIME__ << "][" << std::setw(32) << "Logger" << "] Logging started\n";
 }
 
-Logger::~Logger()
+inline Logger::~Logger()
 {
 	write("Logger", "Logging finished");
 
@@ -28,6 +28,16 @@ Logger::~Logger()
 std::ofstream &Logger::getOfstream()
 {
 	return log_;
+}
+
+template<typename T>
+inline VOID Logger::printData(SIZE_T argc, ...)
+{
+	va_list args;
+	va_start(args, argc);
+	for (; argc != 0; --argc) log_ << va_arg(argc, T);
+
+	va_end(args);
 }
 
 BOOL Logger::stdPack(CRSTRING func, Type type /* = Type::Debug */)
@@ -48,7 +58,7 @@ BOOL Logger::stdPack(CRSTRING func, Type type /* = Type::Debug */)
 	return TRUE;
 }
 
-BOOL Logger::write(CRSTRING func, CRSTRING info, Type type /* = Type::Debug */)
+inline BOOL Logger::write(CRSTRING func, CRSTRING info, Type type /* = Type::Debug */)
 {
 	stdPack(func, type);
 
@@ -56,3 +66,5 @@ BOOL Logger::write(CRSTRING func, CRSTRING info, Type type /* = Type::Debug */)
 
 	return TRUE;
 }
+
+//===============================================================================================================================================

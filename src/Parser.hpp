@@ -34,7 +34,10 @@ namespace NParser
 
 	//===============================================================================================================================================
 
-	Operation *ParseCode(CONST CHAR*);
+	Operation ParseCode(CONST CHAR*);
 
-	BOOL Move2Label(std::ifstream&, CRSTRING);
+	BOOL Move2Label(std::ifstream&, CRSTRING, std::streampos = std::ios::beg);
+
+	BOOL Move2LabelBin(std::ifstream&, CRSTRING, std::streampos = std::ios::beg);
+	
 } // namespace NParser

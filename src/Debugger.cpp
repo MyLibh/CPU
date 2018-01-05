@@ -18,9 +18,9 @@ namespace NDebugger
 		std::swap(oldBckg, background);
 
 		static HANDLE hHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-		if(!SetConsoleTextAttribute(hHandle, ((oldBckg << 4) | oldText))) throw std::exception("[NDebugger::SetColorConsole] \"SetConsoleTextAttribute returned false\"\n");
+		if(!SetConsoleTextAttribute(hHandle, ((static_cast<WORD>(oldBckg) << 4) | static_cast<WORD>(oldText)))) throw std::exception("[NDebugger::SetColorConsole] \"SetConsoleTextAttribute returned false\"\n");
 
-		return ((background << 4) | color); // Return old text attribute
+		return ((static_cast<WORD>(background) << 4) | static_cast<WORD>(color)); // Return old text attribute
 	}
 
 	static WORD SetColorConsole(WORD color)

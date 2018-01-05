@@ -13,12 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Файлы ресурсов\Bin">
-      <UniqueIdentifier>{6511d060-7551-4bb2-91cb-34ead5d68267}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Файлы ресурсов\Com">
-      <UniqueIdentifier>{00185d25-b815-4ca6-a942-cae279dcba89}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Файлы ресурсов\Text">
       <UniqueIdentifier>{d231d91d-17aa-42b7-bc92-6bee97715229}</UniqueIdentifier>
     </Filter>
@@ -75,6 +69,9 @@
     <ClInclude Include="..\..\src\Storage.hpp">
       <Filter>Файлы заголовков\CPU</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\Wrap4BinaryIO.hpp">
+      <Filter>Файлы заголовков\Special</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\main.cpp">
@@ -97,14 +94,17 @@
     <Text Include="..\..\src\Tests\Text\Text1.txt">
       <Filter>Файлы ресурсов\Text</Filter>
     </Text>
-    <Text Include="..\..\src\Tests\Com\Text1Com.txt">
-      <Filter>Файлы ресурсов\Com</Filter>
-    </Text>
-    <Text Include="..\..\src\Tests\Bin\Text1Bin.txt">
-      <Filter>Файлы ресурсов\Bin</Filter>
-    </Text>
     <Text Include="..\..\src\Tests\Programs\Fibbonachi.txt">
       <Filter>Файлы ресурсов\Programms</Filter>
+    </Text>
+    <Text Include="..\..\src\Tests\Text\Text1Com.txt">
+      <Filter>Файлы ресурсов\Text</Filter>
+    </Text>
+    <Text Include="..\..\src\Tests\Text\Text1BinText.txt">
+      <Filter>Файлы ресурсов\Text</Filter>
+    </Text>
+    <Text Include="..\..\src\Tests\Text\Text1BinCom.txt">
+      <Filter>Файлы ресурсов\Text</Filter>
     </Text>
   </ItemGroup>
 </Project>

@@ -32,6 +32,7 @@
     <ClInclude Include="..\..\src\Register.hpp" />
     <ClInclude Include="..\..\src\Stack.hpp" />
     <ClInclude Include="..\..\src\Storage.hpp" />
+    <ClInclude Include="..\..\src\Wrap4BinaryIO.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Debugger.cpp" />
@@ -41,10 +42,18 @@
     <ClCompile Include="..\..\src\Parser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\..\src\Tests\Bin\Text1Bin.txt" />
-    <Text Include="..\..\src\Tests\Com\Text1Com.txt" />
     <Text Include="..\..\src\Tests\Programs\Fibbonachi.txt" />
     <Text Include="..\..\src\Tests\Text\Text1.txt" />
+    <Text Include="..\..\src\Tests\Text\Text1BinText.txt">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </DeploymentContent>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+    </Text>
+    <Text Include="..\..\src\Tests\Text\Text1Com.txt" />
+    <Text Include="..\..\src\Tests\Text\Text1BinCom.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

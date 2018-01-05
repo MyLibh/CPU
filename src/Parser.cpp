@@ -58,6 +58,8 @@ namespace NParser
 
 	VOID Operation::dump(std::ostream &rOstr) const
 	{
+		if (!cmd.length()) return;
+
 		std::streamsize width = 1 << 3;
 
 		NDebugger::Info("OP: ", NDebugger::TextColor::LightCyan, FALSE, rOstr);
@@ -76,8 +78,6 @@ namespace NParser
 		rOstr << std::endl;
 	}
 
-#pragma endregion
-
 	//===============================================================================================================================================
 	
 	Logger &operator<<(Logger &rLogger, CONST Operation &crOp)
@@ -89,36 +89,36 @@ namespace NParser
 		return rLogger;
 	}
 
-	//===============================================================================================================================================
+#pragma endregion
 
 	static inline BOOL IsCommaExist(CRSTRING line) 
 	{ 
 		return (line.empty() ? FALSE : (line[line.length() - 1] == ','));
 	}
 
-	Operation *ParseCode(CONST CHAR *cpLine)
+	Operation ParseCode(CONST CHAR *crLine)
 	{
-		Operation *pOperation = new Operation;
+		Operation op;
 
-		std::stringstream sstr(cpLine);
-		sstr >> pOperation->cmd;
+		std::stringstream sstr(crLine);
+		sstr >> op.cmd;
 
-		for (auto &a : pOperation->args)
+		for (auto &word : op.args)
 		{
-			sstr >> a;
-			if (IsCommaExist(const_cast<CRSTRING>(a))) a.pop_back();
+			sstr >> word;
+			if (IsCommaExist(word)) word.pop_back();
 		}
 
 #ifdef _DEBUG
-		gLogger << *pOperation;
+		gLogger << op;
 
-		pOperation->dump();
+		op.dump();
 #endif // DEBUG
 
-		return pOperation;
+		return op;
 	}
 
-	BOOL Move2Label(std::ifstream &rCode, CRSTRING label)
+	BOOL Move2Label(std::ifstream &rCode, CRSTRING label, std::streampos seekFrom /* = std::ios::beg */)
 	{
 		if (!rCode.is_open())
 		{
@@ -127,16 +127,53 @@ namespace NParser
 			return FALSE;
 		}
 
-		rCode.seekg(std::ios::beg);
+		rCode.seekg(seekFrom);
 		while (!rCode.eof())
 		{
 			std::string tmp;
 			rCode >> tmp;
 
-			if (":" + label == tmp) break;
+			if (label == tmp) break;
 		}
-		rCode.seekg(rCode.tellg());
+		
+		return TRUE;
+	}
+
+	BOOL Move2LabelBin(std::ifstream &rCode, CRSTRING label, std::streampos seekFrom /* = std::ios::beg */)
+	{
+		if (!rCode.is_open() || rCode.flags() & std::ios::binary)
+		{
+			NDebugger::Error(std::string("[") + __FUNCTION__ + "Ifstream is not open or open in wrong mode");
+
+			return FALSE;
+		}
+		
+		auto length = label.length();
+		rCode.seekg(seekFrom);	
+		while (!rCode.eof())
+		{
+			SIZE_T size = 0;
+			rCode.read(reinterpret_cast<CHAR*>(&size), sizeof(size));
+
+			//if (size + 1 == length)
+			//{
+				CHAR *pBuf = new CHAR[size + 1]();
+				rCode.read(pBuf, size);
+				pBuf[size] = '\0';
+
+				if (label == pBuf)
+				{
+					delete[] pBuf;
+
+					break;
+				}
+
+				delete[] pBuf;
+			//}
+			//else rCode.seekg(std::ios::cur + static_cast<std::streampos>(size));
+		}
 
 		return TRUE;
 	}
+	
 } // namespace NParser

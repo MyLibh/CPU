@@ -6,7 +6,7 @@
 
 namespace NRegister
 {
-	enum Registers_ : SIZE_T
+	enum class Registers : SIZE_T
 	{
 		AX,
 		BX,
@@ -18,10 +18,10 @@ namespace NRegister
 
 		NUM
 	};
-	typedef Registers_ REG;
+	typedef Registers REG;
 
 	template<typename T = INT>
-	class Register final : public Storage<T, REG::NUM>
+	class Register final : public Storage<T, static_cast<SIZE_T>(REG::NUM)>
 	{
 	public:
 		explicit Register()       _NOEXCEPT;
@@ -73,9 +73,9 @@ namespace NRegister
 
 		rOstr << "Register <" << typeid(T).name() << "> [0x" << this << "]\n{\n";
 
-		for (SIZE_T i = 0; i < REG::NUM - 1; ++i) rOstr << "\t[" << static_cast<CHAR>('A' + i) << "X] = " << buf_[i] << std::endl;
+		for (SIZE_T i = 0; i < static_cast<SIZE_T>(REG::NUM) - 1; ++i) rOstr << "\t[" << static_cast<CHAR>('A' + i) << "X] = " << buf_[i] << std::endl;
 
-		rOstr << "\t[SP] = " << buf_[REG::SP] << "\n\n";
+		rOstr << "\t[SP] = " << buf_[static_cast<SIZE_T>(REG::SP)] << "\n\n";
 
 		CANARY_GUARD
 		(

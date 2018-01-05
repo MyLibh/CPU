@@ -6,7 +6,7 @@
 
 namespace NDebugger
 {
-	enum TextColor : WORD
+	enum class TextColor : WORD
 	{
 		Black        = 0x00,
 		Blue         = 0x01,

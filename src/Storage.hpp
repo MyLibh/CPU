@@ -31,7 +31,7 @@ public:
 
 	HASH_GUARD(inline CRSTRING getHash() const { return hash_; })
 
-	virtual VOID swap(Storage&);
+	virtual VOID swap(Storage&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>());
 
 	virtual BOOL ok() const _NOEXCEPT;
 	virtual VOID dump(std::ostream& = std::cout) const;
@@ -191,7 +191,7 @@ inline typename Storage<T, SIZE>::crVal_ Storage<T, SIZE>::operator[](SIZE_T ind
 }
 
 template<typename T, SIZE_T SIZE>
-inline VOID Storage<T, SIZE>::swap(Storage &rStorage) 
+inline VOID Storage<T, SIZE>::swap(Storage &rStorage) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>())
 {
 	GUARD_CHECK()
 
