@@ -143,24 +143,24 @@ namespace NParser
 	{
 		if (!rCode.is_open() || rCode.flags() & std::ios::binary)
 		{
-			NDebugger::Error(std::string("[") + __FUNCTION__ + "Ifstream is not open or open in wrong mode");
+			NDebugger::Error(std::string("[") + __FUNCTION__ + "] Ifstream is not open or open in wrong mode");
 
 			return FALSE;
 		}
 		
-		//auto length = label.length();
+		auto length = label.length(); 
 		rCode.seekg(seekFrom);	
 		while (!rCode.eof())
 		{
 			SIZE_T size = 0;
 			rCode.read(reinterpret_cast<CHAR*>(&size), sizeof(size));
 
-			//if (size + 1 == length)
-			//{
+			if (size == length)
+			{
 				CHAR *pBuf = new CHAR[size + 1]();
 				rCode.read(pBuf, size);
 				pBuf[size] = '\0';
-
+		
 				if (label == pBuf)
 				{
 					delete[] pBuf;
@@ -169,8 +169,8 @@ namespace NParser
 				}
 
 				delete[] pBuf;
-			//}
-			//else rCode.seekg(std::ios::cur + static_cast<std::streampos>(size));
+			}
+			else rCode.seekg(rCode.tellg() + static_cast<std::streampos>(size));
 		}
 
 		return TRUE;

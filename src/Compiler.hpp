@@ -393,6 +393,7 @@ namespace NCompiler
 			else if (command == static_cast<INT>(commands_::add))  output << WRITE_STRING(op.cmd);
 			else if (command == static_cast<INT>(commands_::sub))  output << WRITE_STRING(op.cmd);
 			else if (command == static_cast<INT>(commands_::div))  output << WRITE_STRING(op.cmd);
+			else if (command == static_cast<INT>(commands_::mul))  output << WRITE_STRING(op.cmd);
 			else if (command == static_cast<INT>(commands_::dup))  output << WRITE_STRING(op.cmd);
 			else if (command == static_cast<INT>(commands_::sin))  output << WRITE_STRING(op.cmd);
 			else if (command == static_cast<INT>(commands_::cos))  output << WRITE_STRING(op.cmd);
@@ -419,7 +420,7 @@ namespace NCompiler
 
 			else
 			{
-				NDebugger::Error("Unknown command: " + command);
+				NDebugger::Error("Unknown command: " + op.cmd);
 
 				input.close();
 				output.close();
@@ -672,6 +673,8 @@ namespace NCompiler
 		{
 			Wrap4BinaryIO<std::string> command;
 			file >> command;
+
+			std::cout << command << std::endl;
 			
 			if (!COMMAND.length() || COMMAND[0] == ':') continue; // Skip the label
 
@@ -686,9 +689,9 @@ namespace NCompiler
 				auto val = getValue(command);
 				auto reg = makeReg(command);
 
-				if (COMMAND[0] == '[' && reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::RAM);
+				if      (COMMAND[0] == '[' && reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::RAM);
 				else if (COMMAND[0] == '[' && reg == REG::NUM) cpu_.push(val, CPU<>::MemoryStorage::RAM);
-				else if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
+				else if (                     reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
 				else		                                   cpu_.push(val, CPU<>::MemoryStorage::STACK);
 			}
 			else if (COMMAND == "pop")
@@ -721,10 +724,22 @@ namespace NCompiler
 			else if (COMMAND == "cmp")
 			{
 				file >> command; //-V760
-				if (!skipCommand) cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
+				if (!skipCommand)
+				{
+					auto reg = makeReg(command);
+
+					if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
+					else                 cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
+				}
 
 				file >> command;
-				if (!skipCommand) cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
+				if (!skipCommand) 
+				{
+					auto reg = makeReg(command);
+
+					if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
+					else                 cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
+				}
 			}
 			else if (COMMAND == "jump") { file >> command; if (skipCommand) continue; Move2LabelBin(file, command); }
 
@@ -809,7 +824,9 @@ namespace NCompiler
 		{
 			Wrap4BinaryIO<std::string> command;
 			file >> command;
-	
+			
+			std::cout << command << std::endl;
+
 			if (!COMMAND.length() || COMMAND[0] == ':') continue; // Skip the label
 
 			else if (COMMAND[COMMAND.length() - 1] == ':') { skipCommand = TRUE; continue; }
@@ -857,11 +874,23 @@ namespace NCompiler
 
 			else if (comInNum == static_cast<INT>(commands_::cmp))
 			{
-				file >> command; //-V760
-				if (!skipCommand) cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
+				file >> command; 
+				if (!skipCommand)
+				{
+					auto reg = makeReg(command);
+
+					if(reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
+					else                cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
+				}
 
 				file >> command;
-				if (!skipCommand) cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
+				if (!skipCommand)
+				{
+					auto reg = makeReg(command);
+					
+					if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
+					else                 cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
+				}
 			}
 			else if (comInNum == static_cast<INT>(commands_::jump)) { file >> command; if (skipCommand) continue; Move2LabelBin(file, command); }
 

@@ -106,5 +106,8 @@
     <Text Include="..\..\src\Tests\Text\Text1BinCom.txt">
       <Filter>Файлы ресурсов\Text</Filter>
     </Text>
+    <Text Include="CPU.log">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
 </Project>

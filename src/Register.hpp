@@ -37,6 +37,8 @@ namespace NRegister
 	template<typename T>
 	Logger& operator<<(Logger&, CONST Register<T>&);
 
+	inline std::string GetReg(REG);
+
 	//====================================================================================================================================
 
 	template<typename T>
@@ -116,5 +118,16 @@ namespace NRegister
 		crRegister.dump(rLogger.getOfstream());
 
 		return rLogger;
+	}
+
+	inline std::string GetReg(REG reg)
+	{
+		if      (reg == REG::AX) return std::string("AX");
+		else if (reg == REG::BX) return std::string("BX");
+		else if (reg == REG::CX) return std::string("CX");
+		else if (reg == REG::DX) return std::string("DX");
+		else if (reg == REG::EX) return std::string("EX");
+		else if (reg == REG::SP) return std::string("SP");
+		else                     return std::string("null");
 	}
 } // namespace NReg 

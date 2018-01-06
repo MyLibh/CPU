@@ -177,7 +177,7 @@ namespace NCpu
 	template<typename T>
 	inline VOID CPU<T>::push(REG reg, MemoryStorage memory)
 	{	
-		LOG_ARGS(SIZE_T, static_cast<SIZE_T>(reg))
+		LOG_ARGS(std::string, NRegister::GetReg(reg))
 
 		if (memory == MemoryStorage::STACK)
 		{

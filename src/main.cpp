@@ -18,7 +18,7 @@ INT main(INT argc, CHAR *argv[])
 		NDebugger::SetColorConsole(NDebugger::TextColor::White);
 
  		Compiler<> comp;
-		comp.fromTextFile("..\\..\\src\\Tests\\Text\\" + file);
+		comp.fromBinComFile("..\\..\\src\\Tests\\Text\\" + file);
 	}
 	catch (CONST std::exception &exc)
 	{
