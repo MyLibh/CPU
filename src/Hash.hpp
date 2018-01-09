@@ -2,8 +2,6 @@
 
 #include <string> // std::string, std::string_view
 
-#include "MyDefines.hpp"
-
 namespace NHash
 {
 	constexpr unsigned short MIN_HASH_LENGTH = 4;

@@ -149,7 +149,7 @@ namespace NParser
 			{
 				std::unique_ptr<char[]> buf(new char[size + 1]);
 				rCode.read(buf.get(), size);
-				buf.get()[size] = '\0';
+				buf[size] = '\0';
 		
 				if (label == buf.get()) break;
 			}
