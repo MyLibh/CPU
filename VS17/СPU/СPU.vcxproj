@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\Commands.hpp" />
     <ClInclude Include="..\..\src\Compiler.hpp" />
     <ClInclude Include="..\..\src\CPU.hpp" />
     <ClInclude Include="..\..\src\Debugger.hpp" />
@@ -26,7 +27,6 @@
     <ClInclude Include="..\..\src\Hash.hpp" />
     <ClInclude Include="..\..\src\Logger.hpp" />
     <ClInclude Include="..\..\src\MyMath.hpp" />
-    <ClInclude Include="..\..\src\MyTypedefs.hpp" />
     <ClInclude Include="..\..\src\Parser.hpp" />
     <ClInclude Include="..\..\src\RAM.hpp" />
     <ClInclude Include="..\..\src\Register.hpp" />
@@ -110,10 +110,12 @@
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -132,6 +134,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <AdditionalOptions>-D_SCL_SECURE_NO_WARNINGS %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

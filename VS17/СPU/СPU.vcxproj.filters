@@ -48,9 +48,6 @@
     <ClInclude Include="..\..\src\Register.hpp">
       <Filter>Файлы заголовков\CPU</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\MyTypedefs.hpp">
-      <Filter>Файлы заголовков\Special</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\MyMath.hpp">
       <Filter>Файлы заголовков\Special</Filter>
     </ClInclude>
@@ -71,6 +68,9 @@
     </ClInclude>
     <ClInclude Include="..\..\src\Wrap4BinaryIO.hpp">
       <Filter>Файлы заголовков\Special</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\Commands.hpp">
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -5,37 +5,18 @@
 #include <iomanip>  // std::setw
 #include <sstream>  // std::stringstream
 #include <fstream>  // std::ifstream
-#include <string>   // std::string
+#include <string>   // std::to_string
 #include <cassert>  // assert
+#include <memory>   // std::unique_ptr
 
 #include "Parser.hpp"
 #include "Logger.hpp"
-
-extern Logger gLogger;
 
 namespace NParser
 {
 #pragma region Struct Operation
 
-	Operation::Operation() _NOEXCEPT :
-		cmd(), 
-		args() 
-	{ }
-
-	Operation::Operation(CONST Operation &crOp) :
-		cmd(crOp.cmd), 
-		args(crOp.args) 
-	{ }
-
-	Operation::Operation(Operation &&rrOp) :
-		cmd(std::move(rrOp.cmd)), 
-		args(std::move(rrOp.args)) 
-	{ }
-
-	Operation::~Operation() 
-	{ }
-
-	Operation &Operation::operator=(CONST Operation &crOp)
+	Operation &Operation::operator=(const Operation &crOp) noexcept
 	{
 		if (this != &crOp)
 		{
@@ -46,7 +27,7 @@ namespace NParser
 		return (*this);
 	}
 
-	Operation &Operation::operator=(Operation &&rrOp)
+	Operation &Operation::operator=(Operation &&rrOp) noexcept
 	{
 		assert(this != &rrOp);
 
@@ -56,21 +37,22 @@ namespace NParser
 		return (*this);
 	}
 
-	VOID Operation::dump(std::ostream &rOstr) const
+	void Operation::dump(std::ostream &rOstr) const
 	{
 		if (!cmd.length()) return;
 
 		std::streamsize width = 1 << 3;
 
-		NDebugger::Info("OP: ", NDebugger::TextColor::LightCyan, FALSE, rOstr);
+		NDebugger::Info("OP: ", NDebugger::TextColor::LightCyan, false, rOstr);
 		rOstr << std::setw(width) << (cmd.length() ? cmd : "null");
 
-		for (SIZE_T i = 0; i < MAX_ARGS; ++i)
+		for (size_t i = 0; i < MAX_ARGS; ++i)
 		{
 			if (!args[i].length()) break;
 
 			rOstr << ", ";
-			NDebugger::Info("ARG" + std::to_string(i + 1) + ": ", NDebugger::TextColor::Cyan, FALSE, rOstr);
+
+			NDebugger::Info("ARG" + std::to_string(i + 1) + ": ", NDebugger::TextColor::Cyan, false, rOstr);
 
 			rOstr << std::setw(width) << (args[i].length() ? args[i] : "null");
 		}
@@ -80,54 +62,55 @@ namespace NParser
 
 	//===============================================================================================================================================
 	
-	Logger &operator<<(Logger &rLogger, CONST Operation &crOp)
+	Logger &operator<<(Logger &rLogger, const Operation &crOp)
 	{
-		if(crOp.cmd.length()) rLogger.stdPack("Parser");
+		if(crOp.cmd.length()) Logger::stdPack("Parser");
 
-		crOp.dump(rLogger.getOfstream());
+		crOp.dump(Logger::getOfstream());
 
 		return rLogger;
 	}
 
 #pragma endregion
 
-	static inline BOOL IsCommaExist(CRSTRING line) 
+	static inline bool IsCommaExist(std::string_view line) 
 	{ 
-		return (line.empty() ? FALSE : (line[line.length() - 1] == ','));
+		return (line.empty() ? false : (line.back() == ','));
 	}
 
-	Operation ParseCode(CONST CHAR *crLine)
+	Operation ParseCode(std::string_view line)
 	{
 		Operation op;
 
-		std::stringstream sstr(crLine);
+		std::stringstream sstr(line.data());
 		sstr >> op.cmd;
 
-		for (auto &word : op.args)
+		for (auto&& word : op.args)
 		{
 			sstr >> word;
 			if (IsCommaExist(word)) word.pop_back();
 		}
 
-#ifdef _DEBUG
-		gLogger << op;
+		if (op.cmd.length()) Logger::stdPack("Parser");
+		op.dump(Logger::getOfstream());
 
+#ifdef _DEBUG
 		op.dump();
 #endif // DEBUG
 
 		return op;
 	}
 
-	BOOL Move2Label(std::ifstream &rCode, CRSTRING label, std::streampos seekFrom /* = std::ios::beg */)
+	bool Move2Label(std::ifstream &rCode, std::string_view label, std::streampos startFrom /* = std::ios::beg */)
 	{
 		if (!rCode.is_open())
 		{
-			NDebugger::Error(std::string("[") + __FUNCTION__ + "Ifstream is not open");
+			NDebugger::Error(std::string("[") + __FUNCTION__ + "Ifstream is not open\n");
 
-			return FALSE;
+			return false;
 		}
 
-		rCode.seekg(seekFrom);
+		rCode.seekg(startFrom);
 		while (!rCode.eof())
 		{
 			std::string tmp;
@@ -136,44 +119,44 @@ namespace NParser
 			if (label == tmp) break;
 		}
 		
-		return TRUE;
+		return true;
 	}
 
-	BOOL Move2LabelBin(std::ifstream &rCode, CRSTRING label, std::streampos seekFrom /* = std::ios::beg */)
+	bool Move2LabelBin(std::ifstream &rCode, std::string_view label, std::streampos startFrom /* = std::ios::beg */)
 	{
-		if (!rCode.is_open() || rCode.flags() & std::ios::binary)
+		if (!rCode.is_open())
 		{
-			NDebugger::Error(std::string("[") + __FUNCTION__ + "] Ifstream is not open or open in wrong mode");
+			NDebugger::Error(std::string("[") + __FUNCTION__ + "] Ifstream is not open\n");
 
-			return FALSE;
+			return false;
+		}
+
+		if (rCode.flags() & std::ios::binary)
+		{
+			NDebugger::Error(std::string("[") + __FUNCTION__ + "] Ifstream is open in wrong mode\n");
+
+			return false;
 		}
 		
 		auto length = label.length(); 
-		rCode.seekg(seekFrom);	
+		rCode.seekg(startFrom);
 		while (!rCode.eof())
 		{
-			SIZE_T size = 0;
-			rCode.read(reinterpret_cast<CHAR*>(&size), sizeof(size));
+			size_t size = 0;
+			rCode.read(reinterpret_cast<char*>(&size), sizeof(size));
 
 			if (size == length)
 			{
-				CHAR *pBuf = new CHAR[size + 1]();
-				rCode.read(pBuf, size);
-				pBuf[size] = '\0';
+				std::unique_ptr<char[]> buf(new char[size + 1]);
+				rCode.read(buf.get(), size);
+				buf.get()[size] = '\0';
 		
-				if (label == pBuf)
-				{
-					delete[] pBuf;
-
-					break;
-				}
-
-				delete[] pBuf;
+				if (label == buf.get()) break;
 			}
 			else rCode.seekg(rCode.tellg() + static_cast<std::streampos>(size));
 		}
 
-		return TRUE;
+		return true;
 	}
 	
 } // namespace NParser

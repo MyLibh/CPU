@@ -10,90 +10,87 @@
 
 //cmd -D_SCL_SECURE_NO_WARNINGS
 
-extern Logger gLogger;
-
 namespace NStack
 {
-	template<typename T = INT>
+	template<typename T = int>
 	class Stack final
 	{
-		VOID reallocMemory();
+		void reallocMemory();
 
 	public:
-		static CONST SIZE_T DEFAULT_SIZE = 1;
+		static constexpr size_t DEFAULT_SIZE = 1;
 
 		typedef       T &&rrVal_;
-		typedef CONST T  &crVal_;
+		typedef const T  &crVal_;
 
-		explicit Stack(SIZE_T = DEFAULT_SIZE) _NOEXCEPT;
-		Stack(CONST Stack&); // QUEST: maybe i can make it noexcept
-		Stack(Stack&&)                        _NOEXCEPT;
+		explicit Stack(size_t = DEFAULT_SIZE) noexcept;
+		Stack(const Stack&)                   noexcept;
+		Stack(Stack&&)                        noexcept;
 		~Stack();
 
-		Stack<T> &operator=(CONST Stack&); // QUEST: maybe i can make it noexcept
-		Stack<T> &operator=(Stack&&) _NOEXCEPT;
+		Stack<T> &operator=(const Stack&) noexcept;
+		Stack<T> &operator=(Stack&&)      noexcept;
 
-		BOOL operator==(CONST Stack&) const;
-		BOOL operator!=(CONST Stack&) const;
+		bool operator==(const Stack&) const;
+		bool operator!=(const Stack&) const;
 
-		SIZE_T size()  const _NOEXCEPT;
-		BOOL   empty() const _NOEXCEPT;
+		size_t size()  const noexcept;
+		bool   empty() const noexcept;
 
-		VOID push(crVal_);
-		VOID push(rrVal_);
-		VOID pop();
+		void push(crVal_);
+		void push(rrVal_);
+		void pop();
 
 		crVal_ top() const;
 
-		VOID swap(Stack&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>);
+		void swap(Stack&) noexcept(std::_Is_nothrow_swappable<T>::value);
 
-		HASH_GUARD(inline SIZE_T getHash() const _NOEXCEPT { return hash_; })
+		HASH_GUARD(inline void rehash() noexcept { hash_ = std::move(makeHash()); })
+		HASH_GUARD(inline std::string_view getHash() const noexcept { return hash_; })
 
-		BOOL ok() const _NOEXCEPT;
-		VOID dump(std::ostream& = std::cout) const;
+		bool ok() const noexcept;
+		void dump(std::ostream& = std::cout) const;
 
 	private:
-		CANARY_GUARD(CONST std::string CANARY_VALUE;)
+		CANARY_GUARD(const std::string CANARY_VALUE;)
 
-		CANARY_GUARD(std::string canaryStart_;)
+		CANARY_GUARD(const std::string canaryStart_;)
 		HASH_GUARD(std::string hash_;)
 
-		SIZE_T               counter_,
-		size_;
+		size_t               counter_,
+		                     size_;
 		std::unique_ptr<T[]> buffer_;
 
-		CANARY_GUARD(std::string canaryFinish_;)
+		CANARY_GUARD(const std::string canaryFinish_;)
 
 		HASH_GUARD
 		(
 			std::string makeHash() const
 			{
-				std::string tmp;
-				tmp += std::to_string(counter_);
-				tmp += std::to_string(size_);
+				std::string tmp(std::to_string(counter_) + std::to_string(size_));
 
-				for (SIZE_T i = 0; i < counter_; ++i) tmp += std::to_string(buffer_[i]);
+				for (size_t i = 0; i < counter_; ++i) tmp += std::to_string(buffer_[i]);
 
-				return NHash::Hash(tmp).getHash();				
+				return std::string(NHash::Hash(tmp).getHash());				
 			}
 		)
 
-		static SIZE_T numberOfInstances;
+		static size_t numberOfInstances;
 	};
 
 	template<typename T>
-	SIZE_T Stack<T>::numberOfInstances = 0;
+	size_t Stack<T>::numberOfInstances = 0;
 
 	//====================================================================================================================================
 
 	template<typename T>
-	Logger& operator<<(Logger&, CONST Stack<T>&);
+	Logger& operator<<(Logger&, const Stack<T>&);
 
 	//====================================================================================================================================
 
 	template<typename T>
-	inline Stack<T>::Stack(SIZE_T size /* = DEFAULT_SIZE */) _NOEXCEPT :
-		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + ++numberOfInstances).getHash()),)
+	inline Stack<T>::Stack(size_t size /* = DEFAULT_SIZE */) noexcept :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + std::to_string(++numberOfInstances)).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE),)
 		HASH_GUARD(hash_(),)
 
@@ -103,7 +100,7 @@ namespace NStack
 
 		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
 	{
-		HASH_GUARD(hash_ = makeHash();)
+		HASH_GUARD(rehash();)
 
 		CANARY_GUARD(numberOfInstances--;)
 		numberOfInstances++;
@@ -114,8 +111,8 @@ namespace NStack
 	}
 
 	template<typename T>
-	inline Stack<T>::Stack(CONST Stack &crStack) :
-		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + ++numberOfInstances).getHash()),)
+	inline Stack<T>::Stack(const Stack &crStack) noexcept :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + std::to_string(++numberOfInstances)).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE),)
 		HASH_GUARD(hash_(),)
 
@@ -127,7 +124,7 @@ namespace NStack
 	{
 		std::copy(crStack.buffer_.get(), crStack.buffer_.get() + crStack.counter_, buffer_.get());
 
-		HASH_GUARD(hash_ = makeHash();)
+		HASH_GUARD(rehash();)
 
 		CANARY_GUARD(numberOfInstances--;)
 		numberOfInstances++;
@@ -138,8 +135,8 @@ namespace NStack
 	}
 
 	template<typename T>
-	inline Stack<T>::Stack(Stack &&rrStack) _NOEXCEPT :
-		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + ++numberOfInstances).getHash()),)
+	inline Stack<T>::Stack(Stack &&rrStack) noexcept :
+		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + std::to_string(++numberOfInstances)).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 		HASH_GUARD(hash_(rrStack.hash_), )
 
@@ -173,7 +170,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	VOID Stack<T>::reallocMemory()
+	void Stack<T>::reallocMemory()
 	{
 		GUARD_CHECK()
 
@@ -184,13 +181,13 @@ namespace NStack
 
 		std::copy(pBuf, pBuf + counter_, buffer_.get());
 
-		HASH_GUARD(hash_ = makeHash();)
+		HASH_GUARD(rehash();)
 
 		GUARD_CHECK()
 	}
 
 	template<typename T>
-	Stack<T> &Stack<T>::operator=(CONST Stack &crStack)
+	Stack<T> &Stack<T>::operator=(const Stack &crStack) noexcept
 	{
 		GUARD_CHECK()
 
@@ -215,7 +212,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	Stack<T> &Stack<T>::operator=(Stack &&rrStack) _NOEXCEPT
+	Stack<T> &Stack<T>::operator=(Stack &&rrStack) noexcept
 	{
 		GUARD_CHECK()
 
@@ -240,13 +237,13 @@ namespace NStack
 	}
 
 	template<typename T>
-	inline BOOL Stack<T>::operator==(CONST Stack &crStack) const
+	inline bool Stack<T>::operator==(const Stack &crStack) const
 	{
 		GUARD_CHECK()
 
-		if (counter_ != crStack.counter_) return FALSE;
+		if (counter_ != crStack.counter_) return false;
 
-		if (!counter_) return TRUE; // Zero-size verification
+		if (!counter_) return true; // Zero-size verification
 
 		GUARD_CHECK()
 
@@ -254,25 +251,25 @@ namespace NStack
 	}
 
 	template<typename T>
-	inline BOOL Stack<T>::operator!=(CONST Stack &crStack) const 
+	inline bool Stack<T>::operator!=(const Stack &crStack) const 
 	{
 		return (!(*this == crStack));
 	}
 
 	template<typename T>
-	inline SIZE_T Stack<T>::size() const _NOEXCEPT
+	inline size_t Stack<T>::size() const noexcept
 	{ 
 		return counter_;
 	}
 
 	template<typename T>
-	inline BOOL Stack<T>::empty() const _NOEXCEPT
+	inline bool Stack<T>::empty() const noexcept
 	{ 
-		return (counter_ ? FALSE : TRUE); 
+		return (counter_ ? false : true); 
 	}
 
 	template<typename T>
-	inline VOID Stack<T>::push(crVal_ val)
+	inline void Stack<T>::push(crVal_ val)
 	{
 		GUARD_CHECK()
 
@@ -281,13 +278,13 @@ namespace NStack
 		buffer_[counter_] = val;
 		++counter_;
 
-		HASH_GUARD(hash_ = makeHash();)
+		HASH_GUARD(rehash();)
 
 		GUARD_CHECK()
 	}
 
 	template<typename T>
-	inline VOID Stack<T>::push(rrVal_ val)
+	inline void Stack<T>::push(rrVal_ val)
 	{
 		GUARD_CHECK()
 
@@ -296,21 +293,21 @@ namespace NStack
 		buffer_[counter_] = val;
 		++counter_;
 
-		HASH_GUARD(hash_ = makeHash();)
+		HASH_GUARD(rehash();)
 
 		GUARD_CHECK()
 	}
 
 	template<typename T>
-	inline VOID Stack<T>::pop()
+	inline void Stack<T>::pop()
 	{
 		GUARD_CHECK()
 
-		if (!counter_) throw std::out_of_range(__FUNCTION__);
+		if (!counter_) throw std::length_error(std::string("[") + __FUNCTION__ + "] Stack length error\n");
 
 		--counter_;
 
-		HASH_GUARD(hash_ = makeHash();)
+		HASH_GUARD(rehash();)
 
 		GUARD_CHECK()
 	}
@@ -328,7 +325,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	VOID Stack<T>::swap(Stack &rStack) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>)
+	void Stack<T>::swap(Stack &rStack) noexcept(std::_Is_nothrow_swappable<T>::value)
 	{
 		GUARD_CHECK()
 
@@ -345,7 +342,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	inline BOOL Stack<T>::ok() const _NOEXCEPT
+	inline bool Stack<T>::ok() const _NOEXCEPT
 	{
 		return (CANARY_GUARD(canaryStart_ == CANARY_VALUE && canaryFinish_ == CANARY_VALUE && )
 				HASH_GUARD(hash_ == makeHash() && )
@@ -353,14 +350,14 @@ namespace NStack
 	}
 
 	template<typename T>
-	VOID Stack<T>::dump(std::ostream &rOstr /* = std::cout */) const
+	void Stack<T>::dump(std::ostream &rOstr /* = std::cout */) const
 	{
-		NDebugger::Info("\t[STACK DUMP]", NDebugger::TextColor::Yellow, TRUE, rOstr);
+		NDebugger::Info("\t[STACK DUMP]", NDebugger::TextColor::Yellow, true, rOstr);
 
 		rOstr << "Stack <" << typeid(T).name() << "> [0x" << this << "]\n"
 			  << "{\n\tbuffer [" << counter_ << "] = 0x" << buffer_.get() << "\n\t{\n";
 
-		if (counter_) for (SIZE_T i = 0; i < counter_; ++i) rOstr << "\t\t[" << i << "] = " << std::setw(8) << buffer_[i] << std::endl;
+		if (counter_) for (size_t i = 0; i < counter_; ++i) rOstr << "\t\t[" << i << "] = " << std::setw(8) << buffer_[i] << std::endl;
 		else                                                rOstr << "\t\tempty\n";
 
 		rOstr << "\t}\n\n";
@@ -370,38 +367,34 @@ namespace NStack
 			rOstr << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
 
 			rOstr << "\tCANARY_START  = " << canaryStart_;
-			if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
-			else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
+			if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
+			else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
 
 			rOstr << "\tCANARY_FINISH = " << canaryFinish_;
-			if (canaryFinish_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr); 
-			else                               NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
+			if (canaryFinish_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
+			else                               NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
 			)
 
 		HASH_GUARD
 		(
 			rOstr << "\n\tHASH = " << hash_;		
-			if (hash_ == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, TRUE, rOstr);
-			else                     NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   TRUE, rOstr);
+			if (hash_ == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
+			else                     NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
 		)
 
-		std::cout << "}\n";
+		rOstr << "}\n";
 
-		NDebugger::Info("\t[   END    ]\n", NDebugger::TextColor::Yellow, TRUE, rOstr);
+		NDebugger::Info("\t[   END    ]\n", NDebugger::TextColor::Yellow, true, rOstr);
 	}
 
 	//====================================================================================================================================
 
 	template<typename T>
-	Logger& operator<<(Logger &rLogger, CONST Stack<T> &crStack)
+	Logger& operator<<(Logger &rLogger, const Stack<T> &crStack)
 	{
-		std::string func("Stack<");
-		func += typeid(T).name();
-		func += ">";
+		rLogger.stdPack(std::string("Stack<") + typeid(T).name() + ">");
 
-		rLogger.stdPack(func);
-
-		crStack.dump(rLogger.getOfstream());
+		crStack.dump(static_cast<std::ostream>(rLogger.getOfstream()));
 
 		return rLogger;
 	}

@@ -8,23 +8,49 @@
 
 #include "Logger.hpp"
 
-Logger gLogger; // Global instance of class Logger for all other classes
+constexpr std::streamsize LOG_FUNC_SIZE = 1 << 6;
 
-CONST std::streamsize LOG_FUNC_SIZE = 1 << 6;
+std::ofstream Logger::log_;
 
-inline Logger::Logger() :
-	log_("CPU.log")
+bool Logger::init_ = false;
+
+Logger::Logger() 
 {
-	if (!log_.is_open()) throw std::runtime_error("Cannot open build file\n");
-	
-	log_ << "[DEBUG][" << __TIME__ << "][" << std::setw(LOG_FUNC_SIZE) << "Logger" << "] Logging started\n";
+	Logger::init();
 }
 
-inline Logger::~Logger()
+Logger::~Logger()
 {
+	Logger::close();
+}
+
+bool Logger::init()
+{
+	if (!init_)
+	{
+		init_ = true;
+
+		log_.open("CPU.log");
+	}
+	else return log_.is_open();
+
+	if (!log_.is_open()) throw std::runtime_error("Cannot open log file\n");
+
+	log_ << "[DEBUG][" << __TIME__ << "][" << std::setw(LOG_FUNC_SIZE) << "Logger" << "] Logging started\n";
+
+	return true;
+}
+
+bool Logger::close()
+{
+	if (!init_) return false;
+	
+	init_ = false;
 	write("Logger", "Logging finished");
 
 	log_.close();
+
+	return true;
 }
 
 std::ofstream &Logger::getOfstream()
@@ -32,9 +58,9 @@ std::ofstream &Logger::getOfstream()
 	return log_;
 }
 
-BOOL Logger::stdPack(CRSTRING func, Type type /* = Type::Debug */)
+bool Logger::stdPack(std::string_view func, Type type /* = Type::Debug */)
 {
-	if (!log_.is_open()) return FALSE;
+	if (!log_.is_open()) return false;
 
 	using std::chrono::system_clock;
 	auto tt = system_clock::to_time_t(system_clock::now());
@@ -44,20 +70,20 @@ BOOL Logger::stdPack(CRSTRING func, Type type /* = Type::Debug */)
 
 	log_ << "[" << (type == Type::Debug ? "DEBUG]" : "RELEASE]") << "["
 		 << std::put_time(ptm, "%X")
-		 << "][" << std::setw(LOG_FUNC_SIZE) << func.c_str() << "] ";
+		 << "][" << std::setw(LOG_FUNC_SIZE) << func.data() << "] ";
 
 	delete ptm;
 
-	return TRUE;
+	return true;
 }
 
-inline BOOL Logger::write(CRSTRING func, CRSTRING info, Type type /* = Type::Debug */)
+inline bool Logger::write(std::string_view func, std::string_view info, Type type /* = Type::Debug */)
 {
-	stdPack(func, type);
+	if(!stdPack(func, type)) return false;
 
-	log_ << info.c_str() << std::endl;
+	log_ << info.data() << std::endl;
 
-	return TRUE;
+	return true;
 }
 
 //===============================================================================================================================================

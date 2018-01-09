@@ -7,14 +7,15 @@
 
 namespace NHash
 {
-	Hash::Hash(CRSTRING str) :
+#pragma region Hash
+
+	Hash::Hash(std::string_view str) :
 		hash_(str)
 	{ }
 
-	Hash::~Hash()
-	{ }
+#pragma endregion
 
-	WORD Hash::getExistCode(WORD x) const _NOEXCEPT
+	unsigned int Hash::getExistCode(unsigned int x) const noexcept
 	{
 		x += 256;
 		while (!(((x < 57) && (x >= 48)) || ((x <= 90) && (x >= 65)) || ((x <= 122) && (x >= 97))))
@@ -24,24 +25,25 @@ namespace NHash
 		return x;
 	}
 
-	WORD Hash::getControlSum(CRSTRING str) const _NOEXCEPT
+	unsigned int Hash::getControlSum(std::string_view str) const noexcept
 	{
-		WORD   sault  = 0;
-		SIZE_T length = str.length();
-		auto   mod    = 1 << length;
-		for (SIZE_T i = 0; i < length; ++i) sault += static_cast<WORD>((str[i] * (1 << (i + 1))) % mod);
+		size_t length = str.length();
+
+		unsigned int sault = 0,
+		             mod   = 1 << length;
+		for (size_t i = 0; i < length; ++i) sault += (str[i] * (1 << (i + 1))) % mod;
 		
 		return sault % mod;
 	}
 
-	std::string Hash::getHash(WORD hashLength /* = MD5_HASH_LENGTH */)
+	std::string_view Hash::getHash(unsigned short hashLength /* = MD5_HASH_LENGTH */) const
 	{
 		assert(hashLength >= MIN_HASH_LENGTH);
 
-		DWORD minLength     = 2,
-			  realMinLength = 0,
-			  strSault      = getControlSum(hash_),
-			  strLength     = static_cast<DWORD>(hash_.length());
+		unsigned int minLength     = 2,
+					 realMinLength = 0,
+					 strSault      = getControlSum(hash_),
+					 strLength     = static_cast<unsigned int>(hash_.length());
 
 		while (minLength <= hashLength) realMinLength = (minLength <<= 1); // Get the length of a string that is a multiple of the power of two and closest to the length of the hash
 
@@ -50,7 +52,7 @@ namespace NHash
 		if(minLength < (strLength << 1)) minLength <<= 1;
 
 		std::string tmp(hash_);
-		for (SIZE_T i = 0, symbolsToAdd = minLength - strLength; i < symbolsToAdd; ++i) // Add missing items
+		for (size_t i = 0, symbolsToAdd = minLength - strLength; i < symbolsToAdd; ++i) // Add missing items
 		{
 			if (i + 1 == strLength)
 			{
@@ -60,38 +62,38 @@ namespace NHash
 			}
 
 			assert(((i + 1) % strLength < strLength) && ((i % strLength) < strLength));
-			tmp += static_cast<CHAR>(getExistCode(hash_[i % strLength] + hash_[(i + 1) % strLength]));
+			tmp += static_cast<char>(getExistCode(hash_[i % strLength] + hash_[(i + 1) % strLength]));
 		}
 
-		DWORD maxSault  = getControlSum(tmp),
-			  maxLength = static_cast<DWORD>(tmp.length());
+		unsigned int maxSault  = getControlSum(tmp),
+			         maxLength = tmp.length();
 		
 		hash_.clear();
 		while (tmp.length() != realMinLength)
 		{
-			for (SIZE_T i = 0, mid = (tmp.length() >> 1); i < mid; ++i)
+			for (size_t i = 0, mid = (tmp.length() >> 1); i < mid; ++i)
 			{
 				assert(mid != i && mid + i < tmp.length());
 
-				hash_ += static_cast<CHAR>(getExistCode(tmp[mid - 1] + tmp[mid + 1]));
+				hash_ += static_cast<char>(getExistCode(tmp[mid - 1] + tmp[mid + 1]));
 			}
 
 			tmp = hash_;
 			hash_.clear();
 		}
 
-		WORD symbolsToSub = static_cast<WORD>(realMinLength) - hashLength;
-		for (SIZE_T i = 0, compressCount = realMinLength / symbolsToSub; hash_.length() < static_cast<WORD>(hashLength - 4); ++i) // Removing redundant items
+		unsigned int symbolsToSub = realMinLength - hashLength;
+		for (size_t i = 0, compressCount = realMinLength / symbolsToSub; hash_.length() < static_cast<unsigned int>(hashLength - 4); ++i) // Removing redundant items
 		{
-			if (i % compressCount == 0) hash_ += static_cast<CHAR>(getExistCode(tmp[i] + tmp[++i]));
-			else                        hash_ += static_cast<CHAR>(getExistCode(tmp[i]));
+			if (i % compressCount == 0) hash_ += static_cast<char>(getExistCode(tmp[i] + tmp[++i]));
+			else                        hash_ += static_cast<char>(getExistCode(tmp[i]));
 		}
 
-		hash_ += static_cast<CHAR>(getExistCode(static_cast<WORD>(strSault)));
-		hash_ += static_cast<CHAR>(getExistCode(static_cast<WORD>(strLength)));
+		hash_ += static_cast<char>(getExistCode(strSault));
+		hash_ += static_cast<char>(getExistCode(strLength));
 
-		hash_ += static_cast<CHAR>(getExistCode(static_cast<WORD>(maxSault)));
-		hash_ += static_cast<CHAR>(getExistCode(static_cast<WORD>(maxLength)));
+		hash_ += static_cast<char>(getExistCode(maxSault));
+		hash_ += static_cast<char>(getExistCode(maxLength));
 
 		return hash_;
 	}

@@ -9,18 +9,22 @@
 
 using namespace NCompiler;
 
-INT main(INT argc, CHAR *argv[])
+int main(int argc, char *argv[])
 {
-	std::string file = (argc >= 2 ? argv[1] : "Text1");
+	std::ios::sync_with_stdio(false);
+	
+	std::string file((argc >= 2 ? argv[1] : "..\\..\\src\\Tests\\Text\\Text1"));
 
 	try
 	{
+		NStack::Stack<> a;
+	
 		NDebugger::SetColorConsole(NDebugger::TextColor::White);
 
  		Compiler<> comp;
-		comp.fromBinComFile("..\\..\\src\\Tests\\Text\\" + file);
+		comp.fromBinComFile(file);
 	}
-	catch (CONST std::exception &exc)
+	catch (const std::exception &exc)
 	{
 		std::cout << exc.what();
 	}
@@ -28,7 +32,7 @@ INT main(INT argc, CHAR *argv[])
 	{
 		std::cout << "Unhandled exeption\n";
 	}
-	
+
 	system("pause");
     return 0;
 }

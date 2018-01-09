@@ -2,55 +2,56 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include <Windows.h> // SetConsoleTextAttribute, GetStdHandle
-#include <iostream>  // std::cerr, std::cout
-#include <string>    // std::string
+#include <string>    // std::string_view
 
 #include "Debugger.hpp"
 
 namespace NDebugger
 {
-	WORD SetColorConsole(TextColor color, TextColor background /* = TextColor::Black */)
+	unsigned short SetColorConsole(TextColor color, TextColor background /* = TextColor::Black */)
 	{
-		static TextColor oldText = TextColor::White,
-			             oldBckg = TextColor::Black;
+		static TextColor sOldText = TextColor::White,
+						 sOldBckg = TextColor::Black;
 		
-		std::swap(oldText, color);
-		std::swap(oldBckg, background);
+		std::swap(sOldText, color); 
+		std::swap(sOldBckg, background);
 
-		static HANDLE hHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-		if(!SetConsoleTextAttribute(hHandle, ((static_cast<WORD>(oldBckg) << 4) | static_cast<WORD>(oldText)))) throw std::exception("[NDebugger::SetColorConsole] \"SetConsoleTextAttribute returned false\"\n");
+		static HANDLE hHandle = GetStdHandle(STD_OUTPUT_HANDLE); // Get the handle to change
+		if(!SetConsoleTextAttribute(hHandle, ((static_cast<WORD>(sOldBckg) << 4) | static_cast<WORD>(sOldText)))) 
+			throw std::runtime_error(std::string("[") + __FUNCTION__ + "SetConsoleTextAttribute returned false\n");
 
 		return ((static_cast<WORD>(background) << 4) | static_cast<WORD>(color)); // Return old text attribute
 	}
 
-	static WORD SetColorConsole(WORD color)
+	static unsigned short SetColorConsole(unsigned short color)
 	{
 		return SetColorConsole(static_cast<TextColor>(color & 0x0F), static_cast<TextColor>(color & 0xF0));
 	}
 
-	VOID Error(CRSTRING error, std::ostream &rOstr /* = std::cerr */) 
+	void Error(std::string_view error, std::ostream &rOstr /* = std::cerr */) 
 	{
 		auto old = SetColorConsole(TextColor::Red);
 
-		rOstr << "[ERROR] " << error << std::endl;
+		rOstr << "[ERROR] " << error.data() << std::endl;
 
 		SetColorConsole(old);
 	}
 
-	VOID Info(CRSTRING info, TextColor color /* = TextColor::White */, bool endline /* = TRUE */, std::ostream &rOstr /* = std::cout */) 
+	void Info(std::string_view info, TextColor color /* = TextColor::White */, bool endline /* = TRUE */, std::ostream &rOstr /* = std::cout */)
 	{
 		auto old = SetColorConsole(color);
 
-		rOstr << info;
+		rOstr << info.data();
 
-		if(endline) rOstr << std::endl;
+		if(endline) 
+			rOstr << std::endl;
 
 		SetColorConsole(old);
 	}
 
-	VOID Debug(CRSTRING debugInfo, TextColor color /* = TextColor::White */, bool endline /* = TRUE */, std::ostream &rOstr /* = std::cout */)
+	void Debug(std::string_view debugInfo, TextColor color /* = TextColor::White */, bool endline /* = TRUE */, std::ostream &rOstr /* = std::cout */)
 	{
-		Info("[DEBUG] ", TextColor::Brown, FALSE, rOstr);
+		Info("[DEBUG] ", TextColor::Brown, false, rOstr);
 		Info(debugInfo, color, endline, rOstr);
 	}
 } // namespace NDebugger

@@ -1,12 +1,10 @@
 #pragma once
 
-#include <iostream>
-
-#include "MyTypedefs.hpp"
+#include <iostream> // std::ostream, std::cerr, std::cout
 
 namespace NDebugger
 {
-	enum class TextColor : WORD
+	enum class TextColor : unsigned short
 	{
 		Black        = 0x00,
 		Blue         = 0x01,
@@ -26,9 +24,9 @@ namespace NDebugger
 		White        = 0x0F
 	};
 	
-	WORD SetColorConsole(TextColor, TextColor = TextColor::Black); 
+	unsigned short SetColorConsole(TextColor, TextColor = TextColor::Black);
 
-	VOID Error(CRSTRING, std::ostream& = std::cerr); 
-	VOID Info(CRSTRING, TextColor = TextColor::White, bool = TRUE, std::ostream& = std::cout);
-	VOID Debug(CRSTRING, TextColor = TextColor::White, bool = TRUE, std::ostream& = std::cout);
+	void Error(std::string_view, std::ostream& = std::cerr); 
+	void Info(std::string_view, TextColor = TextColor::White, bool = true, std::ostream& = std::cout);
+	void Debug(std::string_view, TextColor = TextColor::White, bool = true, std::ostream& = std::cout);
 } //namespace NDebugger

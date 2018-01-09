@@ -8,36 +8,36 @@ class Logger;
 
 namespace NParser
 {
-	CONST SIZE_T MAX_LINE_LENGTH = 1 << 8;
+	constexpr size_t MAX_LINE_LENGTH = 1 << 8;
 
 	struct Operation
 	{
-		static CONST WORD MAX_ARGS = (1 << 2) - 1;
+		static constexpr unsigned short MAX_ARGS = (1 << 2) - 1;
 
 		std::string                       cmd;
 		std::array<std::string, MAX_ARGS> args;
 
-		explicit Operation() _NOEXCEPT;
-		Operation(CONST Operation&);
-		Operation(Operation&&);
-		~Operation();
+		explicit Operation()        = default;
+		Operation(const Operation&) = default;
+		Operation(Operation&&)      = default;
+		~Operation()                = default;
 
-		Operation &operator=(CONST Operation&);
-		Operation &operator=(Operation&&);
+		Operation &operator=(const Operation&) noexcept;
+		Operation &operator=(Operation&&)      noexcept;
 
-		VOID dump(std::ostream& = std::cout) const;
+		void dump(std::ostream& = std::cout) const;
 	};
 
 	//===============================================================================================================================================
 	
-	Logger &operator<<(Logger&, CONST Operation&);
+	Logger &operator<<(Logger&, const Operation&);
 
 	//===============================================================================================================================================
 
-	Operation ParseCode(CONST CHAR*);
+	Operation ParseCode(std::string_view);
 
-	BOOL Move2Label(std::ifstream&, CRSTRING, std::streampos = std::ios::beg);
+	bool Move2Label(std::ifstream&, std::string_view, std::streampos = std::ios::beg);
 
-	BOOL Move2LabelBin(std::ifstream&, CRSTRING, std::streampos = std::ios::beg);
+	bool Move2LabelBin(std::ifstream&, std::string_view, std::streampos = std::ios::beg);
 	
 } // namespace NParser

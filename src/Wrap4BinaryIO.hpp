@@ -2,18 +2,16 @@
 
 #include <iosfwd>
 
-#include "MyTypedefs.hpp"
-
 template<typename T>
 class Wrap4BinaryIO final
 {
 public:
 	Wrap4BinaryIO();
-	Wrap4BinaryIO(CONST T&);
+	Wrap4BinaryIO(const T&);
 	~Wrap4BinaryIO();
 
 	operator T&();
-	operator CONST T&() const;
+	operator const T&() const;
 
 private:
 	T val_;
@@ -35,7 +33,7 @@ inline Wrap4BinaryIO<T>::Wrap4BinaryIO() :
 { }
 
 template<typename T>
-inline Wrap4BinaryIO<T>::Wrap4BinaryIO(CONST T &crVal) :
+inline Wrap4BinaryIO<T>::Wrap4BinaryIO(const T &crVal) :
 	val_(crVal)
 { }
 
@@ -50,7 +48,7 @@ inline Wrap4BinaryIO<T>::operator T&()
 }
 
 template<typename T>
-inline Wrap4BinaryIO<T>::operator CONST T&() const
+inline Wrap4BinaryIO<T>::operator const T&() const
 {
 	return val_;
 }
@@ -60,7 +58,7 @@ inline Wrap4BinaryIO<T>::operator CONST T&() const
 template<typename T>
 std::istream &operator>>(std::istream &rIstr, Wrap4BinaryIO<T> &rVal)
 {
-	rIstr.read(reinterpret_cast<CHAR*>(&static_cast<T&>(rVal)), sizeof(T));
+	rIstr.read(reinterpret_cast<char*>(&static_cast<T&>(rVal)), sizeof(T));
 
 	return rIstr;
 }
@@ -68,7 +66,7 @@ std::istream &operator>>(std::istream &rIstr, Wrap4BinaryIO<T> &rVal)
 template<typename T>
 std::ostream &operator<<(std::ostream &rOstr, Wrap4BinaryIO<T> &rVal)
 {
-	rOstr.write(reinterpret_cast<CONST CHAR*>(&static_cast<T&>(rVal)), sizeof(T));
+	rOstr.write(reinterpret_cast<const char*>(&static_cast<T&>(rVal)), sizeof(T));
 
 	return rOstr;
 }
@@ -76,16 +74,14 @@ std::ostream &operator<<(std::ostream &rOstr, Wrap4BinaryIO<T> &rVal)
 template<>
 std::istream &operator>><std::string>(std::istream &rIstr, Wrap4BinaryIO<std::string> &rVal)
 {
-	SIZE_T size = 0;
-	rIstr.read(reinterpret_cast<CHAR*>(&size), sizeof(size));
+	size_t size = 0;
+	rIstr.read(reinterpret_cast<char*>(&size), sizeof(size));
 
-	CHAR *pBuf = new CHAR[size + 1]();
-	rIstr.read(pBuf, size);
-	pBuf[size] = '\0';
+	std::unique_ptr<char[]> buf(new char[size + 1]);
+	rIstr.read(buf.get(), size);
+	buf[size] = '\0';
 
-	rVal = std::string(pBuf);
-
-	delete[] pBuf;
+	rVal = std::move(std::string(buf.get()));
 
 	return rIstr;
 }
@@ -93,9 +89,9 @@ std::istream &operator>><std::string>(std::istream &rIstr, Wrap4BinaryIO<std::st
 template<>
 std::ostream &operator<<<std::string>(std::ostream &rOstr, Wrap4BinaryIO<std::string> &rVal)
 {
-	SIZE_T size = rVal.operator CRSTRING().length();
-	rOstr.write(reinterpret_cast<CONST CHAR*>(&size), sizeof(size));
-	rOstr.write(rVal.operator CRSTRING().c_str(), size);
+	size_t size = rVal.operator const std::string&().length();
+	rOstr.write(reinterpret_cast<const char*>(&size), sizeof(size));
+	rOstr.write(rVal.operator const std::string&().c_str(), size);
 
 	return rOstr;
 }

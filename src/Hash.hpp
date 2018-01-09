@@ -1,33 +1,32 @@
 #pragma once
 
-#include <string> // std::string
+#include <string> // std::string, std::string_view
 
-#include "MyTypedefs.hpp"
+#include "MyDefines.hpp"
 
 namespace NHash
 {
-	CONST WORD MIN_HASH_LENGTH = 4;
-	CONST WORD MD5_HASH_LENGTH = 1 << 5;
+	constexpr unsigned short MIN_HASH_LENGTH = 4;
+	constexpr unsigned short MD5_HASH_LENGTH = 1 << 5;
 
-	class Hash
+	class Hash final
 	{
-		Hash(CONST Hash&);
-		Hash(Hash&&);
+		Hash(const Hash&) = default;
+		Hash(Hash&&)      = default;
 
-		Hash &operator=(CONST Hash&);
-		Hash &operator=(Hash&&);
+		Hash &operator=(const Hash&) = default;
+		Hash &operator=(Hash&&)      = default;
 
-		WORD getExistCode(WORD)      const _NOEXCEPT;
-		WORD getControlSum(CRSTRING) const _NOEXCEPT;
+		unsigned int getExistCode(unsigned int)      const noexcept;
+		unsigned int getControlSum(std::string_view) const noexcept;
 
 	public:
-		explicit Hash(CRSTRING);
-		~Hash();
+		explicit Hash(std::string_view);
+		~Hash() = default;
 
-		
-		std::string getHash(WORD = MD5_HASH_LENGTH);
+		std::string_view getHash(unsigned short = MD5_HASH_LENGTH) const;
 
 	private:
-		std::string hash_;
+		mutable std::string hash_;
 	};
 } // namespace NHash

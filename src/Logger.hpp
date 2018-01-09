@@ -1,7 +1,7 @@
 #pragma once
 
-#include <iosfwd>  // std::ofstream
-#include <vector> 
+#include <iosfwd> // std::ofstream
+#include <vector> // std::vector
 
 #include "Debugger.hpp"
 
@@ -17,38 +17,40 @@ public:
 	Logger();
 	~Logger();
 
-	std::ofstream &getOfstream();
+	static bool init();
+	static bool close();
 
-	template<typename ...T>
-	VOID printData(CRSTRING func, CONST T &...data)
+	static std::ofstream &getOfstream();
+
+	template<typename... T>
+	static void printData(std::string_view func, const T &...data)
 	{
 		stdPack(func);
 
-		using dest_t = typename std::common_type<T...>::type;
-		std::vector<dest_t> vec{ static_cast<dest_t>(data)... };
+		std::vector<typename std::common_type<T...>::type> vec{ static_cast<typename std::common_type<T...>::type>(data)... };
 
 		auto size = vec.size();
-		for (SIZE_T i = 0; i < size; ++i)
-		{
-			
-			log_ << "ARG" << i + 1 << ": " << vec[i] << (i + 1 == size ? "\n" : ", ");
+		for (size_t i = 0; i < size; ++i)
+		{		
+			//log_ << "ARG" << i + 1 << ": " << vec[i] << (i + 1 == size ? "\n" : ", ");
 		}
 	}
 
-	BOOL stdPack(CRSTRING, Type = Type::Debug);
-	BOOL write(CRSTRING, CRSTRING, Type = Type::Debug);
+	static bool stdPack(std::string_view, Type = Type::Debug);
+	static bool write(std::string_view, std::string_view, Type = Type::Debug);
 
 private:
-	std::ofstream log_;
+	static std::ofstream log_;
+	static bool          init_;
 };
 
 //===============================================================================================================================================
 
 template<typename T>
-Logger &operator<<(Logger&, CONST T&);
+inline Logger &operator<<(Logger&, const T&);
 
 template<typename T>
-inline Logger &operator<<(Logger &rLog, CONST T &crVal)
+inline Logger &operator<<(Logger &rLog, const T &crVal)
 {
 	rLog.log_ << crVal;
 
@@ -57,20 +59,18 @@ inline Logger &operator<<(Logger &rLog, CONST T &crVal)
 
 //===============================================================================================================================================
 
-extern Logger gLogger;
-
 #ifdef _DEBUG
-	#define LOG_DUMP()          gLogger << *this;
-	#define LOG_CONSTRUCTING()  gLogger.write(__FUNCTION__, "Constructing");
-	#define LOG_DESTRUCTING()   gLogger.write(__FUNCTION__, "Destructing");
-	#define LOG_ERROR(error)    gLogger.write(__FUNCTION__ + std::string("\t[ERROR]"), error);
-	#define LOG_ARGS(type, ...) gLogger.printData<type>(__FUNCTION__, __VA_ARGS__);
-	#define LOG_FUNC()          gLogger.write(__FUNCTION__, "");
+	#define LOG_DUMP()          Logger() << *this;
+	#define LOG_CONSTRUCTING()  Logger::write(__FUNCTION__, "Constructing");
+	#define LOG_DESTRUCTING()   Logger::write(__FUNCTION__, "Destructing");
+	#define LOG_ERROR(error)    Logger::write(__FUNCTION__ + "\t[ERROR]", error);
+	#define LOG_ARGS(type, ...) Logger::printData<type>(__FUNCTION__, __VA_ARGS__);
+	#define LOG_FUNC()          Logger::write(__FUNCTION__, "");
 #else
 	#define LOG_DUMPING()      
 	#define LOG_CONSTRUCTING()  
 	#define LOG_DESTRUCTING()
-	#define LOG_ERROR(error)   gLogger.write(__FUNCTION__ + std::string("\t[ERROR]"), error);
+	#define LOG_ERROR(error)    Logger::write(__FUNCTION__ + std::string("\t[ERROR]"), error);
 	#define LOG_ARGS()      
 	#define LOG_FUNC()
 #endif // _DEBUG

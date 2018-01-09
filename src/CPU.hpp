@@ -18,13 +18,13 @@ namespace NCpu
 
 #pragma endregion
 
-	template<typename T = INT>
+	template<typename T = int>
 	class CPU final
 	{
 	public:
 		typedef       T  &rVal_;
 		typedef       T &&rrVal_;
-		typedef CONST T  &crVal_;
+		typedef const T  &crVal_;
 
 		enum class MemoryStorage
 		{
@@ -34,40 +34,40 @@ namespace NCpu
 			STACK_FUNC_RET_ADDR
 		};
 
-		explicit CPU()  _NOEXCEPT;
-		CPU(CONST CPU&) _NOEXCEPT;
-		CPU(CPU&&)      _NOEXCEPT;
+		explicit CPU()  noexcept;
+		CPU(const CPU&) noexcept;
+		CPU(CPU&&)      noexcept;
 		~CPU();
 
-		CPU<T> &operator=(CONST CPU&);
-		CPU<T> &operator=(CPU&&);
+		CPU<T> &operator=(const CPU&) noexcept;
+		CPU<T> &operator=(CPU&&)      noexcept ;
 
-		VOID push(crVal_, MemoryStorage);
-		VOID push(rrVal_, MemoryStorage);
-		VOID push(REG, MemoryStorage);
-		VOID push(std::streampos);
-		VOID pop(MemoryStorage);
+		void push(crVal_, MemoryStorage);
+		void push(rrVal_, MemoryStorage);
+		void push(REG, MemoryStorage);
+		void push(std::streampos);
+		void pop(MemoryStorage);
 
-		std::streampos top() const _NOEXCEPT;
+		std::streampos top() const noexcept;
 
-		VOID add();
-		VOID sub();
-		VOID mul();
-		VOID div();
-		VOID dup();
+		void add();
+		void sub();
+		void mul();
+		void div();
+		void dup();
 
-		VOID sqrt();
-		VOID sin();
-		VOID cos();
+		void sqrt();
+		void sin();
+		void cos();
 
 		std::pair<T, T> getPair();
 
-		VOID swap(CPU&) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>);
+		void swap(CPU&) noexcept(std::_Is_nothrow_swappable<T>::value);
 
-		VOID move(REG, REG);
-		VOID move(crVal_, REG);
+		void move(REG, REG);
+		void move(crVal_, REG);
 
-		VOID dump(std::ostream& = std::cout) const;
+		void dump(std::ostream& = std::cout) const;
 		
 	private:
 		Register<T>           reg_;
@@ -77,7 +77,7 @@ namespace NCpu
 	};
 
 	template<typename T>
-	inline CPU<T>::CPU() _NOEXCEPT :
+	inline CPU<T>::CPU() noexcept :
 		reg_(),
 		ram_(),
 		stack_(),
@@ -88,7 +88,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline CPU<T>::CPU(CONST CPU &crCPU) _NOEXCEPT :
+	inline CPU<T>::CPU(const CPU &crCPU) noexcept :
 		reg_(crCPU.reg_),
 		ram_(crCPU.ram_),
 		stack_(crCPU.stack_),
@@ -99,7 +99,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline CPU<T>::CPU(CPU<T> &&rrCPU) _NOEXCEPT :
+	inline CPU<T>::CPU(CPU<T> &&rrCPU) noexcept :
 		reg_(std::move(rrCPU.reg_)),
 		ram_(std::move(rrCPU.ram_)),
 		stack_(std::move(rrCPU.stack_)),
@@ -116,7 +116,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline CPU<T> &CPU<T>::operator=(CONST CPU &crCPU)
+	inline CPU<T> &CPU<T>::operator=(const CPU &crCPU) noexcept
 	{
 		if (this != &crCPU)
 		{
@@ -130,7 +130,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline CPU<T> &CPU<T>::operator=(CPU<T> &&rrCPU)
+	inline CPU<T> &CPU<T>::operator=(CPU<T> &&rrCPU) noexcept
 	{
 		assert(this != &rrCPU);
 
@@ -143,7 +143,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::push(crVal_ val, MemoryStorage memory)
+	inline void CPU<T>::push(crVal_ val, MemoryStorage memory)
 	{ 
 		LOG_ARGS(crVal_, val)
 
@@ -151,7 +151,7 @@ namespace NCpu
 		{
 			stack_.push(val);
 
-			reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+			reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 			reg_.rehash();
 		}
 		else if (memory == MemoryStorage::RAM) ram_.put(val);
@@ -159,7 +159,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::push(rrVal_ val, MemoryStorage memory)
+	inline void CPU<T>::push(rrVal_ val, MemoryStorage memory)
 	{ 
 		LOG_ARGS(rrVal_, val)
 
@@ -167,7 +167,7 @@ namespace NCpu
 		{
 			stack_.push(val);
 
-			reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+			reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 			reg_.rehash();
 		}
 		else if (memory == MemoryStorage::RAM) ram_.put(val);		
@@ -175,23 +175,23 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::push(REG reg, MemoryStorage memory)
+	inline void CPU<T>::push(REG reg, MemoryStorage memory)
 	{	
-		LOG_ARGS(std::string, NRegister::GetReg(reg))
+		LOG_ARGS(std::string_view, NRegister::GetReg(reg))
 
 		if (memory == MemoryStorage::STACK)
 		{
-			stack_.push(reg_[static_cast<SIZE_T>(reg)]);
+			stack_.push(reg_[static_cast<size_t>(reg)]);
 
-			reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+			reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 			reg_.rehash();
 		}
-		else if (memory == MemoryStorage::RAM) ram_.put(reg_[static_cast<SIZE_T>(reg)]);	
+		else if (memory == MemoryStorage::RAM) ram_.put(reg_[static_cast<size_t>(reg)]);	
 		else NDebugger::Error(std::string("[") + __FUNCTION__ + "] Undefined operation");
 	}
 	
 	template<typename T>
-	inline VOID CPU<T>::push(std::streampos pos)
+	inline void CPU<T>::push(std::streampos pos)
 	{
 		LOG_ARGS(std::streampos, pos)
 
@@ -199,7 +199,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::pop(MemoryStorage memory)
+	inline void CPU<T>::pop(MemoryStorage memory)
 	{ 
 		LOG_FUNC()
 
@@ -207,7 +207,7 @@ namespace NCpu
 		{
 			stack_.pop();
 
-			reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+			reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 			reg_.rehash();
 		}
 		else if (memory == MemoryStorage::RAM) ram_.pop();
@@ -224,7 +224,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	VOID CPU<T>::add()
+	void CPU<T>::add()
 	{
 		LOG_FUNC()
 
@@ -236,12 +236,12 @@ namespace NCpu
 
 		stack_.push(a + b);
 
-		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+		reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
 	template<typename T>
-	VOID CPU<T>::sub()
+	void CPU<T>::sub()
 	{
 		LOG_FUNC()
 
@@ -253,12 +253,12 @@ namespace NCpu
 
 		stack_.push(a - b);
 
-		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+		reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
 	template<typename T>
-	VOID CPU<T>::mul()
+	void CPU<T>::mul()
 	{
 		LOG_FUNC()
 		
@@ -270,12 +270,12 @@ namespace NCpu
 
 		stack_.push(a * b);
 
-		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+		reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
 	template<typename T>
-	VOID CPU<T>::div()
+	void CPU<T>::div()
 	{
 		LOG_FUNC()
 
@@ -285,15 +285,15 @@ namespace NCpu
 		auto b = stack_.top();
 		stack_.pop();
 
-		if (!b) throw std::logic_error("[CPU::div] \"Division by zero\"\n");
+		if (!b) throw std::logic_error(std::string("[") + __FUNCTION__ + "] Division by zero\n");
 		stack_.push(a / b);
 
-		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+		reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::dup()
+	inline void CPU<T>::dup()
 	{
 		LOG_FUNC()
 
@@ -301,7 +301,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	VOID CPU<T>::sqrt()
+	void CPU<T>::sqrt()
 	{
 		LOG_FUNC()
 
@@ -313,14 +313,14 @@ namespace NCpu
 		auto a = stack_.top();
 		stack_.pop();
 
-		stack_.push(static_cast<T>(sqrt_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
+		stack_.push(static_cast<T>(sqrt_(std::is_integral<T>::value ? static_cast<double>(a) : a)));
 
-		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+		reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
 	template<typename T>
-	VOID CPU<T>::sin()
+	void CPU<T>::sin()
 	{
 		LOG_FUNC()
 
@@ -332,14 +332,14 @@ namespace NCpu
 		auto a = stack_.top();
 		stack_.pop();
 
-		stack_.push(static_cast<T>(sin_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
+		stack_.push(static_cast<T>(sin_(std::is_integral<T>::value ? static_cast<double>(a) : a)));
 
-		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+		reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
 	template<typename T>
-	VOID CPU<T>::cos()
+	void CPU<T>::cos()
 	{
 		LOG_FUNC()
 
@@ -351,9 +351,9 @@ namespace NCpu
 		auto a = stack_.top();
 		stack_.pop();
 
-		stack_.push(static_cast<T>(cos_(std::is_integral<T>::value ? static_cast<DOUBLE>(a) : a)));
+		stack_.push(static_cast<T>(cos_(std::is_integral<T>::value ? static_cast<double>(a) : a)));
 
-		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+		reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 		reg_.rehash();
 	}
 
@@ -370,14 +370,14 @@ namespace NCpu
 		pair.second = stack_.top();
 		stack_.pop();
 
-		reg_[static_cast<SIZE_T>(REG::SP)] = stack_.top();
+		reg_[static_cast<size_t>(REG::SP)] = stack_.top();
 		reg_.rehash();
 
 		return pair;
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::swap(CPU &rCPU) _NOEXCEPTARG(std::_Is_nothrow_swappable<T>)
+	inline void CPU<T>::swap(CPU &rCPU) noexcept(std::_Is_nothrow_swappable<T>::value)
 	{ 
 		reg_.swap(rCPU.reg_);
 		stack_.swap(rCPU.stack_); 
@@ -386,29 +386,29 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::move(REG src, REG dest) 
+	inline void CPU<T>::move(REG src, REG dest) 
 	{ 
-		LOG_ARGS(SIZE_T, static_cast<SIZE_T>(src), static_cast<SIZE_T>(dest))
+		LOG_ARGS(size_t, static_cast<size_t>(src), static_cast<size_t>(dest))
 		
-		reg_[static_cast<SIZE_T>(dest)] = reg_[static_cast<SIZE_T>(src)];
+		reg_[static_cast<size_t>(dest)] = reg_[static_cast<size_t>(src)];
 		reg_.rehash();
 	}
 
 	template<typename T>
-	inline VOID CPU<T>::move(crVal_ src, REG dest) 
+	inline void CPU<T>::move(crVal_ src, REG dest) 
 	{ 
-		LOG_ARGS(SIZE_T, src, reinterpret_cast<crVal_>(dest))
+		LOG_ARGS(size_t, src, reinterpret_cast<crVal_>(dest))
 
-		reg_[static_cast<SIZE_T>(dest)] = src;
+		reg_[static_cast<size_t>(dest)] = src;
 		reg_.rehash();
 	}
 
 	template<typename T>
-	VOID CPU<T>::dump(std::ostream &rOstr /* = std::cout */) const
+	void CPU<T>::dump(std::ostream &rOstr /* = std::cout */) const
 	{
 		LOG_FUNC()
 			
-		NDebugger::Info("\n\t\t[CPU DUMP]", NDebugger::TextColor::LightMagenta, TRUE, rOstr);
+		NDebugger::Info("\n\t\t[CPU DUMP]", NDebugger::TextColor::LightMagenta, true, rOstr);
 
 		rOstr << "CPU <" << typeid(T).name() << "> [0x" << this << "]\n\n";
 
@@ -416,7 +416,7 @@ namespace NCpu
 		ram_.dump();
 		stack_.dump();
 
-		NDebugger::Info("\t\t[  END   ]\n", NDebugger::TextColor::LightMagenta, TRUE, rOstr);
+		NDebugger::Info("\t\t[  END   ]\n", NDebugger::TextColor::LightMagenta, true, rOstr);
 	}
 } // namespace NCpu
 

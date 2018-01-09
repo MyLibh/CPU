@@ -6,6 +6,7 @@
 #include "Parser.hpp"
 #include "CPU.hpp"
 #include "Wrap4BinaryIO.hpp"
+#include "Commands.hpp"
 
 namespace NCompiler
 {
@@ -18,112 +19,75 @@ namespace NCompiler
 
 #pragma endregion
 
-	template<typename T = INT>
+	template<typename T = int>
 	class Compiler final
 	{
-		CPU<T> cpu_;
+		T getValue(std::string_view) const;
 
-		T getValue(CRSTRING) const;
-
-		REG  makeReg(CRSTRING) const;
-		BOOL   isReg(CRSTRING) const;
+		REG  makeReg(std::string_view) const;
+		bool   isReg(std::string_view) const;
 
 	public:
-		enum class commands_ : UNSIGNED
-		{
-			undefined,
-
-			push = 1,
-			pop = 2,
-
-			add = 3,
-			sub = 4,
-			mul = 5,
-			div = 6,
-			sqrt = 7,
-			dup = 8,
-			sin = 9,
-			cos = 10,
-
-			dump = 11,
-
-			cmp = 12,
-			jump = 13,
-
-			je = 14,
-			jne = 15,
-			ja = 16,
-			jae = 17,
-			jb = 18,
-			jbe = 19,
-
-			move = 20,
-
-			call = 21,
-			ret = 22,
-
-			end = 23
-		};
-
-		explicit Compiler()       _NOEXCEPT;
-		Compiler(CONST Compiler&);
-		Compiler(Compiler&&)      _NOEXCEPT;
+		explicit Compiler()       noexcept;
+		Compiler(const Compiler&) noexcept;
+		Compiler(Compiler&&)      noexcept;
 		~Compiler();
 
-		Compiler<T> &operator=(CONST Compiler&);
-		Compiler<T> &operator=(Compiler&&);
+		Compiler<T> &operator=(const Compiler&) noexcept;
+		Compiler<T> &operator=(Compiler&&)      noexcept;
 
-		BOOL text2com(CRSTRING) const;
-		BOOL text2bin(CRSTRING) const;
-		BOOL com2bin(CRSTRING)  const;
+		bool text2com(const std::string&) const;
+		bool text2bin(const std::string&) const;
+		bool com2bin(const std::string&)  const;
 
-		BOOL fromTextFile(CRSTRING);
-		BOOL fromComFile(CRSTRING);
-		BOOL fromBinTextFile(CRSTRING);
-		BOOL fromBinComFile(CRSTRING);
+		bool fromTextFile(const std::string&);
+		bool fromComFile(const std::string&);
+		bool fromBinTextFile(const std::string&);
+		bool fromBinComFile(const std::string&);
+
+	private:
+		CPU<T> cpu_;
 	};
 
 	template<typename T>
-	inline Compiler<T>::Compiler() _NOEXCEPT :
-	cpu_()
-	{ }
+	inline Compiler<T>::Compiler() noexcept :
+		cpu_()
+	{
+		Logger::init();
+	}
 
 	template<typename T>
-	inline Compiler<T>::Compiler(CONST Compiler &crComp) :
+	inline Compiler<T>::Compiler(const Compiler &crComp) noexcept:
 		cpu_(crComp.cpu_)
 	{ }
 
 	template<typename T>
-	inline Compiler<T>::Compiler(Compiler &&rrComp) _NOEXCEPT :
-		cpu_(rrComp.cpu_)
+	inline Compiler<T>::Compiler(Compiler &&rrComp) noexcept :
+		cpu_(std::move(rrComp.cpu_))
 	{ }
 
 	template<typename T>
 	inline Compiler<T>::~Compiler()
-	{ }
-
-	template<typename T>
-	T Compiler<T>::getValue(CRSTRING str) const
 	{
-		std::stringstream sstr(str);
-		if (str[0] == '[')
-		{
-			CHAR c = 'A';
-			sstr >> c;
-
-			assert(c == '[');
-		}
-
-		T val = NULL;
-		sstr >> val;
-
-		return (val ? val : static_cast<T>(commands_::undefined));
+		Logger::close();
 	}
 
 	template<typename T>
-	REG Compiler<T>::makeReg(CRSTRING str) const
+	T Compiler<T>::getValue(std::string_view str) const
+	{	
+		if (str.front() == '[') str.remove_prefix(1);
+		
+		std::stringstream sstr(str.data());
+		T val = T();
+		sstr >> val;
+
+		return val;
+	}
+
+	template<typename T>
+	REG Compiler<T>::makeReg(std::string_view str) const
 	{
-		if (str == "ax" || str == "[ax]") return REG::AX;
+		if      (str == "ax" || str == "[ax]") return REG::AX;
 		else if (str == "bx" || str == "[bx]") return REG::BX;
 		else if (str == "cx" || str == "[cx]") return REG::CX;
 		else if (str == "dx" || str == "[dx]") return REG::DX;
@@ -134,13 +98,13 @@ namespace NCompiler
 	}
 
 	template<typename T>
-	inline BOOL Compiler<T>::isReg(CRSTRING val) const
+	inline bool Compiler<T>::isReg(std::string_view val) const
 	{
 		return (makeReg(val) != REG::NUM);
 	}
 
 	template<typename T>
-	inline Compiler<T> &Compiler<T>::operator=(CONST Compiler &crComp)
+	inline Compiler<T> &Compiler<T>::operator=(const Compiler &crComp) noexcept
 	{
 		if (this != &crComp) cpu_ = crComp.cpu_;
 
@@ -148,7 +112,7 @@ namespace NCompiler
 	}
 
 	template<typename T>
-	inline Compiler<T> &Compiler<T>::operator=(Compiler &&rrComp)
+	inline Compiler<T> &Compiler<T>::operator=(Compiler &&rrComp) noexcept
 	{
 		assert(this != &rrComp);
 
@@ -160,77 +124,55 @@ namespace NCompiler
 #pragma region Functions Compiler<>::toSomeFile
 
 	template<typename T>
-	BOOL Compiler<T>::text2com(CRSTRING filename) const
+	bool Compiler<T>::text2com(const std::string &crFilename) const
 	{
-		std::ifstream input(filename + ".txt");
+		std::ifstream input(crFilename + ".txt");
 		if (!input.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + filename);
+			NDebugger::Error("Cannot open file: " + crFilename);
 
-			return FALSE;
+			return false;
 		}
 
-		std::string outputFile = filename + "Com" + ".txt";
-		std::ofstream output(outputFile);
+		std::ofstream output(crFilename + "Com.txt");
 		if (!output.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + outputFile + "Com");
+			NDebugger::Error("Cannot open file: " + crFilename + "Com");
 
 			input.close();
 
-			return FALSE;
+			return false;
 		}
 
 		while (!input.eof())
 		{
-			CHAR tmp[MAX_LINE_LENGTH] = {};
-			input.getline(tmp, MAX_LINE_LENGTH, '\n');
+			char tmp[MAX_LINE_LENGTH] = { };
+			input.getline(tmp, MAX_LINE_LENGTH, '\n'); // Get the line from input file
 
-			Operation op(std::move(ParseCode(tmp)));
+			Operation op(std::move(ParseCode(tmp))); // Parse the line
+			if (!op.cmd.length()) // Skip the empty line
+				continue;  
 
-			if (!op.cmd.length()) continue;  // Have to check everything so that there are no undefined commands
+			else if (op.cmd[0] == ':' || op.cmd[op.cmd.length() - 1] == ':') // Write the label or signature of the function
+				output << op.cmd;
 
-			else if (op.cmd == "push") output << static_cast<UNSIGNED>(commands_::push) << " " << op.args[0];
-			else if (op.cmd == "pop")  output << static_cast<UNSIGNED>(commands_::pop) << " " << op.args[0];
+			else if (auto it = std::find_if(std::begin(cgTable), std::end(cgTable), [&] (const Command &com) -> bool { return (com.name == op.cmd); }); it != std::end(cgTable)) // Search the cmd in cgTable
+			{
+				output << static_cast<unsigned>(it->number); // Write command number
 
-			else if (op.cmd == "add")  output << static_cast<UNSIGNED>(commands_::add);
-			else if (op.cmd == "sub")  output << static_cast<UNSIGNED>(commands_::sub);
-			else if (op.cmd == "mul")  output << static_cast<UNSIGNED>(commands_::mul);
-			else if (op.cmd == "div")  output << static_cast<UNSIGNED>(commands_::div);
-			else if (op.cmd == "dup")  output << static_cast<UNSIGNED>(commands_::dup);
-			else if (op.cmd == "sin")  output << static_cast<UNSIGNED>(commands_::sin);
-			else if (op.cmd == "cos")  output << static_cast<UNSIGNED>(commands_::cos);
-			else if (op.cmd == "sqrt") output << static_cast<UNSIGNED>(commands_::sqrt);
-
-			else if (op.cmd == "dump") output << static_cast<UNSIGNED>(commands_::dump);
-
-			else if (op.cmd == "cmp")  output << static_cast<UNSIGNED>(commands_::cmp) << " " << op.args[0] << " " << op.args[1];
-			else if (op.cmd == "jump") output << static_cast<UNSIGNED>(commands_::jump) << " " << op.args[0];
-
-			else if (op.cmd == "je")   output << static_cast<UNSIGNED>(commands_::je) << " " << op.args[0];
-			else if (op.cmd == "jne")  output << static_cast<UNSIGNED>(commands_::jne) << " " << op.args[0];
-			else if (op.cmd == "ja")   output << static_cast<UNSIGNED>(commands_::ja) << " " << op.args[0];
-			else if (op.cmd == "jae")  output << static_cast<UNSIGNED>(commands_::jae) << " " << op.args[0];
-			else if (op.cmd == "jb")   output << static_cast<UNSIGNED>(commands_::jb) << " " << op.args[0];
-			else if (op.cmd == "jbe")  output << static_cast<UNSIGNED>(commands_::jbe) << " " << op.args[0];
-
-			else if (op.cmd == "move") output << static_cast<UNSIGNED>(commands_::move) << " " << op.args[0] << " " << op.args[1];
-
-			else if (op.cmd == "call") output << static_cast<UNSIGNED>(commands_::call) << " " << op.args[0];
-			else if (op.cmd == "ret")  output << static_cast<UNSIGNED>(commands_::ret);
-
-			else if (op.cmd == "end")  output << static_cast<UNSIGNED>(commands_::end);
-
-			else if (op.cmd[0] == ':' || op.cmd[op.cmd.length() - 1] == ':') output << op.cmd;
-
-			else
+				if (char num = it->numOfArgs; num != '0')
+					for (auto i = '0'; i < num; ++i)
+						output << " " << op.args[i - '0']; // Write args
+			}
+			
+			else // Unknown command
 			{
 				NDebugger::Error("Unknown command: " + std::string(op.cmd));
 
 				output.close();
 				input.close();
 
-				return FALSE;
+				return false;
 			}
 
 			output << std::endl;
@@ -239,205 +181,142 @@ namespace NCompiler
 		output.close();
 		input.close();
 
-		return TRUE;
+		return true;
 	}
 
 	template<typename T>
-	BOOL Compiler<T>::text2bin(CRSTRING filename) const
+	bool Compiler<T>::text2bin(const std::string &crFilename) const
 	{
-		std::ifstream input(filename + ".txt");
+		std::ifstream input(crFilename + ".txt");
 		if (!input.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + filename);
+			NDebugger::Error("Cannot open file: " + crFilename);
 
-			return FALSE;
+			return false;
 		}
 
-		std::string outputFile = filename + "BinText" + ".txt";
-		std::ofstream output(outputFile, std::ios::binary);
+		std::ofstream output(crFilename + "BinText.txt", std::ios::binary);
 		if (!output.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + outputFile + "BinText");
+			NDebugger::Error("Cannot open file: " + crFilename + "BinText");
 
 			input.close();
 
-			return FALSE;
+			return false;
 		}
-
-#pragma warning(push)
-#pragma warning(disable:4238) // Standard extension: use of the right-hand class value as a left-handed value in defines
 
 #define WRITE_STRING(str) Wrap4BinaryIO<std::string>(str)
 #define ARG(index)        WRITE_STRING(op.args[index])
 
 		while (!input.eof())
 		{
-			CHAR tmp[MAX_LINE_LENGTH] = {};
-			input.getline(tmp, MAX_LINE_LENGTH, '\n');
+			char tmp[MAX_LINE_LENGTH] = { };
+			input.getline(tmp, MAX_LINE_LENGTH, '\n'); // Get the line from input file
 
-			Operation op(std::move(ParseCode(tmp)));
-			if (!op.cmd.length() || op.cmd == "null") continue; // Have to check everything so that there are no undefined commands
+			Operation op(std::move(ParseCode(tmp))); // Parse the line
+			if (!op.cmd.length()) // Skip the empty line
+				continue;		
 
-			else if (op.cmd == "push") output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (op.cmd == "pop")
-			{
+			else if (op.cmd[0] == ':' || op.cmd[op.cmd.length() - 1] == ':') // Write the label or signature of the function
 				output << WRITE_STRING(op.cmd);
 
-				if (op.args[0].length()) output << ARG(0);
+			else if (auto it = std::find_if(std::begin(cgTable), std::end(cgTable), [&](const Command &com) -> bool { return (com.name == op.cmd); }); it != std::end(cgTable)) // Search the cmd in cgTable
+			{
+				output << WRITE_STRING(op.cmd); // Write command name
+
+				if (char num = it->numOfArgs; num != '0')
+					for (auto i = '0'; i < num; ++i)
+						output << ARG(i - '0'); // Write args
 			}
 
-			else if (op.cmd == "add")  output << WRITE_STRING(op.cmd);
-			else if (op.cmd == "sub")  output << WRITE_STRING(op.cmd);
-			else if (op.cmd == "mul")  output << WRITE_STRING(op.cmd);
-			else if (op.cmd == "div")  output << WRITE_STRING(op.cmd);
-			else if (op.cmd == "dup")  output << WRITE_STRING(op.cmd);
-			else if (op.cmd == "sin")  output << WRITE_STRING(op.cmd);
-			else if (op.cmd == "cos")  output << WRITE_STRING(op.cmd);
-			else if (op.cmd == "sqrt") output << WRITE_STRING(op.cmd);
-
-			else if (op.cmd == "dump") output << WRITE_STRING(op.cmd);
-
-			else if (op.cmd == "cmp")  output << WRITE_STRING(op.cmd) << ARG(0) << ARG(1);
-			else if (op.cmd == "jump") output << WRITE_STRING(op.cmd) << ARG(0);
-
-			else if (op.cmd == "je")   output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (op.cmd == "jne")  output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (op.cmd == "ja")   output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (op.cmd == "jae")  output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (op.cmd == "jb")   output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (op.cmd == "jbe")  output << WRITE_STRING(op.cmd) << ARG(0);
-
-			else if (op.cmd == "move") output << WRITE_STRING(op.cmd) << ARG(0) << ARG(1);
-
-			else if (op.cmd == "call") output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (op.cmd == "ret")  output << WRITE_STRING(op.cmd);
-
-			else if (op.cmd == "end")  output << WRITE_STRING(op.cmd);
-
-			else if (op.cmd[0] == ':' || op.cmd[op.cmd.length() - 1] == ':') output << WRITE_STRING(op.cmd);
-
-			else
+			else // Unknown command
 			{
 				NDebugger::Error("Unknown command: " + op.cmd);
 
 				output.close();
 				input.close();
 
-				return FALSE;
+				return false;
 			}
 		}
 
 #undef ARG
 #undef WRITE_STRING
 
-#pragma warning(pop)
-
 		output.close();
 		input.close();
 
-		return TRUE;
+		return true;
 	}
 
 	template<typename T>
-	BOOL Compiler<T>::com2bin(CRSTRING filename) const
+	bool Compiler<T>::com2bin(const std::string &crFilename) const
 	{
-		std::ifstream input(filename + "Com.txt");
+		std::ifstream input(crFilename + "Com.txt");
 		if (!input.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + filename);
+			NDebugger::Error("Cannot open file: " + crFilename + "Com");
 
-			return FALSE;
+			return false;
 		}
 
-		std::string outputFile = filename + "BinCom" + ".txt";
-		std::ofstream output(outputFile, std::ios::binary);
+		std::ofstream output(crFilename + "BinCom.txt", std::ios::binary);
 		if (!output.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + outputFile + "BinCom");
+			NDebugger::Error("Cannot open file: " + crFilename + "BinCom");
 
 			input.close();
 
-			return FALSE;
+			return false;
 		}
-
-#pragma warning(push)
-#pragma warning(disable:4238) // Standard extension: use of the right-hand class value as a left-handed value in defines
 
 #define WRITE_STRING(str) Wrap4BinaryIO<std::string>(str)
 #define ARG(index)        WRITE_STRING(op.args[index])
 
 		while (!input.eof())
 		{
-			CHAR tmp[MAX_LINE_LENGTH] = {};
-			input.getline(tmp, MAX_LINE_LENGTH, '\n');
+			char tmp[MAX_LINE_LENGTH] = { };
+			input.getline(tmp, MAX_LINE_LENGTH, '\n'); // Get the line from input file
 
-			Operation op(std::move(ParseCode(tmp)));
-			if (!op.cmd.length()) continue;  // Have to check everything so that there are no undefined commands
+			Operation op(std::move(ParseCode(tmp))); // Parse the line
+			if (!op.cmd.length()) // Skip the empty line
+				continue;
 
-			else if (op.cmd[0] == ':' || op.cmd[op.cmd.length() - 1] == ':')
+			else if (op.cmd[0] == ':' || op.cmd[op.cmd.length() - 1] == ':') // Write the label or signature of the function
 			{
 				output << WRITE_STRING(op.cmd);
 
 				continue;
 			}
 
-			INT command = std::stoi(op.cmd);
-			if      (command == static_cast<INT>(commands_::push)) output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (command == static_cast<INT>(commands_::pop))
+			Commands cmd = static_cast<Commands>(std::stoi(op.cmd));
+			if (auto it = std::find_if(std::begin(cgTable), std::end(cgTable), [&](const Command &com) -> bool { return (com.number == cmd); }); it != std::end(cgTable)) // Search the cmd in cgTable
 			{
-				output << WRITE_STRING(op.cmd);
+				output << WRITE_STRING(op.cmd); // Write command number
 
-				if (op.args[0].length()) output << WRITE_STRING(op.args[0]);
+				if (char num = it->numOfArgs; num != '0')
+					for (auto i = '0'; i < num; ++i)
+						output << ARG(i - '0'); // Write args
 			}
 
-			else if (command == static_cast<INT>(commands_::add))  output << WRITE_STRING(op.cmd);
-			else if (command == static_cast<INT>(commands_::sub))  output << WRITE_STRING(op.cmd);
-			else if (command == static_cast<INT>(commands_::div))  output << WRITE_STRING(op.cmd);
-			else if (command == static_cast<INT>(commands_::mul))  output << WRITE_STRING(op.cmd);
-			else if (command == static_cast<INT>(commands_::dup))  output << WRITE_STRING(op.cmd);
-			else if (command == static_cast<INT>(commands_::sin))  output << WRITE_STRING(op.cmd);
-			else if (command == static_cast<INT>(commands_::cos))  output << WRITE_STRING(op.cmd);
-			else if (command == static_cast<INT>(commands_::sqrt)) output << WRITE_STRING(op.cmd);
-
-			else if (command == static_cast<INT>(commands_::dump)) output << WRITE_STRING(op.cmd);
-
-			else if (command == static_cast<INT>(commands_::cmp))  output << WRITE_STRING(op.cmd) << ARG(0) << ARG(1);
-			else if (command == static_cast<INT>(commands_::jump)) output << WRITE_STRING(op.cmd) << ARG(0);
-
-			else if (command == static_cast<INT>(commands_::je))  output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (command == static_cast<INT>(commands_::jne)) output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (command == static_cast<INT>(commands_::ja))  output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (command == static_cast<INT>(commands_::jae)) output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (command == static_cast<INT>(commands_::jb))  output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (command == static_cast<INT>(commands_::jbe)) output << WRITE_STRING(op.cmd) << ARG(0);
-
-			else if (command == static_cast<INT>(commands_::move)) output << WRITE_STRING(op.cmd) << ARG(0) << ARG(1);
-
-			else if (command == static_cast<INT>(commands_::call)) output << WRITE_STRING(op.cmd) << ARG(0);
-			else if (command == static_cast<INT>(commands_::ret))  output << WRITE_STRING(op.cmd);
-
-			else if (command == static_cast<INT>(commands_::end)) output << WRITE_STRING(op.cmd);
-
-			else
+			else // Unknown command
 			{
 				NDebugger::Error("Unknown command: " + op.cmd);
 
 				input.close();
 				output.close();
 
-				return FALSE;
+				return false;
 			}
 		}
 
 #undef ARG
 #undef WRITE_STRING
 
-#pragma warning(pop)
-
 		output.close();
 		input.close();
 
-		return TRUE;
+		return true;
 	}
 
 #pragma endregion
@@ -445,19 +324,19 @@ namespace NCompiler
 #pragma region Functions Compiler<>::fromSomeFile
 
 	template<typename T>
-	BOOL Compiler<T>::fromTextFile(CRSTRING filename)
+	bool Compiler<T>::fromTextFile(const std::string &crFilename)
 	{
-		std::ifstream file(filename + ".txt");
+		std::ifstream file(crFilename + ".txt");
 		if (!file.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + filename);
+			NDebugger::Error("Cannot open file: " + crFilename);
 
-			return FALSE;
+			return false;
 		}
 
 		while (!file.eof())
 		{
-			CHAR tmp[MAX_LINE_LENGTH] = { };
+			char tmp[MAX_LINE_LENGTH] = { };
 			file.getline(tmp, MAX_LINE_LENGTH, '\n');
 
 			Operation op(std::move(ParseCode(tmp)));
@@ -514,7 +393,7 @@ namespace NCompiler
 
 			else if (op.cmd == "move")
 			{
-				BOOL isArg0Reg = isReg(op.args[0]),
+				bool isArg0Reg = isReg(op.args[0]),
 					isArg1Reg = isReg(op.args[1]);
 
 				if (isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(op.args[0]), makeReg(op.args[1]));
@@ -540,33 +419,32 @@ namespace NCompiler
 
 				file.close();
 
-				return FALSE;
+				return false;
 			}
 		}
 
 		file.close();
 
-		return TRUE;
+		return true;
 	}
 
 	template<typename T>
-	BOOL Compiler<T>::fromComFile(CRSTRING filename)
+	bool Compiler<T>::fromComFile(const std::string &crFilename)
 	{
-		std::ifstream file(filename + "Com.txt");
+		std::ifstream file(crFilename + "Com.txt");
 		if (!file.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + filename + "Com");
+			NDebugger::Error("Cannot open file: " + crFilename + "Com");
 
-			return FALSE;
+			return false;
 		}
 
 		while (!file.eof())
 		{
-			CHAR tmp[MAX_LINE_LENGTH] = { };
-			file.getline(tmp, MAX_LINE_LENGTH, '\n');
+			char tmp[MAX_LINE_LENGTH] = { };
+			file.getline(tmp, MAX_LINE_LENGTH, '\n'); // Get the line from file
 
-			Operation op(std::move(ParseCode(tmp)));
-
+			Operation op(std::move(ParseCode(tmp))); // Parse the line
 			if (!op.cmd.length() || op.cmd[0] == ':' || op.cmd == "null") continue; // Skip the label or zero-line
 
 			else if (op.cmd[op.cmd.length() - 1] == ':') // Skip the function
@@ -575,13 +453,13 @@ namespace NCompiler
 				{
 					file.getline(tmp, MAX_LINE_LENGTH, '\n');
 					op = std::move(ParseCode(tmp));
-				} while (std::stoi(op.cmd) != static_cast<INT>(commands_::ret));
+				} while (std::stoi(op.cmd) != static_cast<int>(Commands::ret));
 
 				continue;
 			}
 
-			INT command = std::stoi(op.cmd);
-			if (command == static_cast<INT>(commands_::push))
+			int command = std::stoi(op.cmd);
+			if (command == static_cast<int>(Commands::push))
 			{
 				auto val = getValue(op.args[0]);
 				auto reg = makeReg(op.args[0]);
@@ -591,54 +469,54 @@ namespace NCompiler
 				else if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
 				else		                                      cpu_.push(val, CPU<>::MemoryStorage::STACK);
 			}
-			else if (command == static_cast<INT>(commands_::pop))
+			else if (command == static_cast<int>(Commands::pop))
 			{
 				if (op.args[0][0] == '[') cpu_.pop(CPU<>::MemoryStorage::RAM);
 				else                      cpu_.pop(CPU<>::MemoryStorage::STACK);
 			}
 
-			else if (command == static_cast<INT>(commands_::add))  cpu_.add();
-			else if (command == static_cast<INT>(commands_::sub))  cpu_.sub();
-			else if (command == static_cast<INT>(commands_::div))  cpu_.div();
-			else if (command == static_cast<INT>(commands_::dup))  cpu_.dup();
-			else if (command == static_cast<INT>(commands_::sin))  cpu_.sin();
-			else if (command == static_cast<INT>(commands_::cos))  cpu_.cos();
-			else if (command == static_cast<INT>(commands_::sqrt)) cpu_.sqrt();
+			else if (command == static_cast<int>(Commands::add))  cpu_.add();
+			else if (command == static_cast<int>(Commands::sub))  cpu_.sub();
+			else if (command == static_cast<int>(Commands::div))  cpu_.div();
+			else if (command == static_cast<int>(Commands::dup))  cpu_.dup();
+			else if (command == static_cast<int>(Commands::sin))  cpu_.sin();
+			else if (command == static_cast<int>(Commands::cos))  cpu_.cos();
+			else if (command == static_cast<int>(Commands::sqrt)) cpu_.sqrt();
 
-			else if (command == static_cast<INT>(commands_::dump)) cpu_.dump();
+			else if (command == static_cast<int>(Commands::dump)) cpu_.dump();
 
-			else if (command == static_cast<INT>(commands_::cmp))  cpu_.push(getValue(op.args[0]), CPU<>::MemoryStorage::STACK),
+			else if (command == static_cast<int>(Commands::cmp))  cpu_.push(getValue(op.args[0]), CPU<>::MemoryStorage::STACK),
 				cpu_.push(getValue(op.args[1]), CPU<>::MemoryStorage::STACK);
-			else if (command == static_cast<INT>(commands_::jump)) Move2Label(file, ':' + op.args[0]);
+			else if (command == static_cast<int>(Commands::jump)) Move2Label(file, ':' + op.args[0]);
 
-			else if (command == static_cast<INT>(commands_::je)) { auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (command == static_cast<INT>(commands_::jne)) { auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (command == static_cast<INT>(commands_::ja)) { auto pair = cpu_.getPair(); if (pair.first > pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (command == static_cast<INT>(commands_::jae)) { auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (command == static_cast<INT>(commands_::jb)) { auto pair = cpu_.getPair(); if (pair.first < pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (command == static_cast<INT>(commands_::jbe)) { auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2Label(file, ':' + op.args[0]); }
+			else if (command == static_cast<int>(Commands::je)) { auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2Label(file, ':' + op.args[0]); }
+			else if (command == static_cast<int>(Commands::jne)) { auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2Label(file, ':' + op.args[0]); }
+			else if (command == static_cast<int>(Commands::ja)) { auto pair = cpu_.getPair(); if (pair.first > pair.second) Move2Label(file, ':' + op.args[0]); }
+			else if (command == static_cast<int>(Commands::jae)) { auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2Label(file, ':' + op.args[0]); }
+			else if (command == static_cast<int>(Commands::jb)) { auto pair = cpu_.getPair(); if (pair.first < pair.second) Move2Label(file, ':' + op.args[0]); }
+			else if (command == static_cast<int>(Commands::jbe)) { auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2Label(file, ':' + op.args[0]); }
 
-			else if (command == static_cast<INT>(commands_::move))
+			else if (command == static_cast<int>(Commands::move))
 			{
-				BOOL isArg0Reg = isReg(op.args[0]),
+				bool isArg0Reg = isReg(op.args[0]),
 					isArg1Reg = isReg(op.args[1]);
 
 				if (isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(op.args[0]), makeReg(op.args[1]));
 				else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(op.args[0]), makeReg(op.args[1]));
 			}
 
-			else if (command == static_cast<INT>(commands_::call))
+			else if (command == static_cast<int>(Commands::call))
 			{
 				cpu_.push(file.tellg());
 				Move2Label(file, op.args[0] + ':');
 			}
-			else if (command == static_cast<INT>(commands_::ret))
+			else if (command == static_cast<int>(Commands::ret))
 			{
 				file.seekg(cpu_.top());
 				cpu_.pop(CPU<>::MemoryStorage::STACK_FUNC_RET_ADDR);
 			}
 
-			else if (command == static_cast<INT>(commands_::end)) break;
+			else if (command == static_cast<int>(Commands::end)) break;
 
 			else
 			{
@@ -646,29 +524,29 @@ namespace NCompiler
 
 				file.close();
 
-				return FALSE;
+				return false;
 			}
 		}
 
 		file.close();
 
-		return TRUE;
+		return true;
 	}
 
 	template<typename T>
-	BOOL Compiler<T>::fromBinTextFile(CRSTRING filename)
+	bool Compiler<T>::fromBinTextFile(const std::string &crFilename)
 	{
-		std::ifstream file(filename + "BinText.txt", std::ios::binary);
+		std::ifstream file(crFilename + "BinText.txt", std::ios::binary);
 		if (!file.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + filename + "BinText");
+			NDebugger::Error("Cannot open file: " + crFilename + "BinText");
 
-			return FALSE;
+			return false;
 		}
 
-#define COMMAND command.operator CRSTRING()
+#define COMMAND command.operator const std::string&()
 
-		BOOL skipCommand = FALSE;
+		bool skipCommand = false;
 		while (!file.eof())
 		{
 			Wrap4BinaryIO<std::string> command;
@@ -678,7 +556,7 @@ namespace NCompiler
 			
 			if (!COMMAND.length() || COMMAND[0] == ':') continue; // Skip the label
 
-			else if (COMMAND[COMMAND.length() - 1] == ':') skipCommand = TRUE; // Skip the function
+			else if (COMMAND[COMMAND.length() - 1] == ':') skipCommand = true; // Skip the function
 
 			else if (COMMAND == "push")
 			{
@@ -686,8 +564,8 @@ namespace NCompiler
 
 				if (skipCommand) continue;
 
-				auto val = getValue(command);
-				auto reg = makeReg(command);
+				auto val = getValue(command.operator const std::string&());
+				auto reg = makeReg(command.operator const std::string&());
 
 				if      (COMMAND[0] == '[' && reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::RAM);
 				else if (COMMAND[0] == '[' && reg == REG::NUM) cpu_.push(val, CPU<>::MemoryStorage::RAM);
@@ -723,32 +601,29 @@ namespace NCompiler
 
 			else if (COMMAND == "cmp")
 			{
-				file >> command; //-V760
-				if (!skipCommand)
+				auto pushVal = [&]() mutable
 				{
-					auto reg = makeReg(command);
+					file >> command;
+					if (!skipCommand)
+					{
+						auto reg = makeReg(command.operator const std::string&());
 
-					if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
-					else                 cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
-				}
+						if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
+						else                 cpu_.push(getValue(command.operator const std::string&()), CPU<>::MemoryStorage::STACK);
+					}
+				};
 
-				file >> command;
-				if (!skipCommand) 
-				{
-					auto reg = makeReg(command);
-
-					if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
-					else                 cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
-				}
+				pushVal();
+				pushVal();
 			}
-			else if (COMMAND == "jump") { file >> command; if (skipCommand) continue; Move2LabelBin(file, command); }
+			else if (COMMAND == "jump") { file >> command; if (skipCommand) continue; Move2LabelBin(file, command.operator const std::string&()); }
 
-			else if (COMMAND == "je")  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2LabelBin(file, command); }
-			else if (COMMAND == "jne") { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2LabelBin(file, command); }
-			else if (COMMAND == "ja")  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first  > pair.second) Move2LabelBin(file, command); }
-			else if (COMMAND == "jae") { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2LabelBin(file, command); }
-			else if (COMMAND == "jb")  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first  < pair.second) Move2LabelBin(file, command); }
-			else if (COMMAND == "jbe") { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2LabelBin(file, command); }
+			else if (COMMAND == "je")  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2LabelBin(file, command.operator const std::string&()); }
+			else if (COMMAND == "jne") { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2LabelBin(file, command.operator const std::string&()); }
+			else if (COMMAND == "ja")  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first  > pair.second) Move2LabelBin(file, command.operator const std::string&()); }
+			else if (COMMAND == "jae") { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2LabelBin(file, command.operator const std::string&()); }
+			else if (COMMAND == "jb")  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first  < pair.second) Move2LabelBin(file, command.operator const std::string&()); }
+			else if (COMMAND == "jbe") { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2LabelBin(file, command.operator const std::string&()); }
 
 			else if (COMMAND == "move")
 			{
@@ -758,11 +633,11 @@ namespace NCompiler
 
 				if (skipCommand) continue;
 
-				BOOL isArg0Reg = isReg(arg0),
-					isArg1Reg = isReg(arg1);
+				bool isArg0Reg = isReg(arg0.operator const std::string&()),
+					 isArg1Reg = isReg(arg1.operator const std::string&());
 
-				if (isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(arg0), makeReg(arg1));
-				else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(arg0), makeReg(arg1));
+				if (isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(arg0.operator const std::string&()), makeReg(arg1.operator const std::string&()));
+				else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(arg0.operator const std::string&()), makeReg(arg1.operator const std::string&()));
 			}
 
 			else if (COMMAND == "call")
@@ -778,7 +653,7 @@ namespace NCompiler
 			{
 				if (skipCommand)
 				{
-					skipCommand = FALSE;
+					skipCommand = false;
 
 					continue;
 				}
@@ -795,7 +670,7 @@ namespace NCompiler
 
 				file.close();
 
-				return FALSE;
+				return false;
 			}
 		}
 
@@ -803,23 +678,23 @@ namespace NCompiler
 
 		file.close();
 
-		return TRUE;
+		return true;
 	}
 
 	template<typename T>
-	BOOL Compiler<T>::fromBinComFile(CRSTRING filename)
+	bool Compiler<T>::fromBinComFile(const std::string &crFilename)
 	{
-		std::ifstream file(filename + "BinCom.txt", std::ios::binary);
+		std::ifstream file(crFilename + "BinCom.txt", std::ios::binary);
 		if (!file.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + filename + "BinCom");
+			NDebugger::Error("Cannot open file: " + crFilename + "BinCom");
 
-			return FALSE;
+			return false;
 		}
 
-#define COMMAND command.operator CRSTRING()
+#define COMMAND command.operator const std::string&()
 
-		BOOL skipCommand = FALSE;
+		bool skipCommand = false;
 		while (!file.eof())
 		{
 			Wrap4BinaryIO<std::string> command;
@@ -829,10 +704,10 @@ namespace NCompiler
 
 			if (!COMMAND.length() || COMMAND[0] == ':') continue; // Skip the label
 
-			else if (COMMAND[COMMAND.length() - 1] == ':') { skipCommand = TRUE; continue; }
+			else if (COMMAND[COMMAND.length() - 1] == ':') { skipCommand = true; continue; }
 
-			INT comInNum = std::stoi(COMMAND);
-			if      (comInNum == static_cast<INT>(commands_::push))
+			int comInNum = std::stoi(COMMAND);
+			if      (comInNum == static_cast<int>(Commands::push))
 			{
 				file >> command;
 				
@@ -846,7 +721,7 @@ namespace NCompiler
 				else if (                     reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
 				else		                                   cpu_.push(val, CPU<>::MemoryStorage::STACK);
 			}
-			else if (comInNum == static_cast<INT>(commands_::pop))
+			else if (comInNum == static_cast<int>(Commands::pop))
 			{
 				auto oldPos = file.tellg();
 
@@ -861,47 +736,44 @@ namespace NCompiler
 				}
 			}
 
-			else if (comInNum == static_cast<INT>(commands_::add))  { if (!skipCommand) cpu_.add(); }
-			else if (comInNum == static_cast<INT>(commands_::sub))  { if (!skipCommand) cpu_.sub(); }
-			else if (comInNum == static_cast<INT>(commands_::mul))  { if (!skipCommand) cpu_.mul(); }
-			else if (comInNum == static_cast<INT>(commands_::div))  { if (!skipCommand) cpu_.div(); }
-			else if (comInNum == static_cast<INT>(commands_::dup))  { if (!skipCommand) cpu_.dup(); }
-			else if (comInNum == static_cast<INT>(commands_::sin))  { if (!skipCommand) cpu_.sin(); }
-			else if (comInNum == static_cast<INT>(commands_::cos))  { if (!skipCommand) cpu_.cos(); }
-			else if (comInNum == static_cast<INT>(commands_::sqrt)) { if (!skipCommand) cpu_.sqrt(); }
+			else if (comInNum == static_cast<int>(Commands::add))  { if (!skipCommand) cpu_.add(); }
+			else if (comInNum == static_cast<int>(Commands::sub))  { if (!skipCommand) cpu_.sub(); }
+			else if (comInNum == static_cast<int>(Commands::mul))  { if (!skipCommand) cpu_.mul(); }
+			else if (comInNum == static_cast<int>(Commands::div))  { if (!skipCommand) cpu_.div(); }
+			else if (comInNum == static_cast<int>(Commands::dup))  { if (!skipCommand) cpu_.dup(); }
+			else if (comInNum == static_cast<int>(Commands::sin))  { if (!skipCommand) cpu_.sin(); }
+			else if (comInNum == static_cast<int>(Commands::cos))  { if (!skipCommand) cpu_.cos(); }
+			else if (comInNum == static_cast<int>(Commands::sqrt)) { if (!skipCommand) cpu_.sqrt(); }
 
-			else if (comInNum == static_cast<INT>(commands_::dump)) { if (!skipCommand) cpu_.dump(); }
+			else if (comInNum == static_cast<int>(Commands::dump)) { if (!skipCommand) cpu_.dump(); }
 
-			else if (comInNum == static_cast<INT>(commands_::cmp))
+			else if (comInNum == static_cast<int>(Commands::cmp))
 			{
-				file >> command; 
-				if (!skipCommand)
+				auto pushVal = [&]() mutable
 				{
-					auto reg = makeReg(command);
+					file >> command;
+					if (!skipCommand)
+					{
+						auto reg = makeReg(command.operator const std::string&());
 
-					if(reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
-					else                cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
-				}
+						if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
+						else                 cpu_.push(getValue(command.operator const std::string&()), CPU<>::MemoryStorage::STACK);
+					}
+				};
 
-				file >> command;
-				if (!skipCommand)
-				{
-					auto reg = makeReg(command);
-					
-					if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
-					else                 cpu_.push(getValue(command), CPU<>::MemoryStorage::STACK);
-				}
+				pushVal();
+				pushVal();
 			}
-			else if (comInNum == static_cast<INT>(commands_::jump)) { file >> command; if (skipCommand) continue; Move2LabelBin(file, command); }
+			else if (comInNum == static_cast<int>(Commands::jump)) { file >> command; if (skipCommand) continue; Move2LabelBin(file, command.operator const std::string&()); }
 
-			else if (comInNum == static_cast<INT>(commands_::je))  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2LabelBin(file, command); }
-			else if (comInNum == static_cast<INT>(commands_::jne)) { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2LabelBin(file, command); }
-			else if (comInNum == static_cast<INT>(commands_::ja))  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first  > pair.second) Move2LabelBin(file, command); }
-			else if (comInNum == static_cast<INT>(commands_::jae)) { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2LabelBin(file, command); }
-			else if (comInNum == static_cast<INT>(commands_::jb))  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first  < pair.second) Move2LabelBin(file, command); }
-			else if (comInNum == static_cast<INT>(commands_::jbe)) { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2LabelBin(file, command); }
+			else if (comInNum == static_cast<int>(Commands::je))  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2LabelBin(file, command.operator const std::string&()); }
+			else if (comInNum == static_cast<int>(Commands::jne)) { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2LabelBin(file, command.operator const std::string&()); }
+			else if (comInNum == static_cast<int>(Commands::ja))  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first  > pair.second) Move2LabelBin(file, command.operator const std::string&()); }
+			else if (comInNum == static_cast<int>(Commands::jae)) { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2LabelBin(file, command.operator const std::string&()); }
+			else if (comInNum == static_cast<int>(Commands::jb))  { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first  < pair.second) Move2LabelBin(file, command.operator const std::string&()); }
+			else if (comInNum == static_cast<int>(Commands::jbe)) { file >> command; if (skipCommand) continue; auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2LabelBin(file, command.operator const std::string&()); }
 
-			else if (comInNum == static_cast<INT>(commands_::move))
+			else if (comInNum == static_cast<int>(Commands::move))
 			{
 				Wrap4BinaryIO<std::string> arg0,
 					                       arg1;
@@ -909,14 +781,14 @@ namespace NCompiler
 
 				if (skipCommand) continue;
 
-				BOOL isArg0Reg = isReg(arg0),
-					 isArg1Reg = isReg(arg1);
+				bool isArg0Reg = isReg(arg0.operator const std::string&()),
+					 isArg1Reg = isReg(arg1.operator const std::string&());
 
-				if      ( isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(arg0), makeReg(arg1));
-				else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(arg0), makeReg(arg1));
+				if      ( isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(arg0.operator const std::string&()), makeReg(arg1.operator const std::string&()));
+				else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(arg0.operator const std::string&()), makeReg(arg1.operator const std::string&()));
 			}
 
-			else if (comInNum == static_cast<INT>(commands_::call))
+			else if (comInNum == static_cast<int>(Commands::call))
 			{
 				file >> command;
 	
@@ -925,11 +797,11 @@ namespace NCompiler
 				cpu_.push(file.tellg());
 				Move2LabelBin(file, COMMAND + ':');
 			}
-			else if (comInNum == static_cast<INT>(commands_::ret))
+			else if (comInNum == static_cast<int>(Commands::ret))
 			{
 				if (skipCommand)
 				{
-					skipCommand = FALSE;
+					skipCommand = false;
 
 					continue;
 				}
@@ -938,7 +810,7 @@ namespace NCompiler
 				cpu_.pop(CPU<>::MemoryStorage::STACK_FUNC_RET_ADDR);
 			}
 
-			else if (comInNum == static_cast<INT>(commands_::end)) { if (!skipCommand) break; }
+			else if (comInNum == static_cast<int>(Commands::end)) { if (!skipCommand) break; }
 
 			else
 			{
@@ -946,7 +818,7 @@ namespace NCompiler
 
 				file.close();
 
-				return FALSE;
+				return false;
 			}
 		}
 
@@ -954,7 +826,7 @@ namespace NCompiler
 
 		file.close();
 
-		return TRUE;
+		return true;
 	}
 
 #pragma endregion
