@@ -81,7 +81,6 @@ namespace NParser
 	Operation ParseCode(std::string_view line)
 	{
 		Operation op;
-
 		std::stringstream sstr(line.data());
 		sstr >> op.cmd;
 
@@ -158,5 +157,6 @@ namespace NParser
 
 		return true;
 	}
-	
 } // namespace NParser
+
+

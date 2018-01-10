@@ -1,27 +1,27 @@
-11
+10
 :pochka
-20 999 ax
+19 999 ax
 0 [ax]
 0 98
 0 -78
 0 ax
-11
+10
 FUNC:
-8
-2 
-21 BABY
+7
+1 
+20 BABY
+21
+1 
+2
+1 []
+19 4 ax
+19 ax cx
+10
+20 FUNC
+11 ax cx
+14 pochka
 22
-2 
-3
-2 []
-20 4 ax
-20 ax cx
-11
-21 FUNC
-12 ax cx
-15 pochka
-23
-5
+4
 BABY:
-20 666 ex
-22
+19 666 ex
+21

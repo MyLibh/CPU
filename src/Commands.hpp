@@ -3,42 +3,40 @@
 #include <string_view> // std::string_view
 #include <array>       // std::array
 
-// #include "CPU.hpp"
-
 enum class Commands : unsigned
 {
 	undefined = 4294967295,
 
 	push = 0,
-	pop  = 2,
+	pop,
 
-	add  = 3,
-	sub  = 4,
-	mul  = 5,
-	div  = 6,
-	sqrt = 7,
-	dup  = 8,
-	sin  = 9,
-	cos  = 10,
+	add,
+	sub,
+	mul,
+	div,
+	sqrt,
+	dup,
+	sin,
+	cos,
 
-	dump = 11,
+	dump,
 
-	cmp  = 12,
-	jump = 13,
+	cmp,
+	jump,
 
-	je   = 14,
-	jne  = 15,
-	ja   = 16,
-	jae  = 17,
-	jb   = 18,
-	jbe  = 19,
+	je,  // jump if equal
+	jne, // jump if not equal
+	ja,  // jump if above
+	jae, // jump if above or equal
+	jb,  // jump if below
+	jbe, // jump if below or equal
 
-	move = 20,
+	move,
 
-	call = 21,
-	ret  = 22,
+	call,
+	ret,
 
-	end  = 23,
+	end,
 
 	NUM
 };
@@ -51,13 +49,13 @@ public:
 	char              numOfArgs;
 
 	constexpr explicit Command() :
-		name("null"),
+		name(std::string_view("null", 4)),
 		number(Commands::undefined),
 		numOfArgs('0')
 	{ }
 
-	constexpr Command(std::string_view str, Commands com, char args) :
-		name(str),
+	constexpr Command(const std::string_view &crStr, Commands com, char args) :
+		name(crStr),
 		number(com),
 		numOfArgs(args)
 	{ }
@@ -68,33 +66,33 @@ public:
 		numOfArgs(crCommand.numOfArgs)
 	{ }
 
-	Command &operator=(const Command&) = default;
-	Command &operator=(Command&&)      = default;
+	constexpr Command &operator=(const Command&) = default;
+	constexpr Command &operator=(Command&&)      = default;
 };
 
-/* constexpr */ std::array<Command, static_cast<size_t>(Commands::NUM)> cgTable =
+constexpr std::array<Command, static_cast<size_t>(Commands::NUM)> cgTable
 {
-	Command("push", Commands::push, '1'),
-	Command("pop",  Commands::pop,  '1'),
-	Command("add",  Commands::add,  '0'),
-	Command("sub",  Commands::sub,  '0'),
-	Command("mul",  Commands::mul,  '0'),
-	Command("div",  Commands::div,  '0'),
-	Command("sqrt", Commands::sqrt, '0'),
-	Command("dup",  Commands::dup,  '0'),
-	Command("sin",  Commands::sin,  '0'),
-	Command("cos",  Commands::cos,  '0'),
-	Command("dump", Commands::dump, '0'),
-	Command("cmp",  Commands::cmp,  '2'),
-	Command("jump", Commands::jump, '1'),
-	Command("je",   Commands::je,   '1'),
-	Command("jne",  Commands::jne,  '1'),
-	Command("ja",   Commands::ja,   '1'),
-	Command("jae",  Commands::jae,  '1'),
-	Command("jb",   Commands::jb,   '1'),
-	Command("jbe",  Commands::jbe,  '1'),
-	Command("move", Commands::move, '2'),
-	Command("call", Commands::call, '1'),
-	Command("ret",  Commands::ret,  '0'),
-	Command("end",  Commands::end,  '0')
+	Command(std::string_view("push", 4), Commands::push, '1'),
+	Command(std::string_view("pop",  3), Commands::pop,  '1'),
+	Command(std::string_view("add",  3), Commands::add,  '0'),
+	Command(std::string_view("sub",  3), Commands::sub,  '0'),
+	Command(std::string_view("mul",  3), Commands::mul,  '0'),
+	Command(std::string_view("div",  3), Commands::div,  '0'),
+	Command(std::string_view("sqrt", 4), Commands::sqrt, '0'),
+	Command(std::string_view("dup",  3), Commands::dup,  '0'),
+	Command(std::string_view("sin",  3), Commands::sin,  '0'),
+	Command(std::string_view("cos",  3), Commands::cos,  '0'),
+	Command(std::string_view("dump", 4), Commands::dump, '0'),
+	Command(std::string_view("cmp",  3), Commands::cmp,  '2'),
+	Command(std::string_view("jump", 4), Commands::jump, '1'),
+	Command(std::string_view("je",   2), Commands::je,   '1'),
+	Command(std::string_view("jne",  3), Commands::jne,  '1'),
+	Command(std::string_view("ja",   2), Commands::ja,   '1'),
+	Command(std::string_view("jae",  3), Commands::jae,  '1'),
+	Command(std::string_view("jb",   2), Commands::jb,   '1'),
+	Command(std::string_view("jbe",  3), Commands::jbe,  '1'),
+	Command(std::string_view("move", 4), Commands::move, '2'),
+	Command(std::string_view("call", 4), Commands::call, '1'),
+	Command(std::string_view("ret",  3), Commands::ret,  '0'),
+	Command(std::string_view("end",  3), Commands::end,  '0')
 };
