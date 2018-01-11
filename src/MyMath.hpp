@@ -1,16 +1,23 @@
 #pragma once
 
-#include <cmath>
+//====================================================================================================================================
+//========================================================FUNCTION_DECLARATION========================================================
+//====================================================================================================================================
 
-double      sqrt_(double      x) { return  sqrt(x); }
-long double sqrt_(long double x) { return sqrtl(x); }
-float       sqrt_(float       x) { return sqrtf(x); } 
+double      sqrt_(double);
+long double sqrt_(long double);
+float       sqrt_(float);
 
-double      sin_(double      x) { return  sin(x); }
-long double sin_(long double x) { return sinl(x); }
-float       sin_(float       x) { return sinf(x); } 
+double      sin_(double);
+long double sin_(long double);
+float       sin_(float);
 
-double      cos_(double      x) { return  cos(x); }
-long double cos_(long double x) { return cosl(x); }
-float       cos_(float       x) { return cosf(x); } 
+double      cos_(double);
+long double cos_(long double);
+float       cos_(float);
 
+double      abs_(double);
+long double abs_(long double);
+float       abs_(float);
+long        abs_(long);
+long long   abs_(long long);

@@ -1,13 +1,20 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <Windows.h> // SetConsoleTextAttribute, GetStdHandle
-#include <string>    // std::string_view
+#include <Windows.h>    // SetConsoleTextAttribute
+#include <processenv.h> // GetStdHandle
+#include <string_view>  // std::string_view
 
 #include "Debugger.hpp"
 
 namespace NDebugger
 {
+	//====================================================================================================================================
+	//========================================================FUNCTION_DEFINITION=========================================================
+	//====================================================================================================================================
+
+#pragma region FUNCTION_DEFINITION
+
 	unsigned short SetColorConsole(TextColor color, TextColor background /* = TextColor::Black */)
 	{
 		static TextColor sOldText = TextColor::White,
@@ -54,6 +61,9 @@ namespace NDebugger
 		Info("[DEBUG] ", TextColor::Brown, false, rOstr);
 		Info(debugInfo, color, endline, rOstr);
 	}
+
+#pragma endregion
+
 } // namespace NDebugger
 
 #undef _WINDOWS_

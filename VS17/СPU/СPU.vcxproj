@@ -39,7 +39,9 @@
     <ClCompile Include="..\..\src\Hash.cpp" />
     <ClCompile Include="..\..\src\Logger.cpp" />
     <ClCompile Include="..\..\src\main.cpp" />
+    <ClCompile Include="..\..\src\MyMath.cpp" />
     <ClCompile Include="..\..\src\Parser.cpp" />
+    <ClCompile Include="..\..\src\Tests\Unit\Tests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\src\Tests\Programs\Fibbonachi.txt" />
@@ -107,10 +109,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>D:\boost_1_66_0;$(IncludePath)</IncludePath>
-    <LibraryPath>D:\boost_1_66_0\stage\lib;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>

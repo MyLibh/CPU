@@ -14,7 +14,11 @@
 
 namespace NParser
 {
-#pragma region Struct Operation
+	//====================================================================================================================================
+	//=========================================================METHOD_DEFINITION==========================================================
+	//====================================================================================================================================
+
+#pragma region METHOD_DEFINITION
 
 	Operation &Operation::operator=(const Operation &crOp) noexcept
 	{
@@ -60,8 +64,14 @@ namespace NParser
 		rOstr << std::endl;
 	}
 
-	//===============================================================================================================================================
-	
+#pragma endregion
+
+	//====================================================================================================================================
+	//========================================================FUNCTION_DEFINITION=========================================================
+	//====================================================================================================================================
+
+#pragma region FUNCTION_DEFINITION
+
 	Logger &operator<<(Logger &rLogger, const Operation &crOp)
 	{
 		if(crOp.cmd.length()) Logger::stdPack("Parser");
@@ -70,8 +80,6 @@ namespace NParser
 
 		return rLogger;
 	}
-
-#pragma endregion
 
 	static inline bool IsCommaExist(std::string_view line) 
 	{ 
@@ -157,6 +165,9 @@ namespace NParser
 
 		return true;
 	}
+
+#pragma endregion
+
 } // namespace NParser
 
 

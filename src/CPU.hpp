@@ -76,6 +76,12 @@ namespace NCpu
 		Stack<std::streampos> funcRetAddr_;
 	};
 
+	//====================================================================================================================================
+	//=========================================================METHOD_DEFINITION==========================================================
+	//====================================================================================================================================
+
+#pragma region METHOD_DEFINITION
+
 	template<typename T>
 	inline CPU<T>::CPU() noexcept :
 		reg_(),
@@ -418,5 +424,8 @@ namespace NCpu
 
 		NDebugger::Info("\t\t[  END   ]\n", NDebugger::TextColor::LightMagenta, true, rOstr);
 	}
+
+#pragma endregion
+
 } // namespace NCpu
 

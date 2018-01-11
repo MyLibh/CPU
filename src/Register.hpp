@@ -18,6 +18,7 @@ namespace NRegister
 
 		NUM
 	};
+
 	typedef Registers REG;
 
 	template<typename T = int>
@@ -33,13 +34,23 @@ namespace NRegister
 	};
 
 	//====================================================================================================================================
+	//========================================================FUNCTION_DECLARATION========================================================
+	//====================================================================================================================================
+
+#pragma region FUNCTION_DECLARATION
 
 	template<typename T>
 	Logger& operator<<(Logger&, const Register<T>&);
 
 	inline std::string_view GetReg(REG);
 
+#pragma endregion
+
 	//====================================================================================================================================
+	//=========================================================METHOD_DEFINITION==========================================================
+	//====================================================================================================================================
+
+#pragma region METHOD_DEFINITION
 
 	template<typename T>
 	inline Register<T>::Register() noexcept :
@@ -104,7 +115,13 @@ namespace NRegister
 		NDebugger::Info("\t[     END     ]\n", NDebugger::TextColor::Green, true, rOstr);
 	}
 
+#pragma endregion
+
 	//====================================================================================================================================
+	//========================================================FUNCTION_DEFINITION=========================================================
+	//====================================================================================================================================
+
+#pragma region FUNCTION_DEFINITION
 
 	template<typename T>
 	Logger& operator<<(Logger &rLogger, const Register<T> &crRegister)
@@ -130,4 +147,7 @@ namespace NRegister
 		else if (reg == REG::SP) return std::string_view("SP");
 		else                     return std::string_view("null");
 	}
+
+#pragma endregion
+
 } // namespace NReg 

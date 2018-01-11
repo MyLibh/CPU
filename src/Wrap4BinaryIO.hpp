@@ -1,23 +1,31 @@
 #pragma once
 
-#include <iosfwd>
+#include <iosfwd> // std::ifstream, std::ofstream
 
-template<typename T>
+template<typename T> 
 class Wrap4BinaryIO final
 {
 public:
-	Wrap4BinaryIO();
-	Wrap4BinaryIO(const T&);
-	~Wrap4BinaryIO();
+	Wrap4BinaryIO()  = default;
+	Wrap4BinaryIO(const T&) noexcept;
+	Wrap4BinaryIO(T&&)      noexcept;
+	~Wrap4BinaryIO() = default;
 
-	operator T&();
-	operator const T&() const;
+	Wrap4BinaryIO &operator=(const Wrap4BinaryIO&) noexcept;
+	Wrap4BinaryIO &operator=(Wrap4BinaryIO&&)      noexcept;
+
+	operator       T&()       noexcept;
+	operator const T&() const noexcept;
 
 private:
 	T val_;
 };
 
 //====================================================================================================================================
+//========================================================FUNCTION_DECLARATION========================================================
+//====================================================================================================================================
+
+#pragma region FUNCTION_DECLARATION
 
 template<typename T>
 std::istream &operator>>(std::istream&, Wrap4BinaryIO<T>&);
@@ -25,35 +33,64 @@ std::istream &operator>>(std::istream&, Wrap4BinaryIO<T>&);
 template<typename T>
 std::ostream &operator<<(std::ostream&, Wrap4BinaryIO<T>&);
 
+#pragma endregion
+
+//====================================================================================================================================
+//=========================================================METHOD_DEFINITION==========================================================
 //====================================================================================================================================
 
-template<typename T>
-inline Wrap4BinaryIO<T>::Wrap4BinaryIO() :
-	val_()
-{ }
+#pragma region METHOD_DEFINITION
 
 template<typename T>
-inline Wrap4BinaryIO<T>::Wrap4BinaryIO(const T &crVal) :
+inline Wrap4BinaryIO<T>::Wrap4BinaryIO(const T &crVal) noexcept :
 	val_(crVal)
 { }
 
 template<typename T>
-inline Wrap4BinaryIO<T>::~Wrap4BinaryIO()
+inline Wrap4BinaryIO<T>::Wrap4BinaryIO(T &&rrVal) noexcept :
+	val_(std::move(rrVal))
 { }
 
 template<typename T>
-inline Wrap4BinaryIO<T>::operator T&()
+inline Wrap4BinaryIO<T> &Wrap4BinaryIO<T>::operator=(const Wrap4BinaryIO<T> &crW4BIO) noexcept
+{
+	if (this != &crW4BIO)
+	{
+		val_ = crW4BIO.val_;
+	}
+
+	return (*this);
+}
+
+template<typename T>
+inline Wrap4BinaryIO<T> &Wrap4BinaryIO<T>::operator=(Wrap4BinaryIO<T> &&rrW4BIO) noexcept
+{
+	assert(this != &rrW4BIO);
+
+	val_ = std::move(rrW4BIO.val_);
+
+	return (*this);
+}
+
+template<typename T>
+inline Wrap4BinaryIO<T>::operator T&() noexcept
 {
 	return val_;
 }
 
 template<typename T>
-inline Wrap4BinaryIO<T>::operator const T&() const
+inline Wrap4BinaryIO<T>::operator const T&() const noexcept
 {
 	return val_;
 }
 
+#pragma endregion
+
 //====================================================================================================================================
+//========================================================FUNCTION_DEFINITION=========================================================
+//====================================================================================================================================
+
+#pragma region FUNCTION_DEFINITION
 
 template<typename T>
 std::istream &operator>>(std::istream &rIstr, Wrap4BinaryIO<T> &rVal)
@@ -70,6 +107,14 @@ std::ostream &operator<<(std::ostream &rOstr, Wrap4BinaryIO<T> &rVal)
 
 	return rOstr;
 }
+
+#pragma endregion
+
+//====================================================================================================================================
+//======================================================TEMPLATE_SPECIALIZATION=======================================================
+//====================================================================================================================================
+
+#pragma region TEMPLATE_SPECIALIZATION
 
 template<>
 std::istream &operator>><std::string>(std::istream &rIstr, Wrap4BinaryIO<std::string> &rVal)
@@ -96,4 +141,4 @@ std::ostream &operator<<<std::string>(std::ostream &rOstr, Wrap4BinaryIO<std::st
 	return rOstr;
 }
 
-
+#pragma endregion

@@ -13,20 +13,26 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Файлы ресурсов\Text">
-      <UniqueIdentifier>{d231d91d-17aa-42b7-bc92-6bee97715229}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Файлы заголовков\CPU">
       <UniqueIdentifier>{81412f6b-64f1-47bb-9f1e-66868ee65bee}</UniqueIdentifier>
     </Filter>
     <Filter Include="Файлы заголовков\Special">
       <UniqueIdentifier>{1ee81f48-b0c4-468b-9a1b-0c46d6af8f82}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Файлы ресурсов\Programms">
-      <UniqueIdentifier>{1706b93a-7db8-4132-8856-2cad4d113bba}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Исходные файлы\Special">
       <UniqueIdentifier>{9a5885b3-aa9e-4969-9361-a618c29f0076}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Tests">
+      <UniqueIdentifier>{357020ed-fa03-48d4-b4b6-c9317f1c03a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Tests\Programms">
+      <UniqueIdentifier>{1706b93a-7db8-4132-8856-2cad4d113bba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\Tests\Text">
+      <UniqueIdentifier>{d231d91d-17aa-42b7-bc92-6bee97715229}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\UnitTests">
+      <UniqueIdentifier>{f3b60e1f-371d-4221-b3a2-dec020477026}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -89,22 +95,28 @@
     <ClCompile Include="..\..\src\Logger.cpp">
       <Filter>Исходные файлы\Special</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\MyMath.cpp">
+      <Filter>Исходные файлы\Special</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Tests\Unit\Tests.cpp">
+      <Filter>Исходные файлы\UnitTests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\src\Tests\Text\Text1.txt">
-      <Filter>Файлы ресурсов\Text</Filter>
+      <Filter>Файлы ресурсов\Tests\Text</Filter>
     </Text>
     <Text Include="..\..\src\Tests\Programs\Fibbonachi.txt">
-      <Filter>Файлы ресурсов\Programms</Filter>
+      <Filter>Файлы ресурсов\Tests\Programms</Filter>
     </Text>
     <Text Include="..\..\src\Tests\Text\Text1Com.txt">
-      <Filter>Файлы ресурсов\Text</Filter>
+      <Filter>Файлы ресурсов\Tests\Text</Filter>
     </Text>
     <Text Include="..\..\src\Tests\Text\Text1BinText.txt">
-      <Filter>Файлы ресурсов\Text</Filter>
+      <Filter>Файлы ресурсов\Tests\Text</Filter>
     </Text>
     <Text Include="..\..\src\Tests\Text\Text1BinCom.txt">
-      <Filter>Файлы ресурсов\Text</Filter>
+      <Filter>Файлы ресурсов\Tests\Text</Filter>
     </Text>
     <Text Include="CPU.log">
       <Filter>Файлы ресурсов</Filter>

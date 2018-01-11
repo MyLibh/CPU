@@ -4,8 +4,12 @@
 
 namespace NHash
 {
+#pragma region CONSTANTS
+
 	constexpr unsigned short MIN_HASH_LENGTH = 4;
 	constexpr unsigned short MD5_HASH_LENGTH = 1 << 5;
+
+#pragma endregion
 
 	class Hash final
 	{

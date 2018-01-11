@@ -8,7 +8,11 @@ class Logger;
 
 namespace NParser
 {
+#pragma region CONSTANTS
+
 	constexpr size_t MAX_LINE_LENGTH = 1 << 8;
+
+#pragma endregion
 
 	struct Operation
 	{
@@ -28,11 +32,13 @@ namespace NParser
 		void dump(std::ostream& = std::cout) const;
 	};
 
-	//===============================================================================================================================================
-	
-	Logger &operator<<(Logger&, const Operation&);
+	//====================================================================================================================================
+	//========================================================FUNCTION_DECLARATION========================================================
+	//====================================================================================================================================
 
-	//===============================================================================================================================================
+#pragma region FUNCTION_DECLARATION
+
+	Logger &operator<<(Logger&, const Operation&);
 
 	Operation ParseCode(std::string_view);
 
@@ -40,4 +46,6 @@ namespace NParser
 
 	bool Move2LabelBin(std::ifstream&, std::string_view, std::streampos = std::ios::beg);
 	
+#pragma endregion
+
 } // namespace NParser

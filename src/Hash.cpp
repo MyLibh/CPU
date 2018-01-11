@@ -7,13 +7,15 @@
 
 namespace NHash
 {
-#pragma region Hash
+	//====================================================================================================================================
+	//=========================================================METHOD_DEFINITION==========================================================
+	//====================================================================================================================================
+
+#pragma region METHOD_DEFINITION
 
 	Hash::Hash(std::string_view str) :
 		hash_(str)
 	{ }
-
-#pragma endregion
 
 	unsigned int Hash::getExistCode(unsigned int x) const noexcept
 	{
@@ -97,4 +99,7 @@ namespace NHash
 
 		return hash_;
 	}
+
+#pragma endregion
+
 } // namespace NHash

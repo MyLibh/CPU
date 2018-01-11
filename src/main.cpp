@@ -1,7 +1,9 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <iostream>
+/* cmd -D_SCL_SECURE_NO_WARNINGS */
+
+#include <iostream> // std::cout
 
 #define CPU_GUARD_LVL 2
 
@@ -17,8 +19,6 @@ int main(int argc, char *argv[])
 
 	try
 	{
-		NStack::Stack<> a;
-	
 		NDebugger::SetColorConsole(NDebugger::TextColor::White);
 
  		Compiler<> comp;

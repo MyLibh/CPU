@@ -24,9 +24,18 @@ namespace NDebugger
 		White        = 0x0F
 	};
 	
+	//====================================================================================================================================
+	//========================================================FUNCTION_DECLARATION========================================================
+	//====================================================================================================================================
+
+#pragma region FUNCTION_DECLARATION
+
 	unsigned short SetColorConsole(TextColor, TextColor = TextColor::Black);
 
 	void Error(std::string_view, std::ostream& = std::cerr); 
 	void Info(std::string_view, TextColor = TextColor::White, bool = true, std::ostream& = std::cout);
 	void Debug(std::string_view, TextColor = TextColor::White, bool = true, std::ostream& = std::cout);
+
+#pragma endregion 
+
 } //namespace NDebugger
