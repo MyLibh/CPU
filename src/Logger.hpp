@@ -1,8 +1,7 @@
 #pragma once
 
-#include <iosfwd>      // std::ofstream
-#include <vector>      // std::vector
-#include <string_view> // std::string_view
+#include <iosfwd> // std::ofstream
+#include <vector> // std::vector
 
 #include "Debugger.hpp"
 
@@ -16,7 +15,7 @@ public:
 	};
 
 	Logger();
-	~Logger();
+	~Logger() = default;
 
 	static bool init();
 	static bool close();
@@ -33,7 +32,7 @@ public:
 		auto size = vec.size();
 		for (size_t i = 0; i < size; ++i)
 		{		
-			log_ << "ARG" << i + 1 << ": " /* << vec[i] */ << (i + 1 == size ? "\n" : ", ");
+			log_ << "ARG" << i + 1 << ": " << static_cast<typename std::common_type<T...>::type>(vec[i]) << (i + 1 == size ? "\n" : ", ");
 		}
 	}
 

@@ -1,9 +1,9 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#define USE_UNIT_TESTS
+//#define USE_UNIT_TESTS
 
-#define STORAGE_TESTS
+//#define STORAGE_TESTS
 
 #ifdef USE_UNIT_TESTS
 

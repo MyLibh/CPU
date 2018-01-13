@@ -3,8 +3,6 @@
 
 /* cmd -D_SCL_SECURE_NO_WARNINGS */
 
-#include <iostream> // std::cout
-
 #define CPU_GUARD_LVL 2
 
 #include "Compiler.hpp"
@@ -15,18 +13,18 @@ int main(int argc, char *argv[])
 {
 	std::ios::sync_with_stdio(false);
 	
-	std::string file((argc >= 2 ? argv[1] : "..\\..\\src\\Tests\\Text\\Text1"));
+	NDebugger::SetColorConsole(NDebugger::TextColor::White);
+	Logger::init();
 
 	try
 	{
-		NDebugger::SetColorConsole(NDebugger::TextColor::White);
+		std::string file((argc >= 2 ? argv[1] : "..\\..\\src\\Tests\\Text\\Text1"));
 
-		Logger::init();
-
- 		Compiler<> comp;
-		comp.fromBinComFile(file);
-
-		Logger::close();
+		for (int i = 0; i < 100; ++i) // 7sec
+		{
+			Compiler<> comp;
+			comp.fromTextFile(file);
+		}
 	}
 	catch (const std::exception &exc)
 	{
@@ -38,5 +36,7 @@ int main(int argc, char *argv[])
 	}
 
 	system("pause");
-    return 0;
+	Logger::close();
+    
+	return 0;
 }
