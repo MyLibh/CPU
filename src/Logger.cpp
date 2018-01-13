@@ -37,11 +37,6 @@ Logger::Logger()
 	Logger::init();
 }
 
-Logger::~Logger()
-{
-	Logger::close();
-}
-
 bool Logger::init()
 {
 	if (!init_)

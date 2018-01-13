@@ -33,7 +33,7 @@ public:
 		auto size = vec.size();
 		for (size_t i = 0; i < size; ++i)
 		{		
-			//log_ << "ARG" << i + 1 << ": " << vec[i] << (i + 1 == size ? "\n" : ", ");
+			log_ << "ARG" << i + 1 << ": " /* << vec[i] */ << (i + 1 == size ? "\n" : ", ");
 		}
 	}
 
@@ -69,14 +69,14 @@ inline Logger &operator<<(Logger &rLog, const T &crVal)
 //====================================================================================================================================
 
 #ifdef _DEBUG
-	#define LOG_DUMP()          Logger() << *this;
+	//#define LOG_DUMP()          Logger() << *this;
 	#define LOG_CONSTRUCTING()  Logger::write(__FUNCTION__, "Constructing");
 	#define LOG_DESTRUCTING()   Logger::write(__FUNCTION__, "Destructing");
 	#define LOG_ERROR(error)    Logger::write(__FUNCTION__ + "\t[ERROR]", error);
 	#define LOG_ARGS(type, ...) Logger::printData<type>(__FUNCTION__, __VA_ARGS__);
 	#define LOG_FUNC()          Logger::write(__FUNCTION__, "");
 #else
-	#define LOG_DUMPING()      
+	#define LOG_DUMP()      
 	#define LOG_CONSTRUCTING()  
 	#define LOG_DESTRUCTING()
 	#define LOG_ERROR(error)    Logger::write(__FUNCTION__ + std::string("\t[ERROR]"), error);

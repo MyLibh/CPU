@@ -28,10 +28,10 @@ namespace NCompiler
 		bool   isReg(std::string_view) const;
 
 	public:
-		explicit Compiler()       noexcept;
-		Compiler(const Compiler&) noexcept;
-		Compiler(Compiler&&)      noexcept;
-		~Compiler();
+		explicit Compiler()       = default;
+		Compiler(const Compiler&) = default;
+		Compiler(Compiler&&)      = default;
+		~Compiler()               = default;        
 
 		Compiler<T> &operator=(const Compiler&) noexcept;
 		Compiler<T> &operator=(Compiler&&)      noexcept;
@@ -54,29 +54,6 @@ namespace NCompiler
 	//====================================================================================================================================
 
 #pragma region METHOD_DEFINITION
-
-	template<typename T>
-	inline Compiler<T>::Compiler() noexcept :
-		cpu_()
-	{
-		Logger::init();
-	}
-
-	template<typename T>
-	inline Compiler<T>::Compiler(const Compiler &crComp) noexcept:
-		cpu_(crComp.cpu_)
-	{ }
-
-	template<typename T>
-	inline Compiler<T>::Compiler(Compiler &&rrComp) noexcept :
-		cpu_(std::move(rrComp.cpu_))
-	{ }
-
-	template<typename T>
-	inline Compiler<T>::~Compiler()
-	{
-		Logger::close();
-	}
 
 	template<typename T>
 	T Compiler<T>::getValue(std::string_view str) const

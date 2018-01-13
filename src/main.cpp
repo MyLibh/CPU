@@ -21,8 +21,12 @@ int main(int argc, char *argv[])
 	{
 		NDebugger::SetColorConsole(NDebugger::TextColor::White);
 
+		Logger::init();
+
  		Compiler<> comp;
 		comp.fromBinComFile(file);
+
+		Logger::close();
 	}
 	catch (const std::exception &exc)
 	{
