@@ -19,8 +19,14 @@ int main(int argc, char *argv[])
 	try
 	{
 		std::string file((argc >= 2 ? argv[1] : "..\\..\\src\\Tests\\Text\\Text1"));
+		
+		// |   GADJET    |  RELEASE  |   DEBUG   |
+		// |=-=-=-=-=-=-=|=-=-=-=-=-=|=-=-=-=-=-=|
+		// | PC-MAIN     | 7sec      | 9sec      |
+		// | PC-TWINK    | 11sec     |           |
+		// | LAPTOP-MAIN | 2min40sec | 2min46sec |
 
-		for (int i = 0; i < 100; ++i) // 9sec, 3min20sec
+		for (int i = 0; i < 100; ++i) 
 		{
 			Compiler<> comp;
 			comp.fromTextFile(file);
