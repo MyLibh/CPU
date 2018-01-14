@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	{
 		std::string file((argc >= 2 ? argv[1] : "..\\..\\src\\Tests\\Text\\Text1"));
 
-		for (int i = 0; i < 100; ++i) // 7sec
+		for (int i = 0; i < 100; ++i) // 9sec, 3min20sec
 		{
 			Compiler<> comp;
 			comp.fromTextFile(file);
