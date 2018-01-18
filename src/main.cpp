@@ -3,7 +3,7 @@
 
 /* cmd -D_SCL_SECURE_NO_WARNINGS */
 
-#define CPU_GUARD_LVL 2
+#define GUARD_LVL 3
 
 #include "Compiler.hpp"
 
