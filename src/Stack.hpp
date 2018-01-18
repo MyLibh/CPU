@@ -350,7 +350,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	inline bool Stack<T>::ok() const _NOEXCEPT
+	inline bool Stack<T>::ok() const noexcept
 	{
 		return (CANARY_GUARD(canaryStart_ == CANARY_VALUE && canaryFinish_ == CANARY_VALUE && )
 				HASH_GUARD(hash_ == makeHash() && )

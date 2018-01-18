@@ -222,7 +222,7 @@ namespace NCpu
 	}
 
 	template<typename T>
-	inline std::streampos CPU<T>::top() const _NOEXCEPT
+	inline std::streampos CPU<T>::top() const noexcept
 	{	
 		LOG_FUNC()
 

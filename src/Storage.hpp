@@ -82,7 +82,7 @@ inline std::ostream &operator<<(std::ostream&, const Storage<T, SIZE>&);
 #pragma region METHOD_DEFINITION
 
 template<typename T, size_t SIZE>
-inline Storage<T, SIZE>::Storage() _NOEXCEPT :
+inline Storage<T, SIZE>::Storage() noexcept :
 	CANARY_GUARD(CANARY_VALUE(NHash::Hash("Storage" + ++numberOfInstances).getHash()), )
 	CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 	HASH_GUARD(hash_(), )
@@ -99,7 +99,7 @@ inline Storage<T, SIZE>::Storage() _NOEXCEPT :
 }
 
 template<typename T, size_t SIZE>
-inline Storage<T, SIZE>::Storage(const Storage &crStorage) _NOEXCEPT :
+inline Storage<T, SIZE>::Storage(const Storage &crStorage) noexcept :
 	CANARY_GUARD(CANARY_VALUE(NHash::Hash("Storage" + ++numberOfInstances).getHash()), )
 	CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 	HASH_GUARD(hash_(crStorage.hash_), )
@@ -214,7 +214,7 @@ inline void Storage<T, SIZE>::swap(Storage &rStorage) noexcept(std::_Is_nothrow_
 }
 
 template<typename T, size_t SIZE>
-inline bool Storage<T, SIZE>::ok() const _NOEXCEPT
+inline bool Storage<T, SIZE>::ok() const noexcept
 {
 	return (CANARY_GUARD(canaryStart_ == CANARY_VALUE && canaryFinish_ == CANARY_VALUE && )
 			HASH_GUARD(hash_ == makeHash() && )
