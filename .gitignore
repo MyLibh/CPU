@@ -301,3 +301,5 @@ __pycache__/
 # Special ignores
 /Debug/*
 /Release/*
+/x64/*
+/x86/*

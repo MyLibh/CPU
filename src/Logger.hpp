@@ -1,9 +1,13 @@
 #pragma once
 
-#include <iosfwd> // std::ofstream
-#include <vector> // std::vector
+#include <vector>  // std::vector
+#include <fstream> // std::ofstream
 
 #include "Debugger.hpp"
+
+//====================================================================================================================================
+//==============================================================CLASSES===============================================================
+//====================================================================================================================================
 
 class Logger
 {
@@ -68,7 +72,7 @@ inline Logger &operator<<(Logger &rLog, const T &crVal)
 //====================================================================================================================================
 
 #ifdef _DEBUG
-	//#define LOG_DUMP()          Logger() << *this;
+	#define LOG_DUMP()			Logger a; a << *this;
 	#define LOG_CONSTRUCTING()  Logger::write(__FUNCTION__, "Constructing");
 	#define LOG_DESTRUCTING()   Logger::write(__FUNCTION__, "Destructing");
 	#define LOG_ERROR(error)    Logger::write(__FUNCTION__ + "\t[ERROR]", error);

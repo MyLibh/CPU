@@ -5,11 +5,16 @@
 
 namespace NRam
 {
-#pragma region CONSTANTS
+
+//====================================================================================================================================
+//=============================================================CONSTANTS==============================================================
+//====================================================================================================================================
 
 	constexpr size_t RAM_SIZE = 1 << 4;
 
-#pragma endregion
+//====================================================================================================================================
+//==============================================================CLASSES===============================================================
+//====================================================================================================================================
 
 	template<typename T = int>
 	class Ram final : public Storage<T, RAM_SIZE>
@@ -32,23 +37,23 @@ namespace NRam
 
 		void swap(Ram&) noexcept(std::_Is_nothrow_swappable<T>::value); //-V762
 
-		virtual bool ok() const noexcept override;
-		virtual void dump(std::ostream& = std::cout) const override;
+		bool ok() const noexcept override;
+		void dump(std::ostream& = std::cout) const;
 
 	private:
 		size_t counter_;
 	};
 
-	//====================================================================================================================================
-	//========================================================FUNCTION_DECLARATION========================================================
-	//====================================================================================================================================
+//====================================================================================================================================
+//========================================================FUNCTION_DECLARATION========================================================
+//====================================================================================================================================
 
 	template<typename T>
 	Logger& operator<<(Logger&, const Ram<T>&);
 
-	//====================================================================================================================================
-	//=========================================================METHOD_DEFINITION==========================================================
-	//====================================================================================================================================
+//====================================================================================================================================
+//=========================================================METHOD_DEFINITION==========================================================
+//====================================================================================================================================
 
 #pragma region METHOD_DEFINITION
 
@@ -176,7 +181,7 @@ namespace NRam
 	template<typename T>
 	void Ram<T>::dump(std::ostream &rOstr /* = std::cout */) const
 	{
-		NDebugger::Info("\t[RAM DUMP]", NDebugger::TextColor::LightCyan, true, rOstr);
+		NDebugger::Text("\t[RAM DUMP]", rOstr, NDebugger::Colors::LightCyan);
 		
 		rOstr << "Ram <" << typeid(T).name() << "> [0x" << this << "]\n{\n"
 			  << "\tram [" << counter_ << " of " << RAM_SIZE << "] = 0x" << &buf_ << "\n\t{\n\t\t";
@@ -195,31 +200,31 @@ namespace NRam
 			rOstr << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
 
 			rOstr << "\tCANARY_START  = " << canaryStart_;
-			if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
-			else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
+			if (canaryStart_ == CANARY_VALUE) NDebugger::Text(" TRUE ", rOstr, NDebugger::Colors::Green);
+			else                              NDebugger::Text(" FALSE", rOstr, NDebugger::Colors::Red);
 
 			rOstr << "\tCANARY_FINISH = " << canaryFinish_;
-			if (canaryFinish_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
-			else                               NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
+			if (canaryFinish_ == CANARY_VALUE) NDebugger::Text(" TRUE ", rOstr, NDebugger::Colors::Green);
+			else                               NDebugger::Text(" FALSE", rOstr, NDebugger::Colors::Red);
 		)
 
 		HASH_GUARD
 		(
 			rOstr << "\n\tHASH = " << getHash().data();
-			if (getHash() == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
-			else                         NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
+			if (getHash() == makeHash()) NDebugger::Text(" TRUE ", rOstr, NDebugger::Colors::Green);
+			else                         NDebugger::Text(" FALSE", rOstr, NDebugger::Colors::Red);
 		)
 
 		rOstr << "}\n";
 
-		NDebugger::Info("\t[  END   ]\n", NDebugger::TextColor::LightCyan, true, rOstr);
+		NDebugger::Text("\t[  END   ]\n", rOstr, NDebugger::Colors::LightCyan);
 	}
 
 #pragma endregion
 
-	//====================================================================================================================================
-	//========================================================FUNCTION_DEFINITION=========================================================
-	//====================================================================================================================================
+//====================================================================================================================================
+//========================================================FUNCTION_DEFINITION=========================================================
+//====================================================================================================================================
 
 	template<typename T>
 	Logger& operator<<(Logger &rLogger, const Ram<T> &crRam)

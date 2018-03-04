@@ -1,31 +1,38 @@
 #pragma once
 
-#include <fstream>
-#include <sstream>
+#include <fstream>  // std::ifstream, std::ofstream
+#include <map>      // std::map
+#include <iterator> // std::istream_iterator
+#include <vector>   // std::vector
+#include <filesystem> // std::path
 
 #include "Parser.hpp"
-#include "CPU.hpp"
 #include "Wrap4BinaryIO.hpp"
-#include "Commands.hpp"
+#include "CPUCommands.hpp"
 
 namespace NCompiler
 {
-#pragma region Usings
+
+//====================================================================================================================================
+//==============================================================USINGS================================================================
+//====================================================================================================================================
+
+#pragma region USINGS
 
 	using namespace NParser;
-
-	using NCpu::REG;
-	using NCpu::CPU;
+	using namespace NCpu;
+	using namespace NCpu::Commands;
 
 #pragma endregion
+
+//====================================================================================================================================
+//==============================================================CLASSES===============================================================
+//====================================================================================================================================
 
 	template<typename T = int>
 	class Compiler final
 	{
-		T getValue(std::string_view) const;
-
-		REG  makeReg(std::string_view) const;
-		bool   isReg(std::string_view) const;
+		std::vector<Operation> load(std::experimental::filesystem::path);
 
 	public:
 		explicit Compiler()       = default;
@@ -36,60 +43,70 @@ namespace NCompiler
 		Compiler<T> &operator=(const Compiler&) noexcept;
 		Compiler<T> &operator=(Compiler&&)      noexcept;
 
-		bool text2com(const std::string&) const;
-		bool text2bin(const std::string&) const;
-		bool com2bin(const std::string&)  const;
+		bool text2com(std::experimental::filesystem::path) const;
+		bool text2bin(std::experimental::filesystem::path) const;
+		bool com2bin(std::experimental::filesystem::path)  const;
 
-		bool fromTextFile(const std::string&);
-		bool fromComFile(const std::string&);
-		bool fromBinTextFile(const std::string&);
-		bool fromBinComFile(const std::string&);
+		bool fromTextFile(std::experimental::filesystem::path);
+		bool fromComFile(std::experimental::filesystem::path);
+		bool fromBinTextFile(std::experimental::filesystem::path);
+		bool fromBinComFile(std::experimental::filesystem::path);
 
 	private:
-		CPU<T> cpu_;
+		std::map<std::string, size_t> labels_;
+		CPU<T>                        cpu_;
 	};
 
-	//====================================================================================================================================
-	//=========================================================METHOD_DEFINITION==========================================================
-	//====================================================================================================================================
+//====================================================================================================================================
+//========================================================FUNCTION_DECLARATION========================================================
+//====================================================================================================================================
+
+	inline std::string wstr2str(std::wstring_view);
+
+//====================================================================================================================================
+//=========================================================METHOD_DEFINITION==========================================================
+//====================================================================================================================================
 
 #pragma region METHOD_DEFINITION
 
 	template<typename T>
-	T Compiler<T>::getValue(std::string_view str) const
-	{	
-		if (str.front() == '[') str.remove_prefix(1);
-		
-		std::stringstream sstr(str.data());
-		T val = T();
-		sstr >> val;
-
-		return val;
-	}
-
-	template<typename T>
-	REG Compiler<T>::makeReg(std::string_view str) const
+	std::vector<Operation> Compiler<T>::load(std::experimental::filesystem::path path)
 	{
-		if      (str == "ax" || str == "[ax]") return REG::AX;
-		else if (str == "bx" || str == "[bx]") return REG::BX;
-		else if (str == "cx" || str == "[cx]") return REG::CX;
-		else if (str == "dx" || str == "[dx]") return REG::DX;
-		else if (str == "ex" || str == "[ex]") return REG::EX;
-		else if (str == "sp" || str == "[sp]") return REG::SP;
+		std::ifstream file(path.generic_string() + ".txt");
+		if (!file.is_open())
+		{
+			NDebugger::Error("Cannot open file: " + path.generic_string());
+	
+			return std::vector<Operation>();
+		}
 
-		else                                   return REG::NUM;
-	}
+		std::vector<Operation> programm;
+		while (!file.eof())
+		{
+			char tmp[MAX_LINE_LENGTH] = {};
+			file.getline(tmp, MAX_LINE_LENGTH, '\n');
 
-	template<typename T>
-	inline bool Compiler<T>::isReg(std::string_view val) const
-	{
-		return (makeReg(val) != REG::NUM);
+			if (auto op = std::move(ParseCode(tmp)); op.cmd.length())
+			{
+				if (op.cmd.front() == ':')
+					labels_[std::string(op.cmd.begin() + 1, op.cmd.end())] = programm.size();
+				else if (op.cmd.back() == ':')
+					labels_[std::string(op.cmd.begin(), op.cmd.end() - 1)] = programm.size();
+
+				programm.push_back(op);
+			}
+		}
+
+		file.close();
+
+		return programm;
 	}
 
 	template<typename T>
 	inline Compiler<T> &Compiler<T>::operator=(const Compiler &crComp) noexcept
 	{
-		if (this != &crComp) cpu_ = crComp.cpu_;
+		if (this != &crComp) 
+			cpu_ = crComp.cpu_;
 
 		return (*this);
 	}
@@ -107,20 +124,20 @@ namespace NCompiler
 #pragma region Functions Compiler<>::toSomeFile
 
 	template<typename T>
-	bool Compiler<T>::text2com(const std::string &crFilename) const
+	bool Compiler<T>::text2com(std::experimental::filesystem::path path) const
 	{
-		std::ifstream input(crFilename + ".txt");
+		std::ifstream input(path.generic_string() + ".txt");
 		if (!input.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + crFilename);
+			NDebugger::Error("Cannot open file: " + path.generic_string());
 
 			return false;
 		}
 
-		std::ofstream output(crFilename + "Com.txt");
+		std::ofstream output(path.generic_string() + "Com.txt");
 		if (!output.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + crFilename + "Com");
+			NDebugger::Error("Cannot open file: " + path.generic_string() + "Com");
 
 			input.close();
 
@@ -139,7 +156,7 @@ namespace NCompiler
 			else if (op.cmd[0] == ':' || op.cmd[op.cmd.length() - 1] == ':') // Write the label or signature of the function
 				output << op.cmd;
 
-			else if (auto it = std::find_if(std::begin(cgTable), std::end(cgTable), [&] (const Command &com) -> bool { return (com.name == op.cmd); }); it != std::end(cgTable)) // Search the cmd in cgTable
+			else if (auto it = std::find_if(CPU_COMMANDS<T>::cbegin(), CPU_COMMANDS<T>::cend(), [&] (auto &&com) -> bool { return (com.name == op.cmd); }); it != CPU_COMMANDS<T>::cend()) // Search the cmd in cgTable
 			{
 				output << static_cast<unsigned>(it->number); // Write command number
 
@@ -150,7 +167,7 @@ namespace NCompiler
 			
 			else // Unknown command
 			{
-				NDebugger::Error("Unknown command: " + std::string(op.cmd));
+				NDebugger::Error("Unknown command: " + op.cmd);
 
 				output.close();
 				input.close();
@@ -168,20 +185,20 @@ namespace NCompiler
 	}
 
 	template<typename T>
-	bool Compiler<T>::text2bin(const std::string &crFilename) const
+	bool Compiler<T>::text2bin(std::experimental::filesystem::path path) const
 	{
-		std::ifstream input(crFilename + ".txt");
+		std::ifstream input(path.generic_string() + ".txt");
 		if (!input.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + crFilename);
+			NDebugger::Error("Cannot open file: " + path.generic_string());
 
 			return false;
 		}
 
-		std::ofstream output(crFilename + "BinText.txt", std::ios::binary);
+		std::ofstream output(path.generic_string() + "BinText.txt", std::ios::binary);
 		if (!output.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + crFilename + "BinText");
+			NDebugger::Error("Cannot open file: " + path.generic_string() + "BinText");
 
 			input.close();
 
@@ -203,7 +220,7 @@ namespace NCompiler
 			else if (op.cmd[0] == ':' || op.cmd[op.cmd.length() - 1] == ':') // Write the label or signature of the function
 				output << WRITE_STRING(op.cmd);
 
-			else if (auto it = std::find_if(std::begin(cgTable), std::end(cgTable), [&](const Command &com) -> bool { return (com.name == op.cmd); }); it != std::end(cgTable)) // Search the cmd in cgTable
+			else if (auto it = std::find_if(CPU_COMMANDS<T>::cbegin(), CPU_COMMANDS<T>::cend(), [&](auto &&com) -> bool { return (com.name == op.cmd); }); it != CPU_COMMANDS<T>::cend()) // Search the cmd in cgTable
 			{
 				output << WRITE_STRING(op.cmd); // Write command name
 
@@ -233,20 +250,20 @@ namespace NCompiler
 	}
 
 	template<typename T>
-	bool Compiler<T>::com2bin(const std::string &crFilename) const
+	bool Compiler<T>::com2bin(std::experimental::filesystem::path path) const
 	{
-		std::ifstream input(crFilename + "Com.txt");
+		std::ifstream input(path.generic_string() + "Com.txt");
 		if (!input.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + crFilename + "Com");
+			NDebugger::Error("Cannot open file: " + path.generic_string() + "Com");
 
 			return false;
 		}
 
-		std::ofstream output(crFilename + "BinCom.txt", std::ios::binary);
+		std::ofstream output(path.generic_string() + "BinCom.txt", std::ios::binary);
 		if (!output.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + crFilename + "BinCom");
+			NDebugger::Error("Cannot open file: " + path.generic_string() + "BinCom");
 
 			input.close();
 
@@ -273,7 +290,7 @@ namespace NCompiler
 			}
 
 			Commands cmd = static_cast<Commands>(std::stoi(op.cmd));
-			if (auto it = std::find_if(std::begin(cgTable), std::end(cgTable), [&](const Command &com) -> bool { return (com.number == cmd); }); it != std::end(cgTable)) // Search the cmd in cgTable
+			if (auto it = std::find_if(CPU_COMMANDS<T>::cbegin(), CPU_COMMANDS<T>::cend(), [&](const Command &com) -> bool { return (com.number == cmd); }); it != CPU_COMMANDS<T>::cend()) // Search the cmd in cgTable
 			{
 				output << WRITE_STRING(op.cmd); // Write command number
 
@@ -307,222 +324,127 @@ namespace NCompiler
 #pragma region Functions Compiler<>::fromSomeFile
 
 	template<typename T>
-	bool Compiler<T>::fromTextFile(const std::string &crFilename)
+	bool Compiler<T>::fromTextFile(std::experimental::filesystem::path path)
 	{
-		std::ifstream file(crFilename + ".txt");
-		if (!file.is_open())
+		auto programm = std::move(load(path));
+		for(auto op = programm.begin(); op != programm.end(); op++)
 		{
-			NDebugger::Error("Cannot open file: " + crFilename);
-
-			return false;
-		}
-
-		while (!file.eof())
-		{
-			char tmp[MAX_LINE_LENGTH] = { };
-			file.getline(tmp, MAX_LINE_LENGTH, '\n');
-
-			Operation op(std::move(ParseCode(tmp)));
-			if (!op.cmd.length() || op.cmd[0] == ':' || op.cmd == "null") continue; // Skip the label or zero-line
-
-			else if (op.cmd[op.cmd.length() - 1] == ':') // Skip the function
+			if (op->cmd.front() == ':')  // Skip the label
+				continue;
+			else if (op->cmd.back() == ':') // Skip the function
 			{
 				do
 				{
-					file.getline(tmp, MAX_LINE_LENGTH, '\n');
-					op = std::move(ParseCode(tmp));
-				} while (op.cmd != "ret");
+					op++;
+				} while (op->cmd != "ret" && op != programm.cend());
 
 				continue;
 			}
-
-			else if (op.cmd == "push")
+			else if (op->cmd == "end")
+				break;
+	
+			if (auto it = std::find_if(CPU_COMMANDS<T>::cbegin(), CPU_COMMANDS<T>::cend(), [&](auto &&com) -> bool { return (com.name == op->cmd); }); it != CPU_COMMANDS<T>::cend())
 			{
-				auto val = getValue(op.args[0]);
-				auto reg = makeReg(op.args[0]);
+				short code = it->func(cpu_, op->args);
+				switch(code)
+				{
+				case 0:
+					break;
 
-				if (op.args[0][0] == '[' && reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::RAM);
-				else if (op.args[0][0] == '[' && reg == REG::NUM) cpu_.push(val, CPU<>::MemoryStorage::RAM);
-				else if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
-				else		                                      cpu_.push(val, CPU<>::MemoryStorage::STACK);
+				case 1:
+					op = programm.begin() + labels_[op->args[0]];
+					break;
+
+				case 2:
+					cpu_.push(std::distance(programm.begin(), op));
+					op = programm.begin() + labels_[op->args[0]];
+					break;
+					
+				default:
+					op = programm.begin() + code;
+					break;
+				}
+
 			}
-			else if (op.cmd == "pop")
-			{
-				if (op.args[0][0] == '[') cpu_.pop(CPU<>::MemoryStorage::RAM);
-				else                      cpu_.pop(CPU<>::MemoryStorage::STACK);
-			}
-
-			else if (op.cmd == "add") cpu_.add();
-			else if (op.cmd == "sub") cpu_.sub();
-			else if (op.cmd == "mul") cpu_.mul();
-			else if (op.cmd == "div") cpu_.div();
-			else if (op.cmd == "dup") cpu_.dup();
-			else if (op.cmd == "sin") cpu_.sin();
-			else if (op.cmd == "cos") cpu_.cos();
-			else if (op.cmd == "sqrt") cpu_.sqrt();
-
-			else if (op.cmd == "dump") cpu_.dump();
-
-			else if (op.cmd == "cmp")  cpu_.push(getValue(op.args[0]), CPU<>::MemoryStorage::STACK),
-				cpu_.push(getValue(op.args[1]), CPU<>::MemoryStorage::STACK);
-			else if (op.cmd == "jump") Move2Label(file, ':' + op.args[0]);
-
-			else if (op.cmd == "je") { auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (op.cmd == "jne") { auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (op.cmd == "ja") { auto pair = cpu_.getPair(); if (pair.first > pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (op.cmd == "jae") { auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (op.cmd == "jb") { auto pair = cpu_.getPair(); if (pair.first < pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (op.cmd == "jbe") { auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2Label(file, ':' + op.args[0]); }
-
-			else if (op.cmd == "move")
-			{
-				bool isArg0Reg = isReg(op.args[0]),
-					isArg1Reg = isReg(op.args[1]);
-
-				if (isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(op.args[0]), makeReg(op.args[1]));
-				else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(op.args[0]), makeReg(op.args[1]));
-			}
-
-			else if (op.cmd == "call")
-			{
-				cpu_.push(file.tellg());
-				Move2Label(file, op.args[0] + ':');
-			}
-			else if (op.cmd == "ret")
-			{
-				file.seekg(cpu_.top());
-				cpu_.pop(CPU<>::MemoryStorage::STACK_FUNC_RET_ADDR);
-			}
-
-			else if (op.cmd == "end") break;
-
 			else
 			{
-				NDebugger::Error("Unknown command: " + op.cmd);
-
-				file.close();
+				NDebugger::Error("Unknown command: " + op->cmd);
 
 				return false;
 			}
 		}
 
-		file.close();
-
 		return true;
 	}
 
 	template<typename T>
-	bool Compiler<T>::fromComFile(const std::string &crFilename)
+	bool Compiler<T>::fromComFile(std::experimental::filesystem::path path)
 	{
-		std::ifstream file(crFilename + "Com.txt");
-		if (!file.is_open())
+		auto programm = std::move(load(path));
+		for each (auto x in labels_)
 		{
-			NDebugger::Error("Cannot open file: " + crFilename + "Com");
-
-			return false;
+			std::cout << x.first << " " << x.second << std::endl;
 		}
-
-		while (!file.eof())
+		for (auto op = programm.begin(); op != programm.end(); op++)
 		{
-			char tmp[MAX_LINE_LENGTH] = { };
-			file.getline(tmp, MAX_LINE_LENGTH, '\n'); // Get the line from file
-
-			Operation op(std::move(ParseCode(tmp))); // Parse the line
-			if (!op.cmd.length() || op.cmd[0] == ':' || op.cmd == "null") continue; // Skip the label or zero-line
-
-			else if (op.cmd[op.cmd.length() - 1] == ':') // Skip the function
+			op->dump();
+			if (op->cmd.front() == ':')  // Skip the label
+				continue;
+			else if (op->cmd.back() == ':') // Skip the function
 			{
 				do
 				{
-					file.getline(tmp, MAX_LINE_LENGTH, '\n');
-					op = std::move(ParseCode(tmp));
-				} while (std::stoi(op.cmd) != static_cast<int>(Commands::ret));
+					op++;
+				} while (std::stoi(op->cmd) == static_cast<unsigned>(NCpu::Commands::Commands::ret) && op != programm.cend());
 
 				continue;
 			}
+			else if (std::stoi(op->cmd) == static_cast<unsigned>(NCpu::Commands::Commands::end))
+				break;
 
-			int command = std::stoi(op.cmd);
-			if (command == static_cast<int>(Commands::push))
+			unsigned cmd = std::stoi(op->cmd);
+			if (auto it = std::find_if(CPU_COMMANDS<T>::cbegin(), CPU_COMMANDS<T>::cend(), [&](auto &&com) -> bool { return (static_cast<unsigned>(com.number) == cmd); }); it != CPU_COMMANDS<T>::cend())
 			{
-				auto val = getValue(op.args[0]);
-				auto reg = makeReg(op.args[0]);
+				short code = it->func(cpu_, op->args);
+				switch (code)
+				{
+				case 0:
+					break;
 
-				if (op.args[0][0] == '[' && reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::RAM);
-				else if (op.args[0][0] == '[' && reg == REG::NUM) cpu_.push(val, CPU<>::MemoryStorage::RAM);
-				else if (reg != REG::NUM) cpu_.push(reg, CPU<>::MemoryStorage::STACK);
-				else		                                      cpu_.push(val, CPU<>::MemoryStorage::STACK);
+				case 1:
+					op = programm.begin() + labels_[op->args[0]];
+					break; 
+
+				case 2:
+					cpu_.push(std::distance(programm.begin(), op));
+					op = programm.begin() + labels_[op->args[0]];
+					break;
+			
+				default:
+					op = programm.begin() + code;
+					break;
+				
+				}
+
 			}
-			else if (command == static_cast<int>(Commands::pop))
-			{
-				if (op.args[0][0] == '[') cpu_.pop(CPU<>::MemoryStorage::RAM);
-				else                      cpu_.pop(CPU<>::MemoryStorage::STACK);
-			}
-
-			else if (command == static_cast<int>(Commands::add))  cpu_.add();
-			else if (command == static_cast<int>(Commands::sub))  cpu_.sub();
-			else if (command == static_cast<int>(Commands::div))  cpu_.div();
-			else if (command == static_cast<int>(Commands::dup))  cpu_.dup();
-			else if (command == static_cast<int>(Commands::sin))  cpu_.sin();
-			else if (command == static_cast<int>(Commands::cos))  cpu_.cos();
-			else if (command == static_cast<int>(Commands::sqrt)) cpu_.sqrt();
-
-			else if (command == static_cast<int>(Commands::dump)) cpu_.dump();
-
-			else if (command == static_cast<int>(Commands::cmp))  cpu_.push(getValue(op.args[0]), CPU<>::MemoryStorage::STACK),
-				cpu_.push(getValue(op.args[1]), CPU<>::MemoryStorage::STACK);
-			else if (command == static_cast<int>(Commands::jump)) Move2Label(file, ':' + op.args[0]);
-
-			else if (command == static_cast<int>(Commands::je)) { auto pair = cpu_.getPair(); if (pair.first == pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (command == static_cast<int>(Commands::jne)) { auto pair = cpu_.getPair(); if (pair.first != pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (command == static_cast<int>(Commands::ja)) { auto pair = cpu_.getPair(); if (pair.first > pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (command == static_cast<int>(Commands::jae)) { auto pair = cpu_.getPair(); if (pair.first >= pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (command == static_cast<int>(Commands::jb)) { auto pair = cpu_.getPair(); if (pair.first < pair.second) Move2Label(file, ':' + op.args[0]); }
-			else if (command == static_cast<int>(Commands::jbe)) { auto pair = cpu_.getPair(); if (pair.first <= pair.second) Move2Label(file, ':' + op.args[0]); }
-
-			else if (command == static_cast<int>(Commands::move))
-			{
-				bool isArg0Reg = isReg(op.args[0]),
-					isArg1Reg = isReg(op.args[1]);
-
-				if (isArg0Reg &&  isArg1Reg) cpu_.move(makeReg(op.args[0]), makeReg(op.args[1]));
-				else if (!isArg0Reg &&  isArg1Reg) cpu_.move(getValue(op.args[0]), makeReg(op.args[1]));
-			}
-
-			else if (command == static_cast<int>(Commands::call))
-			{
-				cpu_.push(file.tellg());
-				Move2Label(file, op.args[0] + ':');
-			}
-			else if (command == static_cast<int>(Commands::ret))
-			{
-				file.seekg(cpu_.top());
-				cpu_.pop(CPU<>::MemoryStorage::STACK_FUNC_RET_ADDR);
-			}
-
-			else if (command == static_cast<int>(Commands::end)) break;
-
 			else
 			{
-				NDebugger::Error("Unknown command: " + command);
-
-				file.close();
+				NDebugger::Error("Unknown command: " + op->cmd, std::cerr);
 
 				return false;
 			}
 		}
 
-		file.close();
-
 		return true;
 	}
 
 	template<typename T>
-	bool Compiler<T>::fromBinTextFile(const std::string &crFilename)
+	bool Compiler<T>::fromBinTextFile(std::experimental::filesystem::path path)
 	{
-		std::ifstream file(crFilename + "BinText.txt", std::ios::binary);
+		std::ifstream file(path.generic_string() + "BinText.txt", std::ios::binary);
 		if (!file.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + crFilename + "BinText");
+			NDebugger::Error("Cannot open file: " + path.generic_string() + "BinText");
 
 			return false;
 		}
@@ -665,12 +587,12 @@ namespace NCompiler
 	}
 
 	template<typename T>
-	bool Compiler<T>::fromBinComFile(const std::string &crFilename)
+	bool Compiler<T>::fromBinComFile(std::experimental::filesystem::path path)
 	{
-		std::ifstream file(crFilename + "BinCom.txt", std::ios::binary);
+		std::ifstream file(path.generic_string() + "BinCom.txt", std::ios::binary);
 		if (!file.is_open())
 		{
-			NDebugger::Error("Cannot open file: " + crFilename + "BinCom");
+			NDebugger::Error("Cannot open file: " + path.generic_string() + "BinCom");
 
 			return false;
 		}
@@ -815,5 +737,14 @@ namespace NCompiler
 #pragma endregion
 
 #pragma endregion
+
+//====================================================================================================================================
+//========================================================FUNCTION_DEFINITION=========================================================
+//====================================================================================================================================
+
+	inline std::string wstr2str(std::wstring_view str)
+	{ // Deprecated in C++17
+		return std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>().to_bytes(str.data());
+	}
 
 } // NCompiler

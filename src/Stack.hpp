@@ -1,8 +1,23 @@
 #pragma once
 
-#include <memory>  // std::unique_ptr
-#include <cassert> // assert
-#include <iomanip> // std::setw
+//====================================================================================================================================
+//!
+//!	\file   Stack.hpp
+//!
+//! \brief	Implementation of a non-stackable stack 
+//!
+//====================================================================================================================================
+
+#ifndef __cplusplus
+	#error
+	#error  Must use C++ to compile.
+	#error
+#endif /* __cplusplus */
+
+#include <memory>      // std::unique_ptr
+#include <cassert>     // assert
+#include <iomanip>     // std::setw
+#include <string_view> // std::string_view
 
 #include "Debugger.hpp"
 #include "Guard.hpp"
@@ -10,9 +25,21 @@
 
 namespace NStack
 {
+	
+#pragma region CLASSES
+
 	template<typename T = int>
 	class Stack final
 	{
+
+//====================================================================================================================================
+//!
+//! \brief	Reallocs memory for stack(increases by a power of two)
+//!
+//! \throw  std::bad_alloc
+//!
+//====================================================================================================================================
+
 		void reallocMemory();
 
 	public:
@@ -22,7 +49,7 @@ namespace NStack
 		typedef const T  &crVal_;
 
 		explicit Stack(size_t = DEFAULT_SIZE) noexcept;
-		Stack(const Stack&)                   noexcept;
+		Stack(const Stack<T>&)                noexcept;
 		Stack(Stack&&)                        noexcept;
 		~Stack();
 
@@ -32,22 +59,124 @@ namespace NStack
 		bool operator==(const Stack&) const;
 		bool operator!=(const Stack&) const;
 
-		size_t size()  const noexcept;
-		bool   empty() const noexcept;
+//====================================================================================================================================
+//!
+//! \brief   Returnes number of elements in stack
+//! 
+//! \return  Stack size
+//!
+//====================================================================================================================================
 
-		void push(crVal_);
-		void push(rrVal_);
+		size_t size()  const noexcept;
+
+//====================================================================================================================================
+//!
+//! \brief   Check the number of elements in stack
+//! 
+//! \return  Is stack empty
+//!
+//====================================================================================================================================
+
+		bool empty() const noexcept;
+
+//====================================================================================================================================
+//!
+//! \brief  Pushes an element to the stack
+//! 
+//! \param  val  Value to push to the top of the stack
+//!
+//! \throw  std::bad_alloc
+//!
+//====================================================================================================================================
+
+		void push(crVal_ val);
+
+//====================================================================================================================================
+//!
+//! \brief  Pushes an element to the stack
+//! 
+//! \param  val  Value to push to the top of the stack
+//!
+//! \throw  std::bad_alloc
+//!
+//====================================================================================================================================
+
+		void push(rrVal_ val);
+
+//====================================================================================================================================
+//!
+//! \brief  Pops an element from the top of the stack
+//! 
+//! \throw  std::length_error
+//!
+//====================================================================================================================================
+
 		void pop();
+
+//====================================================================================================================================
+//!
+//! \brief	 Returns an element from the top of the stack
+//!
+//! \return  Top element
+//!  
+//! \throw   std::out_of_range
+//!
+//====================================================================================================================================
 
 		crVal_ top() const;
 
-		void swap(Stack&) noexcept(std::_Is_nothrow_swappable<T>::value);
+//====================================================================================================================================
+//!
+//! \brief	 Swaps two instances of stack
+//!
+//! \param   rStack  The stack to swap with
+//!
+//! \throw   smth  
+//!
+//====================================================================================================================================
+
+		void swap(Stack &rStack) noexcept(std::_Is_nothrow_swappable<T>::value);
+
+//====================================================================================================================================
+//!
+//! \brief	Recalculates the hash
+//!
+//====================================================================================================================================
 
 		HASH_GUARD(inline void rehash() noexcept { hash_ = std::move(makeHash()); })
+
+//====================================================================================================================================
+//!
+//! \brief	 Returns current hash
+//!
+//! \return  Hash
+//!
+//====================================================================================================================================
+
 		HASH_GUARD(inline std::string_view getHash() const noexcept { return hash_; })
 
+//====================================================================================================================================
+//!
+//! \brief	 Validates the stack condition
+//!
+//! \return  Is stack ok
+//!
+//====================================================================================================================================
+
 		bool ok() const noexcept;
-		void dump(std::ostream& = std::cout) const;
+
+//====================================================================================================================================
+//!
+//! \brief	Dumps stack to the stream
+//!
+//! \param  rOstr  Stream to output
+//!
+//! \throw  smth
+//!
+//====================================================================================================================================
+
+		template<typename Char, typename Traits = std::char_traits<Char>>
+		void dump(std::basic_ostream<Char, Traits> &rOstr) const;
 
 	private:
 		CANARY_GUARD(const std::string CANARY_VALUE;)
@@ -60,6 +189,16 @@ namespace NStack
 		std::unique_ptr<T[]> buffer_;
 
 		CANARY_GUARD(const std::string canaryFinish_;)
+
+//====================================================================================================================================
+//!
+//! \brief	 Constructs line to calculate hash
+//!
+//! \return  Hash
+//!  
+//! \throw   smth
+//!
+//====================================================================================================================================
 
 		HASH_GUARD
 		(
@@ -76,23 +215,32 @@ namespace NStack
 		static size_t numberOfInstances;
 	};
 
-	//====================================================================================================================================
-	//==========================================================STATIC_VARIABLES==========================================================
-	//====================================================================================================================================
+#pragma endregion
+
+#pragma region STATIC_VARIABLES
 
 	template<typename T>
 	size_t Stack<T>::numberOfInstances = 0;
 
+#pragma endregion
+
+#pragma region FUNCTION_DECLARATION
+
 	//====================================================================================================================================
-	//========================================================FUNCTION_DECLARATION========================================================
+	//!
+	//! \brief	 Dumps crStack to rLogger
+	//!
+	//! \param   rLogger  Logger to output
+	//! \param   crStack  Stack which will be dumped
+	//!
+	//! \return  rLogger
+	//!
 	//====================================================================================================================================
 
 	template<typename T>
-	Logger& operator<<(Logger&, const Stack<T>&);
+	Logger& operator<<(Logger &rLogger, const Stack<T> &crStack);
 
-	//====================================================================================================================================
-	//=========================================================METHOD_DEFINITION==========================================================
-	//====================================================================================================================================
+#pragma endregion
 
 #pragma region METHOD_DEFINITION
 
@@ -119,7 +267,7 @@ namespace NStack
 	}
 
 	template<typename T>
-	inline Stack<T>::Stack(const Stack &crStack) noexcept :
+	inline Stack<T>::Stack(const Stack<T> &crStack) noexcept :
 		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + std::to_string(++numberOfInstances)).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE),)
 		HASH_GUARD(hash_(),)
@@ -143,14 +291,14 @@ namespace NStack
 	}
 
 	template<typename T>
-	inline Stack<T>::Stack(Stack &&rrStack) noexcept :
+	inline Stack<T>::Stack(Stack<T> &&rrStack) noexcept :
 		CANARY_GUARD(CANARY_VALUE(NHash::Hash("Stack" + std::to_string(++numberOfInstances)).getHash()),)
 		CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 		HASH_GUARD(hash_(rrStack.hash_), )
 
 		counter_(rrStack.counter_),
 		size_(rrStack.size_),
-		buffer_(rrStack.buffer_)
+		buffer_(rrStack.buffer_.release())
 
 		CANARY_GUARD(, canaryFinish_(CANARY_VALUE))
 	{
@@ -249,9 +397,11 @@ namespace NStack
 	{
 		GUARD_CHECK()
 
-		if (counter_ != crStack.counter_) return false;
+		if (counter_ != crStack.counter_) 
+			return false;
 
-		if (!counter_) return true; // Zero-size verification
+		if (!counter_) 
+			return true; // Zero-size verification
 
 		GUARD_CHECK()
 
@@ -281,7 +431,8 @@ namespace NStack
 	{
 		GUARD_CHECK()
 
-		if (counter_ + 1 == size_) reallocMemory();
+		if (counter_ + 1 == size_) 
+			reallocMemory();
 
 		buffer_[counter_] = val;
 		++counter_;
@@ -296,7 +447,8 @@ namespace NStack
 	{
 		GUARD_CHECK()
 
-		if (counter_ + 1 == size_) reallocMemory();
+		if (counter_ + 1 == size_) 
+			reallocMemory();
 
 		buffer_[counter_] = val;
 		++counter_;
@@ -311,7 +463,8 @@ namespace NStack
 	{
 		GUARD_CHECK()
 
-		if (!counter_) throw std::length_error(std::string("[") + __FUNCTION__ + "] Stack length error\n");
+		if (!counter_) 
+			throw std::length_error(std::string("[") + __FUNCTION__ + "] Stack length error\n");
 
 		--counter_;
 
@@ -325,7 +478,8 @@ namespace NStack
 	{
 		GUARD_CHECK()
 
-		if (!counter_) throw std::out_of_range(__FUNCTION__);
+		if (!counter_) 
+			throw std::out_of_range(std::string("[") + __FUNCTION__ + "] Stack out of range\n");
 
 		GUARD_CHECK()
 
@@ -358,9 +512,10 @@ namespace NStack
 	}
 
 	template<typename T>
-	void Stack<T>::dump(std::ostream &rOstr /* = std::cout */) const
+	template<typename Char, typename Traits>
+	void Stack<T>::dump(std::basic_ostream<Char, Traits> &rOstr) const
 	{
-		NDebugger::Info("\t[STACK DUMP]", NDebugger::TextColor::Yellow, true, rOstr);
+		NDebugger::Text(std::string_view("\t[STACK DUMP]"), rOstr, NDebugger::Colors::Yellow);
 
 		rOstr << "Stack <" << typeid(T).name() << "> [0x" << this << "]\n"
 			  << "{\n\tbuffer [" << counter_ << "] = 0x" << buffer_.get() << "\n\t{\n";
@@ -375,40 +530,40 @@ namespace NStack
 			rOstr << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
 
 			rOstr << "\tCANARY_START  = " << canaryStart_;
-			if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
-			else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
+			if (canaryStart_ == CANARY_VALUE) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
+			else                              NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
 
 			rOstr << "\tCANARY_FINISH = " << canaryFinish_;
-			if (canaryFinish_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
-			else                               NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
+			if (canaryFinish_ == CANARY_VALUE) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
+			else                               NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
 			)
 
 		HASH_GUARD
 		(
 			rOstr << "\n\tHASH = " << hash_;		
-			if (hash_ == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
-			else                     NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
+			if (hash_ == makeHash()) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
+			else                     NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
 		)
 
 		rOstr << "}\n";
 
-		NDebugger::Info("\t[   END    ]\n", NDebugger::TextColor::Yellow, true, rOstr);
+		NDebugger::Text(std::string_view("\t[   END    ]\n"), rOstr, NDebugger::Colors::Yellow);
 	}
 
 #pragma endregion
 
-	//====================================================================================================================================
-	//========================================================FUNCTION_DEFINITION=========================================================
-	//====================================================================================================================================
+#pragma region FUNCTION_DEFINITION
 
 	template<typename T>
 	Logger& operator<<(Logger &rLogger, const Stack<T> &crStack)
 	{
 		Logger::stdPack(std::string("Stack<") + typeid(T).name() + ">");
 
-		crStack.dump(static_cast<std::ostream>(Logger::getOfstream()));
+		crStack.dump(Logger::getOfstream());
 
 		return rLogger;
 	}
+
+#pragma endregion
 
 } // namespace NStack

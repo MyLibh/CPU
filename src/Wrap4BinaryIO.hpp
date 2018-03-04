@@ -1,6 +1,24 @@
 #pragma once
 
-#include <iosfwd> // std::ifstream, std::ofstream
+//====================================================================================================================================
+//!
+//!	\file   Wrap4BinaryIO.hpp
+//!
+//! \brief	Header file with a wrapper for binary input/output
+//!
+//====================================================================================================================================
+
+#ifndef __cplusplus
+#error
+#error  Must use C++ to compile.
+#error
+#endif /* __cplusplus */
+
+#include <memory>  // std::unique_ptr
+#include <iosfwd>  // std::ifstream, std::ofstream
+#include <cassert> // assert
+
+#pragma region CLASSES
 
 template<typename T> 
 class Wrap4BinaryIO final
@@ -21,9 +39,7 @@ private:
 	T val_;
 };
 
-//====================================================================================================================================
-//========================================================FUNCTION_DECLARATION========================================================
-//====================================================================================================================================
+#pragma endregion
 
 #pragma region FUNCTION_DECLARATION
 
@@ -34,10 +50,6 @@ template<typename T>
 std::ostream &operator<<(std::ostream&, Wrap4BinaryIO<T>&);
 
 #pragma endregion
-
-//====================================================================================================================================
-//=========================================================METHOD_DEFINITION==========================================================
-//====================================================================================================================================
 
 #pragma region METHOD_DEFINITION
 
@@ -86,34 +98,6 @@ inline Wrap4BinaryIO<T>::operator const T&() const noexcept
 
 #pragma endregion
 
-//====================================================================================================================================
-//========================================================FUNCTION_DEFINITION=========================================================
-//====================================================================================================================================
-
-#pragma region FUNCTION_DEFINITION
-
-template<typename T>
-std::istream &operator>>(std::istream &rIstr, Wrap4BinaryIO<T> &rVal)
-{
-	rIstr.read(reinterpret_cast<char*>(&static_cast<T&>(rVal)), sizeof(T));
-
-	return rIstr;
-}
-
-template<typename T>
-std::ostream &operator<<(std::ostream &rOstr, Wrap4BinaryIO<T> &rVal)
-{
-	rOstr.write(reinterpret_cast<const char*>(&static_cast<T&>(rVal)), sizeof(T));
-
-	return rOstr;
-}
-
-#pragma endregion
-
-//====================================================================================================================================
-//======================================================TEMPLATE_SPECIALIZATION=======================================================
-//====================================================================================================================================
-
 #pragma region TEMPLATE_SPECIALIZATION
 
 template<>
@@ -142,3 +126,25 @@ std::ostream &operator<<<std::string>(std::ostream &rOstr, Wrap4BinaryIO<std::st
 }
 
 #pragma endregion
+
+#pragma region FUNCTION_DEFINITION
+
+template<typename T>
+std::istream &operator>>(std::istream &rIstr, Wrap4BinaryIO<T> &rVal)
+{
+	rIstr.read(reinterpret_cast<char*>(&static_cast<T&>(rVal)), sizeof(T));
+
+	return rIstr;
+}
+
+template<typename T>
+std::ostream &operator<<(std::ostream &rOstr, Wrap4BinaryIO<T> &rVal)
+{
+	rOstr.write(reinterpret_cast<const char*>(&static_cast<T&>(rVal)), sizeof(T));
+
+	return rOstr;
+}
+
+#pragma endregion
+
+

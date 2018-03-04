@@ -14,9 +14,10 @@
 
 namespace NParser
 {
-	//====================================================================================================================================
-	//=========================================================METHOD_DEFINITION==========================================================
-	//====================================================================================================================================
+
+//====================================================================================================================================
+//=========================================================METHOD_DEFINITION==========================================================
+//====================================================================================================================================
 
 #pragma region METHOD_DEFINITION
 
@@ -45,9 +46,9 @@ namespace NParser
 	{
 		if (!cmd.length()) return;
 
-		std::streamsize width = 1 << 3;
+		NDebugger::Text(std::string_view("OP: "), rOstr, NDebugger::Colors::LightCyan, NDebugger::Colors::Black, false);
 
-		NDebugger::Info("OP: ", NDebugger::TextColor::LightCyan, false, rOstr);
+		std::streamsize width = 1 << 3;
 		rOstr << std::setw(width) << (cmd.length() ? cmd : "null");
 
 		for (size_t i = 0; i < MAX_ARGS; ++i)
@@ -56,7 +57,7 @@ namespace NParser
 
 			rOstr << ", ";
 
-			NDebugger::Info("ARG" + std::to_string(i + 1) + ": ", NDebugger::TextColor::Cyan, false, rOstr);
+			NDebugger::Text("ARG" + std::to_string(i + 1) + ": ", rOstr, NDebugger::Colors::Cyan, NDebugger::Colors::Black, false);
 
 			rOstr << std::setw(width) << (args[i].length() ? args[i] : "null");
 		}
@@ -66,9 +67,9 @@ namespace NParser
 
 #pragma endregion
 
-	//====================================================================================================================================
-	//========================================================FUNCTION_DEFINITION=========================================================
-	//====================================================================================================================================
+//====================================================================================================================================
+//========================================================FUNCTION_DEFINITION=========================================================
+//====================================================================================================================================
 
 #pragma region FUNCTION_DEFINITION
 
@@ -112,7 +113,7 @@ namespace NParser
 	{
 		if (!rCode.is_open())
 		{
-			NDebugger::Error(std::string("[") + __FUNCTION__ + "Ifstream is not open\n");
+			NDebugger::Text(std::string("[") + __FUNCTION__ + "Ifstream is not open\n", std::cerr);
 
 			return false;
 		}
@@ -133,14 +134,14 @@ namespace NParser
 	{
 		if (!rCode.is_open())
 		{
-			NDebugger::Error(std::string("[") + __FUNCTION__ + "] Ifstream is not open\n");
+			NDebugger::Error(std::string("[") + __FUNCTION__ + "] Ifstream is not open\n", std::cerr);
 
 			return false;
 		}
 
 		if (rCode.flags() & std::ios::binary)
 		{
-			NDebugger::Error(std::string("[") + __FUNCTION__ + "] Ifstream is open in wrong mode\n");
+			NDebugger::Error(std::string("[") + __FUNCTION__ + "] Ifstream is open in wrong mode\n", std::cerr);
 
 			return false;
 		}

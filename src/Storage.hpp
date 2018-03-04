@@ -1,10 +1,26 @@
 #pragma once
 
+//====================================================================================================================================
+//!
+//!	\file   Storage.hpp
+//!
+//! \brief	Implementation of a simple static storage
+//!
+//====================================================================================================================================
+
+#ifndef __cplusplus
+#error
+#error  Must use C++ to compile.
+#error
+#endif /* __cplusplus */
+
 #include <cassert> // assert
 #include <iomanip> // std::setw
 #include <array>   // std::array
 
 #include "Guard.hpp"
+
+#pragma region CLASSES
 
 template<typename T, size_t SIZE>
 class Storage 
@@ -22,19 +38,99 @@ public:
 	virtual Storage &operator=(const Storage&) noexcept;
 	virtual Storage &operator=(Storage&&)      noexcept;
 
-	virtual rVal_  operator[](size_t);
-	virtual crVal_ operator[](size_t) const;
+//====================================================================================================================================
+//!
+//! \brief   Returnes element with index index(with size checking)
+//! 
+//! \param   index  Position of the element
+//!
+//! \return  Element at index 
+//!
+//! \throw   std::out_of_range
+//!
+//====================================================================================================================================
 
-	constexpr size_t size() const noexcept { return SIZE; }
+	virtual rVal_  operator[](size_t index);
+
+//====================================================================================================================================
+//!
+//! \brief   Returnes element with index index(with size checking)
+//! 
+//! \param   index  Position of the element
+//!
+//! \return  Element at index 
+//!
+//! \throw   std::out_of_range
+//!
+//====================================================================================================================================
+
+	virtual crVal_ operator[](size_t index) const;
+
+//====================================================================================================================================
+//!
+//! \brief   Returnes number of elements in storage
+//! 
+//! \return  Storage size
+//!
+//====================================================================================================================================
+
+	constexpr size_t size() const noexcept 
+	{ 
+		return SIZE; 
+	}
+
+//====================================================================================================================================
+//!
+//! \brief	 Swaps two instances of storage
+//!
+//! \param   rStorage  The storage to swap with
+//!
+//! \throw   maybe 
+//!
+//====================================================================================================================================
+
+	void swap(Storage &rStorage) noexcept(std::_Is_nothrow_swappable<T>::value);
+
+//====================================================================================================================================
+//!
+//! \brief	Recalculates the hash
+//!
+//====================================================================================================================================
 
 	HASH_GUARD(inline void rehash() { hash_ = std::move(makeHash()); })
 
+//====================================================================================================================================
+//!
+//! \brief	 Returns current hash
+//!
+//! \return  Hash
+//!
+//====================================================================================================================================
+
 	HASH_GUARD(inline std::string_view getHash() const { return hash_; })
 
-	void swap(Storage&) noexcept(std::_Is_nothrow_swappable<T>::value);
+//====================================================================================================================================
+//!
+//! \brief	 Validates the storage condition
+//!
+//! \return  Is storage ok
+//!
+//====================================================================================================================================
 
-	virtual bool ok() const noexcept;
-	virtual void dump(std::ostream& = std::cout) const;
+	bool ok() const noexcept;
+
+//====================================================================================================================================
+//!
+//! \brief	Dumps storage to the stream
+//!
+//! \param  rOstr  Stream to output
+//!
+//! \throw  smth
+//!
+//====================================================================================================================================
+
+	// template<typename Char, typename Traits = std::char_traits<Char>>
+	// void dump(std::basic_ostream<Char, Traits> &rOstr) const;
 
 protected:
 	CANARY_GUARD(const std::string CANARY_VALUE;)
@@ -43,6 +139,16 @@ protected:
 	std::array<T, SIZE> buf_;
 
 	CANARY_GUARD(std::string canaryFinish_;)
+
+//====================================================================================================================================
+//!
+//! \brief	 Constructs line to calculate hash
+//!
+//! \return  Hash
+//!  
+//! \throw   smth
+//!
+//====================================================================================================================================
 
 	HASH_GUARD
 	(
@@ -61,28 +167,26 @@ private:
 	static size_t numberOfInstances;
 };
 
-//====================================================================================================================================
-//==========================================================STATIC_VARIABLES==========================================================
-//====================================================================================================================================
+#pragma endregion 
+
+#pragma region STATIC_VARIABLES
 
 template<typename T, size_t SIZE>
 size_t Storage<T, SIZE>::numberOfInstances = 0;
 
-//====================================================================================================================================
-//========================================================FUNCTION_DECLARATION========================================================
-//====================================================================================================================================
+#pragma endregion
+
+#pragma region FUNCTION_DECLARATION
 
 template<typename T, size_t SIZE>
 inline std::ostream &operator<<(std::ostream&, const Storage<T, SIZE>&);
 
-//====================================================================================================================================
-//=========================================================METHOD_DEFINITION==========================================================
-//====================================================================================================================================
+#pragma endregion
 
 #pragma region METHOD_DEFINITION
 
 template<typename T, size_t SIZE>
-inline Storage<T, SIZE>::Storage() noexcept :
+Storage<T, SIZE>::Storage() noexcept :
 	CANARY_GUARD(CANARY_VALUE(NHash::Hash("Storage" + ++numberOfInstances).getHash()), )
 	CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 	HASH_GUARD(hash_(), )
@@ -99,7 +203,7 @@ inline Storage<T, SIZE>::Storage() noexcept :
 }
 
 template<typename T, size_t SIZE>
-inline Storage<T, SIZE>::Storage(const Storage &crStorage) noexcept :
+Storage<T, SIZE>::Storage(const Storage &crStorage) noexcept :
 	CANARY_GUARD(CANARY_VALUE(NHash::Hash("Storage" + ++numberOfInstances).getHash()), )
 	CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 	HASH_GUARD(hash_(crStorage.hash_), )
@@ -115,7 +219,7 @@ inline Storage<T, SIZE>::Storage(const Storage &crStorage) noexcept :
 }
 
 template<typename T, size_t SIZE>
-inline Storage<T, SIZE>::Storage(Storage &&rrStorage) noexcept :
+Storage<T, SIZE>::Storage(Storage &&rrStorage) noexcept :
 	CANARY_GUARD(CANARY_VALUE(NHash::Hash("Storage" + ++numberOfInstances).getHash()), )
 	CANARY_GUARD(canaryStart_(CANARY_VALUE), )
 	HASH_GUARD(hash_(std::move(rrStorage.hash_)), )
@@ -181,11 +285,7 @@ inline typename Storage<T, SIZE>::rVal_ Storage<T, SIZE>::operator[](size_t inde
 {
 	GUARD_CHECK()
 
-	if (index >= SIZE) throw std::out_of_range(std::string("[") + __FUNCTION__ + "] Storage out of range\n");
-
-	GUARD_CHECK()
-
-	return buf_[index];
+	return  buf_.at(index);
 }
 
 template<typename T, size_t SIZE>
@@ -193,11 +293,7 @@ inline typename Storage<T, SIZE>::crVal_ Storage<T, SIZE>::operator[](size_t ind
 {
 	GUARD_CHECK()
 
-	if (index >= SIZE) throw std::out_of_range(std::string("[") + __FUNCTION__ + "] Storage out of range\n");
-
-	GUARD_CHECK()
-
-	return buf_[index];
+	return buf_.at(index);
 }
 
 template<typename T, size_t SIZE>
@@ -214,15 +310,17 @@ inline void Storage<T, SIZE>::swap(Storage &rStorage) noexcept(std::_Is_nothrow_
 }
 
 template<typename T, size_t SIZE>
-inline bool Storage<T, SIZE>::ok() const noexcept
+bool Storage<T, SIZE>::ok() const noexcept
 {
 	return (CANARY_GUARD(canaryStart_ == CANARY_VALUE && canaryFinish_ == CANARY_VALUE && )
 			HASH_GUARD(hash_ == makeHash() && )
 			&buf_);
 }
 
+/*
 template<typename T, size_t SIZE>
-void Storage<T, SIZE>::dump(std::ostream &rOstr /* = std::cout */) const
+template<typename Char, typename Traits>
+void Storage<T, SIZE>::dump(std::basic_ostream<Char, Traits> &rOstr) const
 {
 	rOstr << "[STORAGE DUMP]\n" 
           << "Storage <" << typeid(T).name() << ", " << SIZE << "> [0x" << this << "]\n{\n"
@@ -237,34 +335,35 @@ void Storage<T, SIZE>::dump(std::ostream &rOstr /* = std::cout */) const
 		rOstr << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
 
 		rOstr << "\tCANARY_START  = " << canaryStart_;
-		if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE", NDebugger::TextColor::Green, true, rOstr);
-		else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red,  true, rOstr);
+		if (canaryStart_ == CANARY_VALUE) NDebugger::Text(" TRUE ", rOstr, NDebugger::Colors::Green);
+		else                              NDebugger::Text(" FALSE", rOstr, NDebugger::Colors::Red);
 
 		rOstr << "\tCANARY_FINISH = " << canaryFinish_;
-		if (canaryFinish_ == CANARY_VALUE) NDebugger::Info(" TRUE", NDebugger::TextColor::Green, true, rOstr);
-		else                               NDebugger::Info(" FALSE", NDebugger::TextColor::Red,  true, rOstr);
+		if (canaryFinish_ == CANARY_VALUE) NDebugger::Text(" TRUE ", rOstr, NDebugger::Colors::Green);
+		else                               NDebugger::Text(" FALSE", rOstr, NDebugger::Colors::Red);
 	)
 
 	HASH_GUARD
 	(
 		rOstr << "\n\tHASH = " << hash_;
-		if (hash_ == makeHash()) NDebugger::Info(" TRUE", NDebugger::TextColor::Green, true, rOstr);
-		else                     NDebugger::Info(" FALSE", NDebugger::TextColor::Red,  true, rOstr);
+		if (hash_ == makeHash()) NDebugger::Text(" TRUE ", rOstr, NDebugger::Colors::Green);
+		else                     NDebugger::Text(" FALSE", rOstr, NDebugger::Colors::Red);
 	)
 
 	rOstr << "}\n[     END     ]\n\n";
 }
+*/
 
 #pragma endregion
 
-//====================================================================================================================================
-//========================================================FUNCTION_DEFINITION=========================================================
-//====================================================================================================================================
+#pragma region FUNCTION_DEFINITION
 
 template<typename T, size_t SIZE>
 inline std::ostream& operator<<(std::ostream& rOstr, const Storage<T, SIZE> &crStorage)
 {
-	crStorage.dump(rOstr);
+	// crStorage.dump(rOstr);
 
 	return rOstr;
 }
+
+#pragma endregion

@@ -6,6 +6,9 @@
 
 namespace NRegister
 {
+
+#pragma region ENUMS
+
 	enum class Registers : size_t
 	{
 		AX,
@@ -19,7 +22,15 @@ namespace NRegister
 		NUM
 	};
 
+#pragma endregion
+
+#pragma region TYPEDEFS
+
 	typedef Registers REG;
+
+#pragma endregion
+
+#pragma region CLASSES
 
 	template<typename T = int>
 	class Register final : public Storage<T, static_cast<size_t>(REG::NUM)>
@@ -30,12 +41,21 @@ namespace NRegister
 		Register(Register&&)      noexcept;
 		~Register();
 
-		virtual void dump(std::ostream& = std::cout) const override;
+//====================================================================================================================================
+//!
+//! \brief	 Dumps register to the stream
+//!
+//! \param   rOstr  Stream to output
+//!
+//! \throw   smth
+//!
+//====================================================================================================================================
+
+		template<typename Char, typename Traits = std::char_traits<Char>>
+		void dump(std::basic_ostream<Char, Traits>& rOstr) const;
 	};
 
-	//====================================================================================================================================
-	//========================================================FUNCTION_DECLARATION========================================================
-	//====================================================================================================================================
+#pragma endregion
 
 #pragma region FUNCTION_DECLARATION
 
@@ -44,31 +64,31 @@ namespace NRegister
 
 	inline std::string_view GetReg(REG);
 
-#pragma endregion
+	REG MakeReg(std::string_view);
 
-	//====================================================================================================================================
-	//=========================================================METHOD_DEFINITION==========================================================
-	//====================================================================================================================================
+	inline bool IsReg(std::string_view);
+
+#pragma endregion
 
 #pragma region METHOD_DEFINITION
 
 	template<typename T>
 	inline Register<T>::Register() noexcept :
-		Storage()
+		Storage<T, static_cast<size_t>(REG::NUM)>()
 	{
 		LOG_CONSTRUCTING()
 	}
 
 	template<typename T>
 	inline Register<T>::Register(const Register &crRegister) noexcept :
-		Storage(crRegister)
+		Storage<T, static_cast<size_t>(REG::NUM)>(crRegister)
 	{
 		LOG_CONSTRUCTING()
 	}
 
 	template<typename T>
 	inline Register<T>::Register(Register &&rrRegister) noexcept :
-		Storage(std::move(rrRegister))
+		Storage<T, static_cast<size_t>(REG::NUM)>(std::move(rrRegister))
 	{
 		LOG_CONSTRUCTING()
 	}
@@ -80,46 +100,44 @@ namespace NRegister
 	}
 
 	template<typename T>
-	void Register<T>::dump(std::ostream &rOstr /* = std::cout */) const 
+	template<typename Char, typename Traits>
+	void Register<T>::dump(std::basic_ostream<Char, Traits> &rOstr) const
 	{
-		NDebugger::Info("\t[REGISTER DUMP]", NDebugger::TextColor::Green, true, rOstr);
+		NDebugger::Text(std::string_view("\t[REGISTER DUMP]"), rOstr, NDebugger::Colors::Green);
 
 		rOstr << "Register <" << typeid(T).name() << "> [0x" << this << "]\n{\n";
 
-		for (size_t i = 0; i < static_cast<size_t>(REG::NUM) - 1; ++i) rOstr << "\t[" << static_cast<char>('A' + i) << "X] = " << buf_[i] << std::endl;
+		for (size_t i = 0; i < static_cast<size_t>(REG::NUM) - 1; ++i) 
+			rOstr << "\t[" << static_cast<char>('A' + i) << "X] = " << this->buf_[i] << std::endl;
 
-		rOstr << "\t[SP] = " << buf_[static_cast<size_t>(REG::SP)] << "\n\n";
+		rOstr << "\t[SP] = " << this->buf_[static_cast<size_t>(REG::SP)] << "\n\n";
 
 		CANARY_GUARD
 		(
 			rOstr << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
 
 			rOstr << "\tCANARY_START  = " << canaryStart_;
-			if (canaryStart_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
-			else                              NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
+			if (canaryStart_ == CANARY_VALUE) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
+			else                              NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
 
 			rOstr << "\tCANARY_FINISH = " << canaryFinish_;
-			if (canaryFinish_ == CANARY_VALUE) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
-			else                               NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
+			if (canaryFinish_ == CANARY_VALUE) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
+			else                               NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
 		)
 
 		HASH_GUARD
 		(
 			rOstr << "\n\tHASH = " << getHash().data();
-			if (getHash() == makeHash()) NDebugger::Info(" TRUE",  NDebugger::TextColor::Green, true, rOstr);
-			else                         NDebugger::Info(" FALSE", NDebugger::TextColor::Red,   true, rOstr);
+			if (getHash() == makeHash()) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
+			else                         NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
 		)
 
 		rOstr << "}\n";
 
-		NDebugger::Info("\t[     END     ]\n", NDebugger::TextColor::Green, true, rOstr);
+		NDebugger::Text(std::string_view("\t[     END     ]\n"), rOstr, NDebugger::Colors::Green);
 	}
 
 #pragma endregion
-
-	//====================================================================================================================================
-	//========================================================FUNCTION_DEFINITION=========================================================
-	//====================================================================================================================================
 
 #pragma region FUNCTION_DEFINITION
 
@@ -148,6 +166,23 @@ namespace NRegister
 		else                     return std::string_view("null");
 	}
 
+	REG MakeReg(std::string_view str)
+	{
+		if (str == "ax" || str == "[ax]") return REG::AX;
+		else if (str == "bx" || str == "[bx]") return REG::BX;
+		else if (str == "cx" || str == "[cx]") return REG::CX;
+		else if (str == "dx" || str == "[dx]") return REG::DX;
+		else if (str == "ex" || str == "[ex]") return REG::EX;
+		else if (str == "sp" || str == "[sp]") return REG::SP;
+
+		else                                   return REG::NUM;
+	}
+
+	inline bool IsReg(std::string_view val)
+	{
+		return (MakeReg(val) != REG::NUM);
+	}
+
 #pragma endregion
 
-} // namespace NReg 
+} // namespace NRegister 

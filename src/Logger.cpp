@@ -1,18 +1,17 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <fstream> // std::ofstream
 #include <iomanip> // std::setw, std::put_time
 #include <ctime>   // std::time_t, std::tm
 #include <chrono>  // std::chrono::system_clock
 
 #include "Logger.hpp"
 
-#pragma region CONSTANTS
+//====================================================================================================================================
+//=============================================================CONSTANTS==============================================================
+//====================================================================================================================================
 
 constexpr std::streamsize LOG_FUNC_SIZE = 1 << 6;
-
-#pragma endregion
 
 //====================================================================================================================================
 //==========================================================STATIC_VARIABLES==========================================================
@@ -90,13 +89,14 @@ bool Logger::stdPack(std::string_view func, Type type /* = Type::Debug */)
 	return true;
 }
 
-inline bool Logger::write(std::string_view func, std::string_view info, Type type /* = Type::Debug */)
+bool Logger::write(std::string_view func, std::string_view info, Type type)
 {
-	if(!stdPack(func, type)) return false;
+	if (!stdPack(func, type))
+		return false;
 
 	log_ << info.data() << std::endl;
 
-	return true;
+	return false;
 }
 
 #pragma endregion
