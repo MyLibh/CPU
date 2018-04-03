@@ -131,7 +131,7 @@ namespace NStack
 //!
 //! \param   rStack  The stack to swap with
 //!
-//! \throw   smth  
+//! \throw   std::_Is_nothrow_swappable<T>::value  
 //!
 //====================================================================================================================================
 
@@ -171,12 +171,10 @@ namespace NStack
 //!
 //! \param  rOstr  Stream to output
 //!
-//! \throw  smth
-//!
 //====================================================================================================================================
 
 		template<typename Char, typename Traits = std::char_traits<Char>>
-		void dump(std::basic_ostream<Char, Traits> &rOstr) const;
+		void dump(std::basic_ostream<Char, Traits> &rOstr) const noexcept;
 
 	private:
 		CANARY_GUARD(const std::string CANARY_VALUE;)
@@ -513,41 +511,50 @@ namespace NStack
 
 	template<typename T>
 	template<typename Char, typename Traits>
-	void Stack<T>::dump(std::basic_ostream<Char, Traits> &rOstr) const
+	void Stack<T>::dump(std::basic_ostream<Char, Traits> &rOstr) const noexcept
 	{
-		NDebugger::Text(std::string_view("\t[STACK DUMP]"), rOstr, NDebugger::Colors::Yellow);
+		try
+        {
+            NDebugger::Text(std::string_view("\t[STACK DUMP]"), rOstr, NDebugger::Colors::Yellow);
 
-		rOstr << "Stack <" << typeid(T).name() << "> [0x" << this << "]\n"
-			  << "{\n\tbuffer [" << counter_ << "] = 0x" << buffer_.get() << "\n\t{\n";
+		    rOstr << "Stack <" << typeid(T).name() << "> [0x" << this << "]\n"
+			      << "{\n\tbuffer [" << counter_ << "] = 0x" << buffer_.get() << "\n\t{\n";
 
-		if (counter_) for (size_t i = 0; i < counter_; ++i) rOstr << "\t\t[" << i << "] = " << std::setw(8) << buffer_[i] << std::endl;
-		else                                                rOstr << "\t\tempty\n";
+		    if (counter_) for (size_t i = 0; i < counter_; ++i) rOstr << "\t\t[" << i << "] = " << std::setw(8) << buffer_[i] << std::endl;
+		    else                                                rOstr << "\t\tempty\n";
 
-		rOstr << "\t}\n\n";
+		    rOstr << "\t}\n\n";
 
-		CANARY_GUARD
-		(
-			rOstr << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
+		    CANARY_GUARD
+		    (
+			    rOstr << "\tCANARY_VALUE  = " << CANARY_VALUE << std::endl;
 
-			rOstr << "\tCANARY_START  = " << canaryStart_;
-			if (canaryStart_ == CANARY_VALUE) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
-			else                              NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
+			    rOstr << "\tCANARY_START  = " << canaryStart_;
+			    if (canaryStart_ == CANARY_VALUE) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
+			    else                              NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
 
-			rOstr << "\tCANARY_FINISH = " << canaryFinish_;
-			if (canaryFinish_ == CANARY_VALUE) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
-			else                               NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
-			)
+			    rOstr << "\tCANARY_FINISH = " << canaryFinish_;
+			    if (canaryFinish_ == CANARY_VALUE) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
+			    else                               NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
+			    )
 
-		HASH_GUARD
-		(
-			rOstr << "\n\tHASH = " << hash_;		
-			if (hash_ == makeHash()) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
-			else                     NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
-		)
+		    HASH_GUARD
+		    (
+			    rOstr << "\n\tHASH = " << hash_;		
+			    if (hash_ == makeHash()) NDebugger::Text(std::string_view(" TRUE "), rOstr, NDebugger::Colors::Green);
+			    else                     NDebugger::Text(std::string_view(" FALSE"), rOstr, NDebugger::Colors::Red);
+		    )
 
-		rOstr << "}\n";
+		    rOstr << "}\n";
 
-		NDebugger::Text(std::string_view("\t[   END    ]\n"), rOstr, NDebugger::Colors::Yellow);
+		    NDebugger::Text(std::string_view("\t[   END    ]\n"), rOstr, NDebugger::Colors::Yellow);
+           }
+        catch(...)
+        {
+            std::cerr << "Something went wrong in \"" << __FUNCTION__ << "\"! Goodbye!!!\n";
+            
+            terminate();    
+        }
 	}
 
 #pragma endregion
