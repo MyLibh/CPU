@@ -40,7 +40,7 @@ public:
 
 //====================================================================================================================================
 //!
-//! \brief   Returnes element with index index(with size checking)
+//! \brief   Returnes element at index(with size checking)
 //! 
 //! \param   index  Position of the element
 //!
